@@ -2,8 +2,9 @@ name: publish-to-pypi
 
 on:
   push:
+    # Sequence of patterns matched against refs/tags
     tags:
-      - 'v*'
+      - 'v*'# Push events to matching v*, i.e. v1.0.0
 
 jobs:
   build-and-publish:
