@@ -1,44 +1,15 @@
+"""
+Abstract base classes for trains
+"""
+
 import abc
 import datetime
 import time
-from typing import Optional, Tuple, Dict, Union, Any, List, TypeVar, Generic, Callable
+from typing import Optional, Tuple, Dict, Union, Any, List, Callable
 
 from ..exceptions import DataInvalidError
 from ..utils.conversions import coordinates_to_distance
-from ..utils.data import StaticDataConnector, DynamicDataConnector
-
-T = TypeVar('T')
-
-
-class ScheduledEvent(Generic[T]):
-    """
-    Something that is scheduled and can happen as ``scheduled``,
-    but can also happen different from the expected and actually happens as ``actual``
-    """
-
-    __slots__ = ["scheduled", "actual"]
-
-    def __init__(self, scheduled: Optional[T] = None, actual: Optional[T] = None):
-        """
-        Initialize a new :class:`ScheduledEvent`
-
-        :param scheduled: The value that should happen
-        :type scheduled: Optional[T]
-        :param actual: The value that actually happens
-        :type actual: Optional[T]
-        """
-        self.scheduled = scheduled
-        self.actual = actual
-
-    def __repr__(self):
-        if self.actual is None:
-            return f"<{self.__class__.__name__} {self.scheduled}>"
-        return f"<{self.__class__.__name__} {self.actual}>"
-
-    def __str__(self):
-        if self.actual is None:
-            return f"{self.scheduled}"
-        return f"{self.actual}"
+from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent
 
 
 class Station(object):
@@ -46,14 +17,12 @@ class Station(object):
     A Station is a stop on the trip
     """
 
-    __slots__ = [
-        "__id", "__name", "__platform", "__arrival", "__departure", "__position", "__distance", "__connections"
-    ]
+    __slots__ = ["_id", "_name", "_platform", "_arrival", "_departure", "_position", "_distance", "_connections"]
 
     def __init__(self, station_id: Any, name: str, platform: ScheduledEvent[str] = None,
-                 arrival: Optional[ScheduledEvent[datetime.datetime]] = None,
-                 departure: Optional[ScheduledEvent[datetime.datetime]] = None, position: Tuple[float, float] = None,
-                 distance: float = None, connections: Optional[Any] = None):
+                 arrival: ScheduledEvent[datetime.datetime] = None, departure: ScheduledEvent[datetime.datetime] = None,
+                 position: Tuple[float, float] = None, distance: float = None,
+                 connections: List["ConnectingTrain"] = None):
         """
         Initialize a new :class:`Station`
 
@@ -62,36 +31,36 @@ class Station(object):
         :param name: The name of the station
         :type name: str
         :param platform: The platform that the vehicle is arriving at
-        :type platform: Optional[ScheduledEvent[str]]
+        :type platform: ScheduledEvent[str]
         :param arrival: The arrival time at this station
-        :type arrival: Optional[ScheduledEvent[datetime.datetime]]
+        :type arrival: ScheduledEvent[datetime.datetime]
         :param departure: The departure time from this station
-        :type departure: Optional[ScheduledEvent[datetime.datetime]]
+        :type departure: ScheduledEvent[datetime.datetime]
         :param position: The geographic position of the station
         :type position: Tuple[float, float]
         :param distance: The distance from the start to this station
         :type distance: float
         :param connections: The connecting services departing from this station
-        :type connections: Optional[Any]
+        :type connections: List[ConnectingTrain]
         """
-        self.__id = station_id
-        self.__name = name
-        self.__platform = platform
-        self.__arrival = arrival
-        self.__departure = departure
-        self.__position = position
-        self.__distance = distance
-        self.__connections = connections
+        self._id = station_id
+        self._name = name
+        self._platform = platform
+        self._arrival = arrival
+        self._departure = departure
+        self._position = position
+        self._distance = distance
+        self._connections = connections
 
     @property
-    def id(self) -> ...:
+    def id(self) -> Any:
         """
         The unique ID of the station
 
         :return: The ID of the station
         :rtype: Any
         """
-        return self.__id
+        return self._id
 
     @property
     def name(self) -> str:
@@ -101,38 +70,77 @@ class Station(object):
         :return: The name of the station
         :rtype: str
         """
-        return self.__name
+        return self._name
 
     @property
-    def platform(self):
-        return self.__platform
+    def platform(self) -> ScheduledEvent[str]:
+        """
+        The platform that the train is arriving at
+
+        :return: The platform
+        :rtype: ScheduledEvent[str]
+        """
+        return self._platform
 
     @property
-    def arrival(self):
-        return self.__arrival
+    def arrival(self) -> ScheduledEvent[datetime.datetime]:
+        """
+        The arrival time at this station
+
+        :return: The datetime object of the arrival time encased in a ScheduledEvent
+        :rtype: ScheduledEvent[datetime.datetime]
+        """
+        return self._arrival
 
     @property
-    def departure(self):
-        return self.__departure
+    def departure(self) -> ScheduledEvent[datetime.datetime]:
+        """
+        The departure time at this station
+
+        :return: The datetime object of the departure time encased in a ScheduledEvent
+        :rtype: ScheduledEvent[datetime.datetime]
+        """
+        return self._departure
 
     @property
-    def connections(self) -> Optional[List["ConnectingTrain"]]:
-        return self.__connections
+    def connections(self) -> List["ConnectingTrain"]:
+        """
+        The connecting services departing from this station
+
+        :return: A list of ConnectingTrain objects
+        :rtype: List[ConnectingTrain]
+        """
+        return self._connections
 
     @property
     def distance(self) -> float:
-        return self.__distance
+        """
+        The distance from the start to this station in meters
+
+        :return: The distance
+        :rtype: float
+        """
+        return self._distance
 
     @property
     def position(self) -> Tuple[float, float]:
-        return self.__position
+        """
+        The geographic position of the station
 
-    def calculate_distance(self, other: Union["Station", Tuple[float, float], int, float]):
+        :return: The coordinates of the station
+        :rtype: Tuple[float, float]
+        """
+        return self._position
+
+    def calculate_distance(self, other: Union["Station", Tuple[float, float], int, float]) -> Optional[float]:
         """
         Calculate the distance in meters between this station and something else
         Accepts a :class:`Station`, a tuple of (latitude, longitude) or an integer for the distance calculation
 
         :param other: The other station or position to calculate the distance to
+        :type other: Union[Station, Tuple[float, float], int, float]
+        :return: The distance in meters
+        :rtype: Optional[float]
         """
         # Get the position of the other station or the distance of the other station from the start
         if isinstance(other, Station):
@@ -168,10 +176,25 @@ class Train(object, metaclass=abc.ABCMeta):
         self._static_data: StaticDataConnector = ...
         self._dynamic_data: DynamicDataConnector = ...
 
-    @abc.abstractmethod
-    def init(self):
-        self._static_data.refresh()
+    def __enter__(self):
+        self.init()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._dynamic_data.stop()
+
+    def init(self) -> None:
+        """
+        Initialize the :class:`DataConnector` objects.
+
+        Calls ``refresh`` on the :class:`StaticDataConnector`
+        and ``start`` on the :class:`DynamicDataConnector` by default.
+
+        :return: Nothing
+        :rtype: None
+        """
         self._dynamic_data.start()
+        self._static_data.refresh()
 
     def now(self) -> datetime.datetime:
         """
@@ -183,6 +206,14 @@ class Train(object, metaclass=abc.ABCMeta):
         return datetime.datetime.now()
 
     def calculate_distance(self, station: Station) -> float:
+        """
+        Calculate the distance in meters between the train and a station
+
+        :param station: The station to calculate the distance to
+        :type station: Station
+        :return: The distance in meters
+        :rtype: float
+        """
         return station.calculate_distance(self.distance or self.position)
 
     @property
@@ -220,7 +251,7 @@ class Train(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def stations(self) -> Dict[Any, Station]:
+    def stations(self) -> Dict[str, Station]:
         """
         The stations that this train passes through
 
@@ -312,7 +343,7 @@ class Train(object, metaclass=abc.ABCMeta):
         :return: The delay of the train
         :rtype: float
         """
-        pass
+        return (self.current_station.arrival.actual - self.current_station.arrival.scheduled).total_seconds()
 
 
 class ConnectingTrain(object):
@@ -324,13 +355,29 @@ class ConnectingTrain(object):
 
     __slots__ = ["train_type", "line_number", "platform", "destination", "departure"]
 
-    def __init__(self, train_type: str = None, line_number: str = None, platform: ScheduledEvent[str] = None,
-                 destination: str = None, departure: ScheduledEvent[datetime.datetime] = None):
-        self.train_type = train_type
-        self.line_number = line_number
-        self.platform = platform
-        self.destination = destination
-        self.departure = departure
+    def __init__(self, train_type: Optional[str] = None, line_number: Optional[str] = None,
+                 platform: Optional[ScheduledEvent[str]] = None, destination: Optional[str] = None,
+                 departure: Optional[ScheduledEvent[datetime.datetime]] = None):
+        self.train_type: Optional[str] = train_type
+        """
+        The abbreviated train type
+        """
+        self.line_number: Optional[str] = line_number
+        """
+        The line number of the train
+        """
+        self.platform: Optional[ScheduledEvent[str]] = platform
+        """
+        The platform where the train will depart from
+        """
+        self.departure: Optional[ScheduledEvent[datetime.datetime]] = departure
+        """
+        The departure time of the train
+        """
+        self.destination: Optional[str] = destination
+        """
+        The destination of the train
+        """
 
     def __str__(self):
         return f"{self.train_type}{self.line_number} to {self.destination} ({self.departure}, platform {self.platform})"
@@ -355,18 +402,16 @@ class _LazyStation(Station):
         self._cache_valid_until = 0
         self._cache_timeout = 60
 
-    __init__.__doc__ = Station.__init__.__doc__
-
     @property
     def connections(self) -> Optional[List[ConnectingTrain]]:
         def request_data():
             connections = self._lazy_func()
-            self.__connections = connections
+            self._connections = connections
             self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute
             return connections
 
         if self._lazy_func is None:
-            return self.__connections  # None or connections
+            return self._connections  # None or connections
 
         # Lazy func is not None
         # Connections may be None or not
@@ -374,7 +419,7 @@ class _LazyStation(Station):
             return request_data()
         # Cache time is valid
         # If there is no cache yet, request the data
-        if self.__connections is None:
+        if self._connections is None:
             return request_data()
         # Return cached connections
-        return self.__connections
+        return self._connections
