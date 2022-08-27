@@ -1,11 +1,15 @@
+"""
+Implementation of the austrian operator ÖBB (Österreichische Bundesbahnen).
+"""
+
 import datetime
 import time
 from typing import Dict, Optional, Any, Tuple
 
-from .. import Train, Station, ScheduledEvent, ConnectingTrain
+from .. import Train, Station, ConnectingTrain
 from ...exceptions import DataInvalidError
 from ...utils.conversions import kmh_to_ms
-from ...utils.data import StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default
+from ...utils.data import StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default, ScheduledEvent
 
 API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
 
@@ -31,9 +35,6 @@ class RailnetRegio(Train):
         super().__init__()
         self._static_data = _RailnetStaticConnector()
         self._dynamic_data = _RailnetDynamicConnector()
-
-    def init(self):
-        super(RailnetRegio, self).init()
 
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(

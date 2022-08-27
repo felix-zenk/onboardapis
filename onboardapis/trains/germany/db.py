@@ -1,17 +1,31 @@
+"""
+Implementation of the german operator DB (Deutsche Bahn).
+"""
+
 import datetime
 
 from typing import Tuple, Dict, Any, List, Optional, Literal
 
-from .. import Train, Station, ConnectingTrain, ScheduledEvent, _LazyStation
+from .. import Train, Station, ConnectingTrain, _LazyStation
 from ...exceptions import DataInvalidError
 from ...utils.conversions import kmh_to_ms
-from ...utils.data import DynamicDataConnector, JSONDataConnector, StaticDataConnector, some_or_default
+from ...utils.data import DynamicDataConnector, JSONDataConnector, StaticDataConnector, some_or_default, ScheduledEvent
 
 API_BASE_URL_ICEPORTAL = "iceportal.de"
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
 
 
 class _IceportalStaticConnector(StaticDataConnector, JSONDataConnector):
+    __slots__ = []
+
+    def __init__(self):
+        super().__init__(base_url=API_BASE_URL_ICEPORTAL)
+
+    def refresh(self):
+        self.store("bap", self._get("/bap/api/bap-service-status"))
+
+
+class _IceportalDynamicConnector(DynamicDataConnector, JSONDataConnector):
     __slots__ = ["_connections"]
 
     def __init__(self):
@@ -24,9 +38,18 @@ class _IceportalStaticConnector(StaticDataConnector, JSONDataConnector):
         """
 
     def refresh(self):
-        self.store("bap", self._get("/bap/api/bap-service-status"))
+        self.store("status", self._get("/api1/rs/status"))
+        self.store("trip", self._get("/api1/rs/tripInfo/trip"))
 
-    def connections(self, station_id: Station) -> List[ConnectingTrain]:
+    def connections(self, station_id: str) -> List[ConnectingTrain]:
+        """
+        Get all connections for a station
+
+        :param station_id: The station to get the connections for
+        :type station_id: str
+        :return: A list of connections for the station
+        :rtype: List[ConnectingTrain]
+        """
         if self._connections.get(station_id) is not None:
             return self._connections.get(station_id)
         connections = [
@@ -53,27 +76,16 @@ class _IceportalStaticConnector(StaticDataConnector, JSONDataConnector):
         return connections
 
 
-class _IceportalDynamicConnector(DynamicDataConnector, JSONDataConnector):
-    __slots__ = []
-
-    def __init__(self):
-        super().__init__(base_url=API_BASE_URL_ICEPORTAL)
-
-    def refresh(self):
-        self.store("status", self._get("/api1/rs/status"))
-        self.store("trip", self._get("/api1/rs/tripInfo/trip"))
-
-
 class ICEPortal(Train):
+    """
+    Wrapper for interacting with the DB ICE Portal API
+    """
     __slots__ = []
 
     def __init__(self):
         super().__init__()
         self._static_data = _IceportalStaticConnector()
         self._dynamic_data = _IceportalDynamicConnector()
-
-    def init(self):
-        super(ICEPortal, self).init()
 
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
@@ -126,7 +138,7 @@ class ICEPortal(Train):
                 ),
                 distance=stop.get('info', {}).get('distanceFromStart', 0),
                 connections=None,
-                lazy_func=lambda: self._static_data.connections(stop.get('station', {}).get('evaNr')),
+                lazy_func=lambda: self._dynamic_data.connections(stop.get('station', {}).get('evaNr')),
             )
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
@@ -167,15 +179,27 @@ class ICEPortal(Train):
 
     @property
     def delay(self) -> float:
-        return (self.current_station.arrival.actual - self.current_station.arrival.scheduled).total_seconds()
+        return super(ICEPortal, self).delay
 
-    def all_delay_reasons(self) -> Dict[str, str]:
+    def all_delay_reasons(self) -> Dict[str, Optional[str]]:
+        """
+        Get all delay reasons for the current trip
+
+        :return: A dictionary of delay reasons
+        :rtype: Dict[str, str]
+        """
         return {
-            stop.get('station', {}).get('evaNr', None): stop.get('delayReason', {}).get('text', None)
+            stop.get('station', {}).get('evaNr', None): some_or_default(stop.get('delayReason', {}).get('text', None))
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
 
-    def delay_reason(self):
+    def delay_reason(self) -> Optional[str]:
+        """
+        Get the delay reason for the current station
+
+        :return: The delay reason
+        :rtype: str
+        """
         return self.all_delay_reasons().get(self.current_station.id, None)
 
     def has_bap(self) -> bool:
@@ -198,6 +222,12 @@ class ICEPortal(Train):
         return False
 
     def wagon_class(self) -> Optional[Literal["FIRST", "SECOND"]]:
+        """
+        Get the wagon class of the wagon you are currently in
+
+        :return: The wagon class
+        :rtype: Literal["FIRST", "SECOND"]
+        """
         return some_or_default(self._dynamic_data.load("status", {}).get('wagonClass'))
 
     def internet_connection(self) -> Tuple[

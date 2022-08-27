@@ -1,3 +1,8 @@
+"""
+Exceptions for the onboardapis package.
+"""
+
+
 class OnboardException(Exception):
     """
     Base exception class for on-board exceptions.
@@ -6,7 +11,15 @@ class OnboardException(Exception):
     __slots__ = []
 
 
-class DataInvalidError(OnboardException):
+class APIConnectionError(OnboardException, ConnectionError):
+    """
+    Exception raised when an API connection error occurs.
+    """
+
+    __slots__ = []
+
+
+class DataInvalidError(APIConnectionError):
     """
     Error raised when an API sends a response that could not be parsed due to a formatting error
     or when the data is missing

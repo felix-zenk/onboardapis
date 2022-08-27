@@ -1,3 +1,8 @@
+"""
+Package metadata
+"""
+
+__project_name__ = 'onboardapis'
 __description__ = 'A pure Python wrapper for the on-board APIs of many different transportation providers'
 __version__ = '1.0.0'
 __author__ = 'Felix Zenk'
