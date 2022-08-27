@@ -32,7 +32,7 @@ $ python -m pip install onboardapis
 
 ---
 
-## Quick-start
+## Quickstart
 
 To begin with development you will need to know a few things first:
 
