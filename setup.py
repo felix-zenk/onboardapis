@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 from onboardapis import __project_name__, __description__, __version__, __author__, __email__, __license__, __url__
 
-with open('README.md') as f:
+with open('README.md', mode='r', encoding='utf-8') as f:
     readme = f.read()
 
 setup(

@@ -16,11 +16,15 @@ if the operator provides a local API.
 > 
 > For now the only vehicle type covered by this package is trains.
 
+> **Note:** At the time this package supports the DB ICE Portal from germany and the ÖBB Railnet Regio from austria.
+> 
+> 
+
 ---
 
 ## Installation
 
-Install the latest version of onboardapis from the PyPI using [pip](https://pip.pypa.io/en/stable/installation/):
+Install the latest version of onboardapis from [PyPI](https://pypi.org/project/onboardapis) using [pip](https://pip.pypa.io/en/stable/installation/):
 
 ```shell
 $ python -m pip install onboardapis
@@ -84,6 +88,8 @@ print(
     f"{train.calculate_distance(train.current_station):.1f} km"
 )
 ```
+And there you go!
+You can read more information about available attributes in the [trains documentation](https://onboardapis.readthedocs.io/en/latest/source/onboardapis.trains.html).
 
 ---
 
