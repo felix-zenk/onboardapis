@@ -3,7 +3,7 @@
 Installation
 ============
 
-The package is available on PyPI. You can install it with:
+The package is available on `PyPI <https://pypi.org/project/onboardapis>`_. You can install it with:
 
 .. code-block:: bash
 

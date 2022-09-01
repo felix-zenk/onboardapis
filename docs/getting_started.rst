@@ -10,7 +10,7 @@ To begin with development you will need to know a few things first:
 * What country is the operator from (e.g. Germany)
 
 With this information you can get the needed module from the package
-``onboardingapis.<vehicle-type>.<country>.<operator>``
+``onboardapis.<vehicle-type>.<country>.<operator>``
 and import the API wrapper class from it.
 
 Let's say you want to use the on-board API of Deutsche Bahn trains in Germany, which is called the ICE Portal.
