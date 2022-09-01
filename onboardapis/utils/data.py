@@ -13,7 +13,7 @@ from typing import Any, Optional, TypeVar, Generic, ItemsView
 
 from requests import Response
 
-from ..exceptions import DataInvalidError
+from ..exceptions import DataInvalidError, APIConnectionError
 from .. import __version__
 
 
@@ -234,10 +234,19 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
     def __init__(self, base_url: str, *args, **kwargs):
         super().__init__(base_url, *args, **kwargs)
-        self._runner = threading.Thread(target=self._run, name=f"DataConnector Runner for '{base_url}'", daemon=True)
+        self._runner = threading.Thread(
+            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True
+        )
         self._running = False
         self._initialized = False
         self.optimize = True
+
+    @property
+    def connected(self) -> bool:
+        """
+        Check whether the connector is connected to the server
+        """
+        return self._initialized and self._running
 
     def _run(self) -> None:
         """
@@ -262,7 +271,11 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
             target = time.time_ns() + int(1e9)
 
             # Perform the actual refresh
-            self.refresh()
+            try:
+                self.refresh()
+            except APIConnectionError as e:
+                self._running = False
+                raise e
 
             # Signal that the data has been refreshed at least once (for thread synchronization)
             if not self._initialized:
@@ -281,7 +294,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         """
         self._running = True
         self._runner.start()
-        while not self._initialized:  # pragma: no cover
+        while self._runner.is_alive() and not self._initialized:  # pragma: no cover
             # Wait until the new thread has initialized (received data at least once)
             pass
 
@@ -299,7 +312,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         """
         self.stop()
         self._runner = threading.Thread(
-            target=self._run, name=f"DataConnector Runner for '{self.base_url}'", daemon=True
+            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True
         )
         self._session = requests.Session()
         self._cache = DataStorage()
