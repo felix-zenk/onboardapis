@@ -11,20 +11,20 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import datetime
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-from onboardapis import __version__
-
+from onboardapis import __version__, __project_name__, __author__
 
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'onboardapis'
-copyright = '2022, Felix Zenk'
-author = 'Felix Zenk'
+project = __project_name__
+author = __author__
+copyright = f'{datetime.datetime.today().year}, {author}'
 
 version = __version__
 release = __version__
@@ -85,6 +85,3 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-# html_theme_options = {
-#     'analytics_id': '',  # Provided by Google in your dashboard
-# }
