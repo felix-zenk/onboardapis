@@ -13,7 +13,7 @@ from typing import Any, Optional, TypeVar, Generic, ItemsView
 
 from requests import Response
 
-from ..exceptions import DataInvalidError, APIConnectionError
+from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
 from .. import __version__
 
 
@@ -297,6 +297,10 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         while self._runner.is_alive() and not self._initialized:  # pragma: no cover
             # Wait until the new thread has initialized (received data at least once)
             pass
+
+        if not self._runner.is_alive():
+            # If the thread is not alive, something went wrong
+            raise InitialConnectionError("Failed to connect to the server")
 
     def stop(self):
         """
