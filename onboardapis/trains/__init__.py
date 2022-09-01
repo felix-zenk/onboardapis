@@ -170,9 +170,10 @@ class Train(object, metaclass=abc.ABCMeta):
     Interface specifying the attributes of a train
     """
 
-    __slots__ = ["_static_data", "_dynamic_data"]
+    __slots__ = ["_static_data", "_dynamic_data", "_initialized"]
 
     def __init__(self):
+        self._initialized = False
         self._static_data: StaticDataConnector = ...
         self._dynamic_data: DynamicDataConnector = ...
 
@@ -193,9 +194,12 @@ class Train(object, metaclass=abc.ABCMeta):
         :return: Nothing
         :rtype: None
         """
+        if self._initialized:
+            return
         try:
             self._dynamic_data.start()
             self._static_data.refresh()
+            self._initialized = True
         except APIConnectionError as e:
             raise APIConnectionError("Unable to connect to the API, are you connected to the on-board WI-FI?") from e
 
