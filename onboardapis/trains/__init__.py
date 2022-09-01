@@ -7,7 +7,7 @@ import datetime
 import time
 from typing import Optional, Tuple, Dict, Union, Any, List, Callable
 
-from ..exceptions import DataInvalidError, APIConnectionError
+from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
 from ..utils.conversions import coordinates_to_distance
 from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent
 
@@ -182,7 +182,7 @@ class Train(object, metaclass=abc.ABCMeta):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._dynamic_data.stop()
+        self.shutdown()
 
     def init(self) -> None:
         """
@@ -201,7 +201,16 @@ class Train(object, metaclass=abc.ABCMeta):
             self._static_data.refresh()
             self._initialized = True
         except APIConnectionError as e:
-            raise APIConnectionError("Unable to connect to the API, are you connected to the on-board WI-FI?") from e
+            raise InitialConnectionError() from e
+
+    def shutdown(self) -> None:
+        """
+        Safely close the :class:`DataConnector` objects of this train.
+
+        :return: Nothing
+        :rtype: None
+        """
+        self._dynamic_data.stop()
 
     @property
     def connected(self) -> bool:
