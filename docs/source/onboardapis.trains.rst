@@ -5,6 +5,7 @@ onboardapis.trains package
 
 The ``Train`` class is the abstract base class for all trains. It provides
 
+* connected: Whether the train is connected to the on-board API
 * id: The train's id
 * type: The train's type
 * number: The train's line number
@@ -47,22 +48,6 @@ Subpackages
 
 Submodules
 ----------
-
-onboardapis.trains.extensions module
-------------------------------------
-
-.. automodule:: onboardapis.trains.extensions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onboardapis.trains.selector module
-----------------------------------
-
-.. automodule:: onboardapis.trains.selector
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------
