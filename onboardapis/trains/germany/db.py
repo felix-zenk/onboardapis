@@ -15,7 +15,7 @@ API_BASE_URL_ICEPORTAL = "iceportal.de"
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
 
 
-class _IceportalStaticConnector(StaticDataConnector, JSONDataConnector):
+class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
     __slots__ = []
 
     def __init__(self):
@@ -25,7 +25,7 @@ class _IceportalStaticConnector(StaticDataConnector, JSONDataConnector):
         self.store("bap", self._get("/bap/api/bap-service-status"))
 
 
-class _IceportalDynamicConnector(DynamicDataConnector, JSONDataConnector):
+class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
     __slots__ = ["_connections"]
 
     def __init__(self):
@@ -84,12 +84,12 @@ class ICEPortal(Train):
 
     def __init__(self):
         super().__init__()
-        self._static_data = _IceportalStaticConnector()
-        self._dynamic_data = _IceportalDynamicConnector()
+        self._static_data = _ICEPortalStaticConnector()
+        self._dynamic_data = _ICEPortalDynamicConnector()
 
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
-            some_or_default(self._dynamic_data.load("status", {}).get('serverTime', None), default=0)
+            int(some_or_default(self._dynamic_data.load("status", {}).get('serverTime', None), default=0)) / 1000
         )
 
     @property
@@ -118,19 +118,19 @@ class ICEPortal(Train):
                 ),
                 arrival=ScheduledEvent(
                     scheduled=datetime.datetime.fromtimestamp(
-                        some_or_default(stop.get('timetable', {}).get('scheduledArrivalTime'), default=0)
-                    ),
+                        int(some_or_default(stop.get('timetable', {}).get('scheduledArrivalTime'), default=0)) / 1000
+                    ) if some_or_default(stop.get('timetable', {}).get('scheduledArrivalTime')) is not None else None,
                     actual=datetime.datetime.fromtimestamp(
-                        some_or_default(stop.get('timetable', {}).get('actualArrivalTime'), default=0)
-                    ),
+                        (some_or_default(stop.get('timetable', {}).get('actualArrivalTime'), default=0)) / 1000
+                    ) if some_or_default(stop.get('timetable', {}).get('actualArrivalTime')) is not None else None,
                 ),
                 departure=ScheduledEvent(
                     scheduled=datetime.datetime.fromtimestamp(
-                        some_or_default(stop.get('timetable', {}).get('scheduledDepartureTime'), default=0)
-                    ),
+                        int(some_or_default(stop.get('timetable', {}).get('scheduledDepartureTime'), default=0)) / 1000
+                    ) if some_or_default(stop.get('timetable', {}).get('scheduledDepartureTime')) is not None else None,
                     actual=datetime.datetime.fromtimestamp(
-                        some_or_default(stop.get('timetable', {}).get('actualDepartureTime'), default=0)
-                    ),
+                        int(some_or_default(stop.get('timetable', {}).get('actualDepartureTime'), default=0)) / 1000
+                    ) if some_or_default(stop.get('timetable', {}).get('actualDepartureTime')) is not None else None,
                 ),
                 position=(
                     stop.get('station', {}).get('geocoordinates', {}).get('latitude'),
@@ -181,24 +181,26 @@ class ICEPortal(Train):
     def delay(self) -> float:
         return super(ICEPortal, self).delay
 
-    def all_delay_reasons(self) -> Dict[str, Optional[str]]:
+    def all_delay_reasons(self) -> Dict[str, Optional[List[str]]]:
         """
         Get all delay reasons for the current trip
 
         :return: A dictionary of delay reasons
-        :rtype: Dict[str, Optional[str]]
+        :rtype: Dict[str, Optional[List[str]]]
         """
         return {
-            stop.get('station', {}).get('evaNr', None): some_or_default(stop.get('delayReason', {}).get('text', None))
+            stop.get('station', {}).get('evaNr', None): list([
+                some_or_default(reason.get('text', None)) for reason in stop.get('delayReasons', [])
+            ])
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
 
-    def delay_reason(self) -> Optional[str]:
+    def delay_reasons(self) -> Optional[List[str]]:
         """
         Get the delay reason for the current station
 
         :return: The delay reason
-        :rtype: str
+        :rtype: Optional[List[str]]
         """
         return self.all_delay_reasons().get(self.current_station.id, None)
 
