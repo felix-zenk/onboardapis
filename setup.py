@@ -8,7 +8,7 @@ with open('README.md', mode='r', encoding='utf-8') as f:
 setup(
     name=__project_name__,
     version=__version__,
-    packages=find_packages(".", exclude=["onboardapis_test", "onboardapis_test.*"]),
+    packages=find_packages(".", exclude=["tests", "tests.*", "examples", "examples.*"]),
     url=f"https://felix-zenk.github.io/projects/{__project_name__}",
     license=__license__,
     author=__author__,
