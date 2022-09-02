@@ -105,7 +105,7 @@ class ICEPortal(Train):
         return self._dynamic_data.load("trip", {}).get('trip', {}).get('vzn')
 
     @property
-    def stations(self) -> Dict[Any, Station]:
+    def stations(self) -> Dict[str, Station]:
         # Each stations connecting trains require an additional request
         # So use a LazyStation to only request the connections when needed
         return {
@@ -186,7 +186,7 @@ class ICEPortal(Train):
         Get all delay reasons for the current trip
 
         :return: A dictionary of delay reasons
-        :rtype: Dict[str, str]
+        :rtype: Dict[str, Optional[str]]
         """
         return {
             stop.get('station', {}).get('evaNr', None): some_or_default(stop.get('delayReason', {}).get('text', None))
@@ -252,6 +252,7 @@ class ICEPortal(Train):
             datetime.timedelta(
                 seconds=int(self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds'))
             )
-            if self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds', '') != ""
-            else None
+            if some_or_default(
+                self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds', '')
+            ) is not None else None
         )

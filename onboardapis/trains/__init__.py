@@ -277,9 +277,9 @@ class Train(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def stations(self) -> Dict[str, Station]:
+    def stations(self) -> Dict[Any, Station]:
         """
-        The stations that this train passes through
+        The stations that this train passes through returned as a dict with the station ID as the key
 
         :return: The stations
         :rtype: Dict[str, Station]
