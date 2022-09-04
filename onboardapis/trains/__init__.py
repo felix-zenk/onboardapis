@@ -7,6 +7,7 @@ import datetime
 import time
 from typing import Optional, Tuple, Dict, Union, Any, List, Callable
 
+from .. import Vehicle
 from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
 from ..utils.conversions import coordinates_to_distance
 from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent
@@ -165,7 +166,7 @@ class Station(object):
         return None
 
 
-class Train(object, metaclass=abc.ABCMeta):
+class Train(Vehicle, metaclass=abc.ABCMeta):
     """
     Interface specifying the attributes of a train
     """
