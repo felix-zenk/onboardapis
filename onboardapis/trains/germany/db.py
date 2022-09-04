@@ -168,7 +168,10 @@ class ICEPortal(Train):
 
     @property
     def distance(self) -> float:
-        return self._dynamic_data.load("trip", {}).get('trip', {}).get('actualPosition', 0)
+        return (
+            self._dynamic_data.load("trip", {}).get('trip', {}).get('actualPosition', 0)
+            + self._dynamic_data.load("trip", {}).get('trip', {}).get('distanceFromLastStop', 0)
+        )
 
     @property
     def position(self) -> Tuple[float, float]:
@@ -185,7 +188,7 @@ class ICEPortal(Train):
         """
         Get all delay reasons for the current trip
 
-        :return: A dictionary of delay reasons
+        :return: A dictionary of delay reasons with the station id as the key
         :rtype: Dict[str, Optional[List[str]]]
         """
         return {
