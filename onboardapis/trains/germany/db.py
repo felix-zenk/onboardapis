@@ -3,13 +3,18 @@ Implementation of the german operator DB (Deutsche Bahn).
 """
 
 import datetime
+import re
 
 from typing import Tuple, Dict, Any, List, Optional, Literal
+
+import requests
 
 from .. import Train, Station, ConnectingTrain, _LazyStation
 from ...exceptions import DataInvalidError
 from ...utils.conversions import kmh_to_ms
-from ...utils.data import DynamicDataConnector, JSONDataConnector, StaticDataConnector, some_or_default, ScheduledEvent
+from ...utils.data import (
+    DynamicDataConnector, JSONDataConnector, StaticDataConnector, some_or_default, ScheduledEvent, Position
+)
 
 API_BASE_URL_ICEPORTAL = "iceportal.de"
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
@@ -81,6 +86,10 @@ class ICEPortal(Train):
     Wrapper for interacting with the DB ICE Portal API
     """
     __slots__ = []
+    __cached_names = dict()
+    """
+    Cache for train names
+    """
 
     def __init__(self):
         super().__init__()
@@ -132,9 +141,9 @@ class ICEPortal(Train):
                         int(some_or_default(stop.get('timetable', {}).get('actualDepartureTime'), default=0)) / 1000
                     ) if some_or_default(stop.get('timetable', {}).get('actualDepartureTime')) is not None else None,
                 ),
-                position=(
-                    stop.get('station', {}).get('geocoordinates', {}).get('latitude'),
-                    stop.get('station', {}).get('geocoordinates', {}).get('longitude')
+                position=Position(
+                    latitude=stop.get('station', {}).get('geocoordinates', {}).get('latitude'),
+                    longitude=stop.get('station', {}).get('geocoordinates', {}).get('longitude')
                 ),
                 distance=stop.get('info', {}).get('distanceFromStart', 0),
                 connections=None,
@@ -174,8 +183,8 @@ class ICEPortal(Train):
         )
 
     @property
-    def position(self) -> Tuple[float, float]:
-        return (
+    def position(self) -> Position:
+        return Position(
             self._dynamic_data.load("status", {}).get('latitude'),
             self._dynamic_data.load("status", {}).get('longitude')
         )
@@ -183,6 +192,35 @@ class ICEPortal(Train):
     @property
     def delay(self) -> float:
         return super(ICEPortal, self).delay
+
+    @property
+    def name(self) -> Optional[str]:
+        """
+        Get the name of the train.
+
+        Most of the DB ICE trains have names.
+        Names are not available through the API, instead a public list of names will be used.
+
+        :return: The name of the train
+        """
+        # Check if train names are already cached
+        if len(self.__cached_names) == 0:
+            # Request the list of train names
+            data = requests.get(
+                "https://felix-zenk.github.io/projects/onboardapis/res/trains/germany/db/names.json",
+                headers={"user-agent": "python-onboardapis", "accept": "application/json"}
+            ).json()
+            # Add the names to the cache
+            self.__cached_names.update(data.get('names', {}))
+            # Also use unverified train names, because there are not many verified names at this point
+            self.__cached_names.update(data.get('unverified_names', {}))
+
+        # Get the name from the cache
+        match = re.search(r'\d+', self.id)
+        if match is None:
+            return None
+
+        return self.__cached_names.get(match.group(0).lstrip('0'), None)
 
     def all_delay_reasons(self) -> Dict[str, Optional[List[str]]]:
         """
