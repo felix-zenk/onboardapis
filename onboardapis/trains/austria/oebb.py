@@ -9,7 +9,8 @@ from typing import Dict, Optional, Any, Tuple
 from .. import Train, Station, ConnectingTrain
 from ...exceptions import DataInvalidError
 from ...utils.conversions import kmh_to_ms
-from ...utils.data import StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default, ScheduledEvent
+from ...utils.data import StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default, ScheduledEvent, \
+    Position
 
 API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
 
@@ -162,11 +163,15 @@ class RailnetRegio(Train):
             raise DataInvalidError("No base station found for distance") from e
 
     @property
-    def position(self) -> Tuple[float, float]:
+    def position(self) -> Position:
         map_info = self._dynamic_data.load('combined', {}).get('mapInfo', {})
-        return (
-            float(map_info.get('latitude')) if some_or_default(map_info.get('latitude')) is not None else None,
-            float(map_info.get('longitude')) if some_or_default(map_info.get('longitude')) is not None else None
+        return Position(
+            latitude=(
+                float(map_info.get('latitude')) if some_or_default(map_info.get('latitude')) is not None else None
+            ),
+            longitude=(
+                float(map_info.get('longitude')) if some_or_default(map_info.get('longitude')) is not None else None
+            )
         )
 
     @property

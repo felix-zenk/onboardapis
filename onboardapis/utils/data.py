@@ -13,6 +13,7 @@ from typing import Any, Optional, TypeVar, Generic, ItemsView
 
 from requests import Response
 
+from .conversions import coordinates_decimal_to_dms
 from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
 from .. import __version__
 
@@ -76,6 +77,98 @@ class ScheduledEvent(Generic[T]):
         if self.actual is None:
             return f"{self.scheduled}"
         return f"{self.actual}"
+
+
+class Position(object):
+    """
+    A position requires at least a latitude and longitude,
+    but can also provide data on altitude and the current compass heading.
+    """
+
+    __slots__ = ["_latitude", "_longitude", "_altitude", "_heading"]
+
+    def __init__(self, latitude: float, longitude: float, altitude: float = None, bearing: float = None):
+        """
+        Initialize a new :class:`Position`.
+
+        :param latitude: The latitude in decimal degrees
+        :type latitude: float
+        :param longitude: The longitude in decimal degrees
+        :type longitude: float
+        :param altitude: The altitude in meters
+        :type altitude: float
+        :param bearing: The compass heading in degrees
+        :type bearing: float
+        """
+        self._latitude = latitude
+        self._longitude = longitude
+        self._altitude = altitude
+        self._heading = bearing
+
+    def __str__(self) -> str:
+        (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec) = coordinates_decimal_to_dms(
+            (self.latitude, self.longitude)
+        )
+        coordinates = (
+            f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'} "
+            f"{abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
+        )
+        return coordinates
+
+    def __getitem__(self, item):
+        return list([self.latitude, self.longitude])[item]
+
+    @property
+    def latitude(self) -> float:
+        """
+        The latitude in decimal degrees.
+
+        :return: The latitude
+        :rtype: float
+        """
+        return self._latitude
+
+    @property
+    def longitude(self) -> float:
+        """
+        The longitude in decimal degrees.
+
+        :return: The longitude
+        :rtype: float
+        """
+        return self._longitude
+
+    @property
+    def altitude(self) -> float:
+        """
+        The altitude in meters.
+
+        :return: The altitude
+        :rtype: float
+        """
+        return self._altitude
+
+    @property
+    def heading(self) -> float:
+        """
+        The compass heading in degrees.
+
+        0 is north, 90 is east, 180 is south, 270 is west.
+
+        :return: The heading
+        :rtype: float
+        """
+        return self._heading
+
+    def calculate_distance(self, other: "Position") -> float:
+        """
+        Calculate the distance (in meters) between this position and another position.
+
+        :param other: The other position
+        :return: The distance in meters
+        """
+        raise NotImplementedError()
+        # return coordinates_to_distance((self.latitude, self.longitude), (other.latitude, other.longitude))
 
 
 class DataStorage:

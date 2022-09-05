@@ -10,7 +10,7 @@ from typing import Optional, Tuple, Dict, Union, Any, List, Callable
 from .. import Vehicle
 from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
 from ..utils.conversions import coordinates_to_distance
-from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent
+from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
 
 
 class Station(object):
@@ -22,7 +22,7 @@ class Station(object):
 
     def __init__(self, station_id: Any, name: str, platform: ScheduledEvent[str] = None,
                  arrival: ScheduledEvent[datetime.datetime] = None, departure: ScheduledEvent[datetime.datetime] = None,
-                 position: Tuple[float, float] = None, distance: float = None,
+                 position: Position = None, distance: float = None,
                  connections: List["ConnectingTrain"] = None):
         """
         Initialize a new :class:`Station`
@@ -38,7 +38,7 @@ class Station(object):
         :param departure: The departure time from this station
         :type departure: ScheduledEvent[datetime.datetime]
         :param position: The geographic position of the station
-        :type position: Tuple[float, float]
+        :type position: Position
         :param distance: The distance from the start to this station
         :type distance: float
         :param connections: The connecting services departing from this station
@@ -124,12 +124,12 @@ class Station(object):
         return self._distance
 
     @property
-    def position(self) -> Tuple[float, float]:
+    def position(self) -> Position:
         """
         The geographic position of the station
 
         :return: The coordinates of the station
-        :rtype: Tuple[float, float]
+        :rtype: Position
         """
         return self._position
 
