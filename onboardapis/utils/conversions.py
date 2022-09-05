@@ -50,7 +50,7 @@ def coordinates_dms_to_decimal(coordinates: Tuple[Tuple[int, int, float], Tuple[
     :return: The coordinates in decimal degrees
     :rtype: Tuple[float, float]
     """
-    lat_deg, lat_min, lat_sec, lon_deg, lon_min, lon_sec = coordinates
+    (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec) = coordinates
     lat = lat_deg + lat_min / 60 + lat_sec / 3600
     lon = lon_deg + lon_min / 60 + lon_sec / 3600
     return lat, lon
