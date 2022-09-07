@@ -162,7 +162,7 @@ class Station(object):
         if isinstance(other, int) or isinstance(other, float):
             return self.distance - other if self.distance - other >= 0 else other - self.distance
         if isinstance(other, tuple):
-            return coordinates_to_distance(self.position, other)
+            return coordinates_to_distance((self.position.latitude, self.position.longitude), other)
         return None
 
 
