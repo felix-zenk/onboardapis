@@ -298,12 +298,14 @@ class DataConnector(metaclass=abc.ABCMeta):
         """
         self._cache.set(key, value)
 
-    def export(self, path: Union[str, PathLike]):
+    def export(self, path: Union[str, PathLike]) -> None:
         """
         Export the cache to a file
 
         :param path: The path to export to
+        :type path: Union[str, PathLike]
         :return: Nothing
+        :rtype: None
         """
         data = {}
         for key, value in self._cache.items():
