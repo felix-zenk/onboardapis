@@ -8,18 +8,15 @@
 
 ## Description
 
-onboardapis is a Python package that provides wrappers for different on-board APIs.
-What this means is that you can connect to the intranet of some vehicle by some operator 
-and use the functionalities of this package to access meaningful data (such as the vehicles speed or position) 
-if the operator provides a local API.
+onboardapis allows you to interact with different on-board APIs.
+You can connect to the WI-FI of a supported transportation provider
+and access information about your journey, the vehicle you are travelling in and much more.
 
-> **Note:** This package is still in development, so coverage across operators is not great yet.
-> 
-> For now the only vehicle type covered by this package is trains.
+> **Note:** Coverage across operators is not great yet.
+
+> **Note:** For now the only vehicle type covered by this package is trains.
 
 > **Note:** At the time this package supports the DB ICE Portal from germany and the ÖBB Railnet Regio from austria.
-> 
-> 
 
 ---
 
