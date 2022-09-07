@@ -231,7 +231,7 @@ class ICEPortal(Train):
         """
         return {
             stop.get('station', {}).get('evaNr', None): list([
-                some_or_default(reason.get('text', None)) for reason in stop.get('delayReasons', [])
+                some_or_default(reason.get('text', None)) for reason in some_or_default(stop.get('delayReasons'), [])
             ])
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
