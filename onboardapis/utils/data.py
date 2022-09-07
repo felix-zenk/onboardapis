@@ -429,6 +429,7 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
         headers.update({
             "accept": "application/json",
         })
+        kwargs["headers"] = headers
         try:
             return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
         except json.JSONDecodeError as e:
