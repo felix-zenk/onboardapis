@@ -352,12 +352,12 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def position(self) -> Tuple[float, float]:
+    def position(self) -> Position:
         """
-        The current position of the train as a tuple of latitude and longitude
+        The current position of the train as a :class:`Position`
 
         :return: The position of the train
-        :rtype: Tuple[float, float]
+        :rtype: Position
         """
         pass
 
