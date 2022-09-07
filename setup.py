@@ -21,6 +21,7 @@ setup(
         'Source': __url__,
         'Documentation': f"https://{__project_name__}.readthedocs.io/en/latest",
     },
+    python_requires='>=3.6',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
