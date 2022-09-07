@@ -6,10 +6,11 @@ import abc
 import json
 import threading
 import time
+from os import PathLike
 
 import requests
 
-from typing import Any, Optional, TypeVar, Generic, ItemsView
+from typing import Any, Optional, TypeVar, Generic, ItemsView, Union
 
 from requests import Response
 
@@ -296,6 +297,20 @@ class DataConnector(metaclass=abc.ABCMeta):
         :return: Nothing
         """
         self._cache.set(key, value)
+
+    def export(self, path: Union[str, PathLike]):
+        """
+        Export the cache to a file
+
+        :param path: The path to export to
+        :return: Nothing
+        """
+        data = {}
+        for key, value in self._cache.items():
+            data[key] = value
+
+        with open(path, "w") as f:
+            json.dump(data, f)
 
     @abc.abstractmethod
     def refresh(self) -> None:  # pragma: no cover
