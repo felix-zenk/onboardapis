@@ -31,11 +31,11 @@ class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
 
 
 class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
-    __slots__ = ["_connections"]
+    __slots__ = ["_connections_cache_control"]
 
     def __init__(self):
         super().__init__(base_url=API_BASE_URL_ICEPORTAL)
-        self._connections = {}
+        self._connections_cache_control = {}
         """
         A cache for connections
         Connections for DB are only available shortly before the arrival
@@ -55,29 +55,44 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         :return: A list of connections for the station
         :rtype: List[ConnectingTrain]
         """
-        if self._connections.get(station_id) is not None:
-            return self._connections.get(station_id)
-        connections = [
+        last_update = self._connections_cache_control.get(station_id, {}).get("last_update", datetime.datetime.min)
+        # Let the cache expire after 1 minute
+        if datetime.datetime.now() < last_update + datetime.timedelta(minutes=1):
+            return self.load(f"{station_id}_connections", [])
+
+        # Request the connections
+        connections = list([
             ConnectingTrain(
-                train_type=data.get('trainType', None),
-                line_number=data.get('vzn', None),
+                train_type=connection.get('trainType', None),
+                line_number=connection.get('vzn', None),
                 platform=ScheduledEvent(
-                    scheduled=data.get('track', {}).get('scheduled', None),
-                    actual=data.get('track', {}).get('actual', None),
+                    scheduled=connection.get('track', {}).get('scheduled', None),
+                    actual=connection.get('track', {}).get('actual', None),
                 ),
-                destination=data.get('station', {}).get('name', None),
+                destination=connection.get('station', {}).get('name', None),
                 departure=ScheduledEvent(
-                    scheduled=datetime.datetime.fromtimestamp(
-                        some_or_default(data.get('timetable', {}).get('scheduledDepartureTime', None), default=0)
+                    scheduled=(
+                        datetime.datetime.fromtimestamp(int(some_or_default(
+                            connection.get('timetable', {}).get('scheduledDepartureTime'),
+                            default=0
+                        )) / 1000)
+                        if some_or_default(connection.get('timetable', {}).get('scheduledDepartureTime')) is not None
+                        else None
                     ),
-                    actual=datetime.datetime.fromtimestamp(
-                        some_or_default(data.get('timetable', {}).get('actualDepartureTime', None), default=0)
+                    actual=(
+                        datetime.datetime.fromtimestamp((some_or_default(
+                            connection.get('timetable', {}).get('actualDepartureTime'),
+                            default=0
+                        )) / 1000)
+                        if some_or_default(connection.get('timetable', {}).get('actualDepartureTime')) is not None
+                        else None
                     ),
                 )
             )
-            for data in self._get(f"/api1/rs/tripInfo/trip/{station_id}").get(station_id, {}).get('connections', [])
-        ]
-        self._connections[station_id] = connections
+            for connection in self._get(f"/api1/rs/tripInfo/trip/{station_id}").get('connections', [])
+        ])
+        self.store(f"{station_id}_connections", connections)
+        self._connections_cache_control[station_id] = {"last_update": datetime.datetime.now()}
         return connections
 
 
