@@ -10,7 +10,7 @@ from typing import Tuple, Dict, Any, List, Optional, Literal
 import requests
 
 from .. import Train, Station, ConnectingTrain, _LazyStation
-from ...exceptions import DataInvalidError
+from ...exceptions import DataInvalidError, APIConnectionError
 from ...utils.conversions import kmh_to_ms
 from ...utils.data import (
     DynamicDataConnector, JSONDataConnector, StaticDataConnector, some_or_default, ScheduledEvent, Position
@@ -55,12 +55,24 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         :return: A list of connections for the station
         :rtype: List[ConnectingTrain]
         """
-        last_update = self._connections_cache_control.get(station_id, {}).get("last_update", datetime.datetime.min)
+        # Function to determine when to update the cache
+        def cache_valid() -> bool:
+            last_update = self._connections_cache_control.get(station_id, {}).get("last_update")
+            if last_update is None:
+                return False
+            return datetime.datetime.now() < last_update + datetime.timedelta(minutes=1)
+
         # Let the cache expire after 1 minute
-        if datetime.datetime.now() < last_update + datetime.timedelta(minutes=1):
+        if cache_valid():
             return self.load(f"{station_id}_connections", [])
 
         # Request the connections
+        try:
+            connections_json = self._get(f"/api1/rs/tripInfo/connection/{station_id}")
+        except APIConnectionError:
+            return list()
+
+        # Process the connections
         connections = list([
             ConnectingTrain(
                 train_type=connection.get('trainType', None),
@@ -89,7 +101,7 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
                     ),
                 )
             )
-            for connection in self._get(f"/api1/rs/tripInfo/trip/{station_id}").get('connections', [])
+            for connection in connections_json.get('connections', [])
         ])
         self.store(f"{station_id}_connections", connections)
         self._connections_cache_control[station_id] = {"last_update": datetime.datetime.now()}
@@ -296,7 +308,9 @@ class ICEPortal(Train):
 
         the next internet connection status,
 
-        and the time until the change occurs
+        and the time until the change occurs.
+
+        Be aware that some or all values can be None.
 
         :return: The tuple (current, next, time_remaining)
         :rtype: Tuple[InternetStatus, InternetStatus, datetime.timedelta]
