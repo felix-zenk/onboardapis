@@ -343,16 +343,24 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
     A :class:`DataConnector` for data that changes frequently and therefore has to be requested continuously
     """
 
-    __slots__ = ["_runner", "_running", "_initialized", "optimize"]
+    __slots__ = ["_runner", "_running", "_initialized", "optimize", "silent"]
 
     def __init__(self, base_url: str, *args, **kwargs):
         super().__init__(base_url, *args, **kwargs)
         self._runner = threading.Thread(
-            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True
+            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True,
         )
         self._running = False
         self._initialized = False
+
         self.optimize = True
+        """
+        Whether to adapt the refresh rate of the data connector to be as close as possible to 1Hz.
+        """
+        self.silent = True
+        """
+        Suppress exceptions that occur in the runner thread
+        """
 
     @property
     def connected(self) -> bool:
@@ -388,6 +396,10 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
                 self.refresh()
             except APIConnectionError as e:
                 self._running = False
+                if self.silent:
+                    continue  # End loop, terminate thread cleanly
+
+                # If not silent, raise the exception
                 raise e
 
             # Signal that the data has been refreshed at least once (for thread synchronization)
