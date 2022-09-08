@@ -12,7 +12,7 @@ import requests
 
 from typing import Any, Optional, TypeVar, Generic, ItemsView, Union
 
-from requests import Response
+from requests import Response, RequestException
 
 from .conversions import coordinates_decimal_to_dms
 from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
@@ -273,7 +273,10 @@ class DataConnector(metaclass=abc.ABCMeta):
             "timeout": 1,
             "verify": kwargs.get("verify", self._verify)
         })
-        return self._session.get(f"https://{self.base_url}{endpoint}", *args, **kwargs)
+        try:
+            return self._session.get(f"https://{self.base_url}{endpoint}", *args, **kwargs)
+        except RequestException as e:
+            raise APIConnectionError() from e
 
     def load(self, key: str, __default: Any = None) -> Any:
         """
