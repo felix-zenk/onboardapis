@@ -250,16 +250,14 @@ class DataConnector(metaclass=abc.ABCMeta):
     def __del__(self):
         self._session.close()
 
-    def _get(self, endpoint: str, *args: Any, **kwargs: Any) -> Response:
+    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> Response:
         """
         Request data from the server
 
-        :param endpoint: The endpoint to request data from
-        :type endpoint: str
-        :param args: args to pass to the request
-        :type args: Any
-        :param kwargs: kwargs to pass to the request
-        :type kwargs: Any
+        :param str endpoint: The endpoint to request data from
+        :param Any args: args to pass to the request
+        :param str base_url: An optional different base url to use for the request
+        :param Any kwargs: kwargs to pass to the request
         :return: The response from the server
         :rtype: Response
         """
@@ -273,8 +271,10 @@ class DataConnector(metaclass=abc.ABCMeta):
             "timeout": 1,
             "verify": kwargs.get("verify", self._verify)
         })
+        # Allow a different base url, but use self.base_url as default
+        base_url = self.base_url if base_url is None else base_url
         try:
-            return self._session.get(f"https://{self.base_url}{endpoint}", *args, **kwargs)
+            return self._session.get(f"https://{base_url}{endpoint}", *args, **kwargs)
         except RequestException as e:
             raise APIConnectionError() from e
 
@@ -300,22 +300,6 @@ class DataConnector(metaclass=abc.ABCMeta):
         :return: Nothing
         """
         self._cache.set(key, value)
-
-    def export(self, path: Union[str, PathLike]) -> None:
-        """
-        Export the cache to a file
-
-        :param path: The path to export to
-        :type path: Union[str, PathLike]
-        :return: Nothing
-        :rtype: None
-        """
-        data = {}
-        for key, value in self._cache.items():
-            data[key] = value
-
-        with open(path, "w") as f:
-            json.dump(data, f)
 
     @abc.abstractmethod
     def refresh(self) -> None:  # pragma: no cover
@@ -466,3 +450,22 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
             return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
         except json.JSONDecodeError as e:
             raise DataInvalidError() from e
+
+    def export(self, path: Union[str, PathLike]) -> None:
+        """
+        Export the cache to a json file
+
+        :param path: The path to export to
+        :type path: Union[str, PathLike]
+        :return: Nothing
+        :rtype: None
+        """
+        data = {}
+        for key, value in self._cache.items():
+            data[key] = value
+
+        if not str(path).endswith(".json"):
+            path = f"{path}.json"
+
+        with open(path, "w") as f:
+            json.dump(data, f)
