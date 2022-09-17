@@ -4,13 +4,14 @@ Implementation of the austrian operator ÖBB (Österreichische Bundesbahnen).
 
 import datetime
 import time
-from typing import Dict, Optional, Any, Tuple
+from typing import Dict, Optional, Any
 
 from .. import Train, Station, ConnectingTrain
 from ...exceptions import DataInvalidError
 from ...utils.conversions import kmh_to_ms
-from ...utils.data import StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default, ScheduledEvent, \
-    Position
+from ...utils.data import (
+    StaticDataConnector, DynamicDataConnector, JSONDataConnector, some_or_default, ScheduledEvent, Position
+)
 
 API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
 

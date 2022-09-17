@@ -175,8 +175,8 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
 
     def __init__(self):
         self._initialized = False
-        self._static_data: StaticDataConnector = ...
-        self._dynamic_data: DynamicDataConnector = ...
+        self._static_data: StaticDataConnector
+        self._dynamic_data: DynamicDataConnector
 
     def __enter__(self):
         self.init()
@@ -431,7 +431,16 @@ class _LazyStation(Station):
 
     @property
     def connections(self) -> Optional[List[ConnectingTrain]]:
-        def request_data():
+        """
+        The connecting services departing from this station
+
+        :return: A list of ConnectingTrain objects
+        :rtype: List[ConnectingTrain]
+        """
+        def request_data() -> List[ConnectingTrain]:
+            """
+            Perform the request to get the data and return the response
+            """
             connections = self._lazy_func()
             self._connections = connections
             self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute

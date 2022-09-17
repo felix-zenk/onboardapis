@@ -2,7 +2,7 @@
 Convert between different units
 """
 
-from typing import Tuple, Union, Optional
+from typing import Tuple
 
 
 def coordinates_to_distance(start: Tuple[float, float], end: Tuple[float, float]) -> float:
@@ -22,7 +22,9 @@ def coordinates_to_distance(start: Tuple[float, float], end: Tuple[float, float]
     raise NotImplementedError()
 
 
-def coordinates_decimal_to_dms(coordinates: Tuple[float, float]) -> Tuple[Tuple[int, int, float], Tuple[int, int, float]]:
+def coordinates_decimal_to_dms(
+        coordinates: Tuple[float, float]
+) -> Tuple[Tuple[int, int, float], Tuple[int, int, float]]:
     """
     Convert the tuple ``coordinates`` of coordinates to degrees, minutes, seconds
 
@@ -41,7 +43,9 @@ def coordinates_decimal_to_dms(coordinates: Tuple[float, float]) -> Tuple[Tuple[
     return (-lat_deg if lat < 0 else lat_deg, lat_min, lat_sec), (-lon_deg if lon < 0 else lon_deg, lon_min, lon_sec)
 
 
-def coordinates_dms_to_decimal(coordinates: Tuple[Tuple[int, int, float], Tuple[int, int, float]]) -> Tuple[float, float]:
+def coordinates_dms_to_decimal(
+        coordinates: Tuple[Tuple[int, int, float], Tuple[int, int, float]]
+) -> Tuple[float, float]:
     """
     Convert the tuple ``coordinates`` of degrees, minutes, seconds to decimal degrees
 
