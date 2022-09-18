@@ -4,14 +4,13 @@ This module contains everything that has to do with data and data management
 
 import abc
 import json
+import logging
 import threading
 import time
-from os import PathLike
-
 import requests
 
-from typing import Any, Optional, TypeVar, Generic, ItemsView, Union
-
+from os import PathLike
+from typing import Any, Optional, TypeVar, Generic, ItemsView, Union, Sequence
 from requests import Response, RequestException
 
 from .conversions import coordinates_decimal_to_dms
@@ -231,21 +230,18 @@ class DataConnector(metaclass=abc.ABCMeta):
     A class for retrieving data from an API
     """
 
-    __slots__ = ["base_url", "_session", "_cache", "_verify"]
+    __slots__ = ["base_url", "_session", "_cache"]
 
-    def __init__(self, base_url: str, *, verify: bool = True) -> None:
+    def __init__(self, base_url: str) -> None:
         """
         Initialize a new :class:`DataConnector`
 
         :param base_url: The base url of the server to connect to
         :type base_url: str
-        :param verify: Whether to verify the TLS certificate of the server
-        :type verify: bool
         """
         self.base_url = base_url
         self._session = requests.Session()
         self._cache = DataStorage()
-        self._verify = verify
 
     def __del__(self):
         self._session.close()
@@ -269,7 +265,7 @@ class DataConnector(metaclass=abc.ABCMeta):
         kwargs.update({
             "headers": headers,
             "timeout": 1,
-            "verify": kwargs.get("verify", self._verify)
+            "verify": True if kwargs.get("verify") is None else bool(kwargs.get("verify"))
         })
         # Allow a different base url, but use self.base_url as default
         base_url = self.base_url if base_url is None else base_url
@@ -319,7 +315,7 @@ class StaticDataConnector(DataConnector, metaclass=abc.ABCMeta):
     __slots__ = []
 
     def __init__(self, base_url: str, *args, **kwargs):
-        super().__init__(base_url, *args, **kwargs)
+        super().__init__(base_url)
 
 
 class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
@@ -330,7 +326,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
     __slots__ = ["_runner", "_running", "_initialized", "optimize", "silent"]
 
     def __init__(self, base_url: str, *args, **kwargs):
-        super().__init__(base_url, *args, **kwargs)
+        super().__init__(base_url)
         self._runner = threading.Thread(
             target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True,
         )
@@ -440,32 +436,38 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
     __slots__ = []
 
-    def _get(self, endpoint: str, *args: Any, **kwargs: Any) -> dict:
+    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> dict:
         headers = kwargs.get("headers", {})
         headers.update({
             "accept": "application/json",
         })
         kwargs["headers"] = headers
         try:
-            return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
+            return super(JSONDataConnector, self)._get(endpoint, *args, base_url=base_url, **kwargs).json()
         except json.JSONDecodeError as e:
+            logging.debug(f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}")
             raise DataInvalidError() from e
 
-    def export(self, path: Union[str, PathLike]) -> None:
+    def export(self, path: Union[str, PathLike], keys: Sequence = None) -> None:
         """
         Export the cache to a json file
 
-        :param path: The path to export to
-        :type path: Union[str, PathLike]
+        :param Union[str, PathLike] path: The path to export to
+        :param Sequence keys: The specific keys to export, if empty export all keys
         :return: Nothing
         :rtype: None
         """
         data = {}
         for key, value in self._cache.items():
-            data[key] = value
+            if keys is None:
+                data[key] = value
+            # assume keys is Sequence
+            elif key in keys:
+                data[key] = value
+            # else pass
 
         if not str(path).endswith(".json"):
             path = f"{path}.json"
 
         with open(path, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, default=lambda o: o.__dict__)
