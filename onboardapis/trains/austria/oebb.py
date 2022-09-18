@@ -21,7 +21,10 @@ class _RailnetStaticConnector(StaticDataConnector, JSONDataConnector):
         super().__init__(base_url=API_BASE_URL_RAILNET_REGIO)
 
     def refresh(self):
-        self.store("trainInfo", self._get("/api/trainInfo"))
+        self.store(
+            "trainInfo",
+            self._get("/api/trainInfo")
+        )
 
 
 class _RailnetDynamicConnector(DynamicDataConnector, JSONDataConnector):
@@ -29,7 +32,10 @@ class _RailnetDynamicConnector(DynamicDataConnector, JSONDataConnector):
         super().__init__(base_url=API_BASE_URL_RAILNET_REGIO)
 
     def refresh(self):
-        self.store("combined", self._get("/assets/modules/fis/combined.json", params={"_time": time.time()}))
+        self.store(
+            "combined",
+            self._get("/assets/modules/fis/combined.json", params={"_time": time.time()})
+        )
 
 
 class RailnetRegio(Train):
