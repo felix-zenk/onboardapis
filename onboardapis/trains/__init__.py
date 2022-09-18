@@ -418,16 +418,17 @@ class _LazyStation(Station):
     """
     The LazyStation is a Station that maybe does not yet have information on connecting trains.
     If it does not have information by the time it is requested by the user,
-    it will then proceed to load the information through ``lazy_func``.
+    it will then proceed to load the information through ``lazy_func(self.id)``.
     """
 
     __slots__ = ["_lazy_func", "_cache_valid_until", "_cache_timeout"]
 
-    def __init__(self, *args, lazy_func: Optional[Callable[..., List[ConnectingTrain]]] = None, **kwargs):
+    def __init__(self, *args, lazy_func: Optional[Callable[..., List[ConnectingTrain]]] = None,
+                 _cache_timeout: int = 60, **kwargs):
         super().__init__(*args, **kwargs)
         self._lazy_func = lazy_func
         self._cache_valid_until = 0
-        self._cache_timeout = 60
+        self._cache_timeout = _cache_timeout
 
     @property
     def connections(self) -> Optional[List[ConnectingTrain]]:
@@ -441,7 +442,7 @@ class _LazyStation(Station):
             """
             Perform the request to get the data and return the response
             """
-            connections = self._lazy_func()
+            connections = self._lazy_func(self.id)
             self._connections = connections
             self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute
             return connections
