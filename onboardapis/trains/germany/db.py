@@ -5,9 +5,7 @@ Implementation of the german operator DB (Deutsche Bahn).
 import datetime
 import re
 
-from typing import Tuple, Dict, Any, List, Optional, Literal
-
-import requests
+from typing import Tuple, Dict, List, Optional, Literal, NewType, Callable
 
 from .. import Train, Station, ConnectingTrain, _LazyStation
 from ...exceptions import DataInvalidError, APIConnectionError
@@ -27,7 +25,20 @@ class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
         super().__init__(base_url=API_BASE_URL_ICEPORTAL)
 
     def refresh(self):
-        self.store("bap", self._get("/bap/api/bap-service-status"))
+        # Bestellen am Platz
+        self.store(
+            "bap",
+            self._get("/bap/api/bap-service-status")
+        )
+        # train names
+        try:
+            self.store(
+                "names",
+                self._get("/projects/onboardapis/res/trains/germany/db/names.json", base_url="felix-zenk.github.io")
+            )
+        # Try to get the names from GitHub. If there is no internet connection, then don't use names.
+        except ConnectionError:
+            self.store("names", {})
 
 
 class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
@@ -41,10 +52,17 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         Connections for DB are only available shortly before the arrival
         -> Cache every already seen connection as well
         """
-
     def refresh(self):
-        self.store("status", self._get("/api1/rs/status"))
-        self.store("trip", self._get("/api1/rs/tripInfo/trip"))
+        # status
+        self.store(
+            "status",
+            self._get("/api1/rs/status")
+        )
+        # trip
+        self.store(
+            "trip",
+            self._get("/api1/rs/tripInfo/trip")
+        )
 
     def connections(self, station_id: str) -> List[ConnectingTrain]:
         """
@@ -64,13 +82,14 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
 
         # Let the cache expire after 1 minute
         if cache_valid():
-            return self.load(f"{station_id}_connections", [])
+            return self.load(f"connections_{station_id}", [])
 
         # Request the connections
         try:
             connections_json = self._get(f"/api1/rs/tripInfo/connection/{station_id}")
-        except APIConnectionError:
-            return list()
+        except APIConnectionError as e:
+            # Try to return the last cached connections if new connections could not be fetched
+            return list() if self.load(f"connections_{station_id}") is None else self.load(f"connections_{station_id}")
 
         # Process the connections
         connections = list([
@@ -103,7 +122,7 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
             )
             for connection in connections_json.get('connections', [])
         ])
-        self.store(f"{station_id}_connections", connections)
+        self.store(f"connections_{station_id}", connections)
         self._connections_cache_control[station_id] = {"last_update": datetime.datetime.now()}
         return connections
 
@@ -113,10 +132,6 @@ class ICEPortal(Train):
     Wrapper for interacting with the DB ICE Portal API
     """
     __slots__ = []
-    __cached_names = dict()
-    """
-    Cache for train names
-    """
 
     def __init__(self):
         super().__init__()
@@ -174,7 +189,7 @@ class ICEPortal(Train):
                 ),
                 distance=stop.get('info', {}).get('distanceFromStart', 0),
                 connections=None,
-                lazy_func=lambda: self._dynamic_data.connections(stop.get('station', {}).get('evaNr')),
+                lazy_func=self._dynamic_data.connections,
             )
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
@@ -230,24 +245,19 @@ class ICEPortal(Train):
 
         :return: The name of the train
         """
-        # Check if train names are already cached
-        if len(self.__cached_names) == 0:
-            # Request the list of train names
-            data = requests.get(
-                "https://felix-zenk.github.io/projects/onboardapis/res/trains/germany/db/names.json",
-                headers={"user-agent": "python-onboardapis", "accept": "application/json"}
-            ).json()
-            # Add the names to the cache
-            self.__cached_names.update(data.get('names', {}))
-            # Also use unverified train names, because there are not many verified names at this point
-            self.__cached_names.update(data.get('unverified_names', {}))
+        # Request the mapping of train names
+        names = self._static_data.load('train_names', {}).get('names', {})
+        # Use unverified names as fallback, because not many verified names are available at this time
+        names.update(self._static_data.load('train_names', {}).get('unverified_names', {}))
 
-        # Get the name from the cache
+        # The id is only the number, because formats vary between the API and printed on the side of the train
         match = re.search(r'\d+', self.id)
+        # No number found, so no name is available
         if match is None:
             return None
 
-        return self.__cached_names.get(match.group(0).lstrip('0'), None)
+        # Return the name, may also be None if the train has no name
+        return names.get(match.group(0).lstrip('0'), None)
 
     def all_delay_reasons(self) -> Dict[str, Optional[List[str]]]:
         """
