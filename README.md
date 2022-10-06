@@ -34,9 +34,9 @@ $ python -m pip install onboardapis
 
 To begin with development you will need to know a few things first:
 
-* What vehicle type you want to use (e.g. train)
-* Who operates the vehicle (e.g. Deutsche Bahn / DB)
-* What country is the operator from (e.g. Germany)
+* What vehicle type you want to use
+* Who operates the vehicle
+* What country is the operator from
 
 With this information you can get the needed module from the package 
 ``onboardapis.<vehicle-type>.<country>.<operator>`` 
@@ -49,14 +49,19 @@ from onboardapis.trains.germany.db import ICEPortal
 ```
 
 Every implementation of an API wrapper class is a subclass of the abstract class of its vehicle type
-(here ``Train``) found in the vehicle package.
+(here ``Train``) found in the vehicle package. Every vehicle type itself is a subclass of ``Vehicle``.
 
 ```python
+from onboardapis import Vehicle
 from onboardapis.trains import Train
 from onboardapis.trains.germany.db import ICEPortal
 
+assert issubclass(Train, Vehicle)
 assert issubclass(ICEPortal, Train)
+assert issubclass(ICEPortal, Vehicle)
+
 assert isinstance(ICEPortal(), Train)
+assert isinstance(ICEPortal(), Vehicle)
 ```
 
 The abstract base class defines common attributes that are used by all implementations.
@@ -69,6 +74,7 @@ from onboardapis.trains.germany.db import ICEPortal
 from onboardapis.utils.conversions import ms_to_kmh
 
 train = ICEPortal()
+train.init()
 
 print(
     "Travelling at", train.speed, "m/s",
