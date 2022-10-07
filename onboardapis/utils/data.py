@@ -270,7 +270,11 @@ class DataConnector(metaclass=abc.ABCMeta):
         # Allow a different base url, but use self.base_url as default
         base_url = self.base_url if base_url is None else base_url
         try:
-            return self._session.get(f"https://{base_url}{endpoint}", *args, **kwargs)
+            response = self._session.get(f"https://{base_url}{endpoint}", *args, **kwargs)
+            # Report possible errors / changes in the API
+            if response.status_code != 200:
+                logging.warning(f"Request to https://{base_url}{endpoint} returned status code {response.status_code}")
+            return response
         except RequestException as e:
             raise APIConnectionError() from e
 
