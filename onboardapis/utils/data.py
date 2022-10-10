@@ -230,7 +230,7 @@ class DataConnector(metaclass=abc.ABCMeta):
     A class for retrieving data from an API
     """
 
-    __slots__ = ["base_url", "_session", "_cache"]
+    __slots__ = ["base_url", "_session", "_cache", "_retries"]
 
     def __init__(self, base_url: str) -> None:
         """
@@ -242,6 +242,7 @@ class DataConnector(metaclass=abc.ABCMeta):
         self.base_url = base_url
         self._session = requests.Session()
         self._cache = DataStorage()
+        self._retries = 0
 
     def __del__(self):
         self._session.close()
@@ -274,9 +275,16 @@ class DataConnector(metaclass=abc.ABCMeta):
             # Report possible errors / changes in the API
             if response.status_code != 200:
                 logging.warning(f"Request to https://{base_url}{endpoint} returned status code {response.status_code}")
+            self._retries = 0
             return response
         except RequestException as e:
-            raise APIConnectionError() from e
+            # If the request failed 3 times in a row, raise an error
+            if self._retries > 2:
+                raise APIConnectionError() from e
+            # Retry the request if it failed
+            self._retries += 1
+            logging.debug(f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)")
+            return self._get(endpoint, *args, base_url=base_url, **kwargs)
 
     def load(self, key: str, __default: Any = None) -> Any:
         """
@@ -315,6 +323,7 @@ class StaticDataConnector(DataConnector, metaclass=abc.ABCMeta):
     """
     A :class:`DataConnector` for data never changes and therefore has to be requested only once
     """
+    # Maybe add additional functionality over DataConnector?
 
     __slots__ = []
 
@@ -329,7 +338,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
     __slots__ = ["_runner", "_running", "_initialized", "optimize", "silent"]
 
-    def __init__(self, base_url: str, *args, **kwargs):
+    def __init__(self, base_url: str, *args, optimize: bool = True, silent: bool = True, **kwargs):
         super().__init__(base_url)
         self._runner = threading.Thread(
             target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True,
@@ -337,11 +346,11 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         self._running = False
         self._initialized = False
 
-        self.optimize = True
+        self.optimize = optimize
         """
         Whether to adapt the refresh rate of the data connector to be as close as possible to 1Hz.
         """
-        self.silent = True
+        self.silent = silent
         """
         Suppress exceptions that occur in the runner thread
         """
