@@ -89,7 +89,7 @@ print(
 
 print(
     f"Distance to {train.current_station.name}:",
-    f"{train.calculate_distance(train.current_station):.1f} km"
+    f"{train.calculate_distance(train.current_station) / 1000:.1f} km"
 )
 ```
 
