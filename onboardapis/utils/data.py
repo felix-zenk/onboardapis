@@ -484,3 +484,18 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
         with open(path, "w") as f:
             json.dump(data, f, default=lambda o: o.__dict__)
+
+
+class DummyDataConnector(StaticDataConnector, DynamicDataConnector):
+    """
+    A dummy :class:`DataConnector` that can be used if the API does not supply static or dynamic data
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(base_url="127.0.0.1")
+
+    def refresh(self) -> None:
+        pass
+
+    def start(self) -> None:
+        self._initialized = True
+        self._running = True
