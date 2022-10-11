@@ -2,7 +2,7 @@
 Implementation of the german operator FLX (Flixtrain GmbH).
 """
 from .. import Train, IncompleteTrainMixin
-from ...utils.data import JSONDataConnector, DynamicDataConnector, Position, DummyDataConnector
+from ...utils.data import JSONDataConnector, DynamicDataConnector, Position
 
 API_BASE_URL_FLIXTAINMENT = "media.flixtrain.com"
 
@@ -22,7 +22,6 @@ class FlixTainment(IncompleteTrainMixin, Train):
     """
     def __init__(self):
         super().__init__()
-        self._static_data = DummyDataConnector()
         self._dynamic_data = _FlixTainmentDynamicConnector()
 
     def position(self) -> Position:
