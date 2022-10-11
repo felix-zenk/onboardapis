@@ -471,44 +471,77 @@ class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
 
     @property
     def id(self) -> str:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def type(self) -> str:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def number(self) -> str:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def stations(self) -> Dict[Any, Station]:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def origin(self) -> Station:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def current_station(self) -> Station:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def destination(self) -> Station:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def speed(self) -> float:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def distance(self) -> float:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def position(self) -> Position:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
 
     @property
     def delay(self) -> float:
+        """
+        This method is not implemented!
+        """
         raise NotImplementedInAPIError()
