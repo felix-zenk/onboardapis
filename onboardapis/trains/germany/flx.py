@@ -15,7 +15,7 @@ class _FlixTainmentDynamicConnector(DynamicDataConnector, JSONDataConnector):
         self.store("position", "/services/pis/v1/position")
 
 
-class FlixTainment(Train, IncompleteTrainMixin):
+class FlixTainment(IncompleteTrainMixin, Train):
     """
     Wrapper for interacting with the Flixtrain FLIXTainment API
     (few methods are available, because the API is very sparse)
