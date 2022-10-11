@@ -12,6 +12,14 @@ onboardapis.trains.germany.db module
    :undoc-members:
    :show-inheritance:
 
+onboardapis.trains.germany.flx module
+------------------------------------
+
+.. automodule:: onboardapis.trains.germany.flx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
