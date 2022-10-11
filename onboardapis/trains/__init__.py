@@ -220,58 +220,6 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
     Interface specifying the attributes of a train
     """
 
-    __slots__ = ["_static_data", "_dynamic_data", "_initialized"]
-
-    def __init__(self):
-        self._initialized = False
-        self._static_data: StaticDataConnector
-        self._dynamic_data: DynamicDataConnector
-
-    def __enter__(self):
-        self.init()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.shutdown()
-
-    def init(self) -> None:
-        """
-        Initialize the :class:`DataConnector` objects.
-
-        Calls ``refresh`` on the :class:`StaticDataConnector`
-        and ``start`` on the :class:`DynamicDataConnector` by default.
-
-        :return: Nothing
-        :rtype: None
-        """
-        if self._initialized:
-            return
-        try:
-            self._dynamic_data.start()
-            self._static_data.refresh()
-            self._initialized = True
-        except APIConnectionError as e:
-            raise InitialConnectionError() from e
-
-    def shutdown(self) -> None:
-        """
-        Safely close the :class:`DataConnector` objects of this train.
-
-        :return: Nothing
-        :rtype: None
-        """
-        self._dynamic_data.stop()
-
-    @property
-    def connected(self) -> bool:
-        """
-        Whether the train is connected to the API
-
-        :return: Whether the train is connected to the API
-        :rtype: bool
-        """
-        return self._dynamic_data.connected
-
     def now(self) -> datetime.datetime:
         """
         Get the current time from the train
