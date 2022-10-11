@@ -5,7 +5,7 @@ Implementation of the german operator DB (Deutsche Bahn).
 import datetime
 import re
 
-from typing import Tuple, Dict, List, Optional, Literal, NewType, Callable
+from typing import Tuple, Dict, List, Optional, Literal
 
 from .. import Train, Station, ConnectingTrain, _LazyStation
 from ...exceptions import DataInvalidError, APIConnectionError
@@ -15,7 +15,7 @@ from ...utils.data import (
 )
 
 API_BASE_URL_ICEPORTAL = "iceportal.de"
-InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
+InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]  # from /api1/rs/configs
 
 
 class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
@@ -30,7 +30,7 @@ class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
             "bap",
             self._get("/bap/api/bap-service-status")
         )
-        # train names
+        # train names (optional)
         try:
             self.store(
                 "names",
@@ -87,7 +87,7 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         # Request the connections
         try:
             connections_json = self._get(f"/api1/rs/tripInfo/connection/{station_id}")
-        except APIConnectionError as e:
+        except APIConnectionError:
             # Try to return the last cached connections if new connections could not be fetched
             return list() if self.load(f"connections_{station_id}") is None else self.load(f"connections_{station_id}")
 
