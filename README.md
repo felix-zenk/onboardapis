@@ -9,14 +9,12 @@
 ## Description
 
 onboardapis allows you to interact with different on-board APIs.
-You can connect to the WI-FI of a supported transportation provider
+You can connect to the Wi-Fi of a supported transportation provider
 and access information about your journey, the vehicle you are travelling in and much more.
-
-> **Note:** Coverage across operators is not great yet.
 
 > **Note:** For now the only vehicle type covered by this package is trains.
 
-> **Note:** At the time this package supports the DB ICE Portal from germany and the ÖBB Railnet Regio from austria.
+> **Note:** At the time this package supports the DB ICE Portal and FlixTrain FlixTainment from germany and the ÖBB Railnet Regio from austria.
 
 ---
 
@@ -101,4 +99,4 @@ You can read more information about available attributes in the [trains document
 ## Documentation
 [![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
 
-[ReadTheDocs](https://onboardapis.readthedocs.io/en/latest/)
+#### [ReadTheDocs](https://onboardapis.readthedocs.io/en/latest/)
