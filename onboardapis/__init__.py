@@ -11,6 +11,8 @@ __license__ = 'MIT'
 __copyright__ = 'Copyright (c) 2022 Felix Zenk'
 __url__ = 'https://github.com/felix-zenk/onboardapis'
 
+from abc import ABCMeta
+
 
 class Vehicle(object):
     """
@@ -18,3 +20,11 @@ class Vehicle(object):
     """
 
     __slots__ = []
+
+
+class IncompleteVehicleMixin(object, metaclass=ABCMeta):
+    """
+    Base class for mixins that implement the abstract methods of their bases
+    if the API does not provide the requested data.
+    """
+    pass

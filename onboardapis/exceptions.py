@@ -40,3 +40,13 @@ class DataInvalidError(APIConnectionError):
 
     def __init__(self, message: str = "The API returned an invalid response", *args):
         super(DataInvalidError, self).__init__(message, *args)
+
+
+class NotImplementedInAPIError(NotImplementedError):
+    """
+    Exception that is raised whenever a functionality is requested that is not implemented in the providers API.
+    """
+    __slots__ = []
+
+    def __init__(self, message: str = "This providers API does not provide this data!", *args):
+        super(NotImplementedInAPIError, self).__init__(message, *args)

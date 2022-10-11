@@ -1,14 +1,15 @@
 """
 Abstract base classes for trains
 """
+from __future__ import annotations
 
 import abc
 import datetime
 import time
 from typing import Optional, Tuple, Dict, Union, Any, List, Callable
 
-from .. import Vehicle
-from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
+from .. import Vehicle, IncompleteVehicleMixin
+from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError, NotImplementedInAPIError
 from ..utils.conversions import coordinates_to_distance
 from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
 
@@ -164,6 +165,54 @@ class Station(object):
         if isinstance(other, tuple):
             return coordinates_to_distance((self.position.latitude, self.position.longitude), other)
         return None
+
+
+class _LazyStation(Station):
+    """
+    The LazyStation is a Station that maybe does not yet have information on connecting trains.
+    If it does not have information by the time it is requested by the user,
+    it will then proceed to load the information through ``lazy_func(self.id)``.
+    """
+
+    __slots__ = ["_lazy_func", "_cache_valid_until", "_cache_timeout"]
+
+    def __init__(self, *args, lazy_func: Optional[Callable[..., List[ConnectingTrain]]] = None,
+                 _cache_timeout: int = 60, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._lazy_func = lazy_func
+        self._cache_valid_until = 0
+        self._cache_timeout = _cache_timeout
+
+    @property
+    def connections(self) -> Optional[List[ConnectingTrain]]:
+        """
+        The connecting services departing from this station
+
+        :return: A list of ConnectingTrain objects
+        :rtype: List[ConnectingTrain]
+        """
+        def request_data() -> List[ConnectingTrain]:
+            """
+            Perform the request to get the data and return the response
+            """
+            connections = self._lazy_func(self.id)
+            self._connections = connections
+            self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute
+            return connections
+
+        if self._lazy_func is None:
+            return self._connections  # None or connections
+
+        # Lazy func is not None
+        # Connections may be None or not
+        if time.time() > self._cache_valid_until:
+            return request_data()
+        # Cache time is valid
+        # If there is no cache yet, request the data
+        if self._connections is None:
+            return request_data()
+        # Return cached connections
+        return self._connections
 
 
 class Train(Vehicle, metaclass=abc.ABCMeta):
@@ -414,49 +463,52 @@ class ConnectingTrain(object):
                f"-> {self.destination} ({repr(self.departure)}, {repr(self.platform)})>"
 
 
-class _LazyStation(Station):
+class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
     """
-    The LazyStation is a Station that maybe does not yet have information on connecting trains.
-    If it does not have information by the time it is requested by the user,
-    it will then proceed to load the information through ``lazy_func(self.id)``.
+    Class that implements all remaining abstract methods.
+    Used when the operator does not provide the requested data via the API.
     """
-
-    __slots__ = ["_lazy_func", "_cache_valid_until", "_cache_timeout"]
-
-    def __init__(self, *args, lazy_func: Optional[Callable[..., List[ConnectingTrain]]] = None,
-                 _cache_timeout: int = 60, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._lazy_func = lazy_func
-        self._cache_valid_until = 0
-        self._cache_timeout = _cache_timeout
 
     @property
-    def connections(self) -> Optional[List[ConnectingTrain]]:
-        """
-        The connecting services departing from this station
+    def id(self) -> str:
+        raise NotImplementedInAPIError()
 
-        :return: A list of ConnectingTrain objects
-        :rtype: List[ConnectingTrain]
-        """
-        def request_data() -> List[ConnectingTrain]:
-            """
-            Perform the request to get the data and return the response
-            """
-            connections = self._lazy_func(self.id)
-            self._connections = connections
-            self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute
-            return connections
+    @property
+    def type(self) -> str:
+        raise NotImplementedInAPIError()
 
-        if self._lazy_func is None:
-            return self._connections  # None or connections
+    @property
+    def number(self) -> str:
+        raise NotImplementedInAPIError()
 
-        # Lazy func is not None
-        # Connections may be None or not
-        if time.time() > self._cache_valid_until:
-            return request_data()
-        # Cache time is valid
-        # If there is no cache yet, request the data
-        if self._connections is None:
-            return request_data()
-        # Return cached connections
-        return self._connections
+    @property
+    def stations(self) -> Dict[Any, Station]:
+        raise NotImplementedInAPIError()
+
+    @property
+    def origin(self) -> Station:
+        raise NotImplementedInAPIError()
+
+    @property
+    def current_station(self) -> Station:
+        raise NotImplementedInAPIError()
+
+    @property
+    def destination(self) -> Station:
+        raise NotImplementedInAPIError()
+
+    @property
+    def speed(self) -> float:
+        raise NotImplementedInAPIError()
+
+    @property
+    def distance(self) -> float:
+        raise NotImplementedInAPIError()
+
+    @property
+    def position(self) -> Position:
+        raise NotImplementedInAPIError()
+
+    @property
+    def delay(self) -> float:
+        raise NotImplementedInAPIError()
