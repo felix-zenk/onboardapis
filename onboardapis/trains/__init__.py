@@ -3,15 +3,15 @@ Abstract base classes for trains
 """
 from __future__ import annotations
 
-import abc
 import datetime
 import time
 from typing import Optional, Tuple, Dict, Union, Any, List, Callable
+from abc import ABCMeta, abstractmethod
 
 from .. import Vehicle, IncompleteVehicleMixin
-from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError, NotImplementedInAPIError
+from ..exceptions import DataInvalidError, NotImplementedInAPIError
 from ..utils.conversions import coordinates_to_distance
-from ..utils.data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
+from ..utils.data import ScheduledEvent, Position
 
 
 class Station(object):
@@ -215,7 +215,7 @@ class _LazyStation(Station):
         return self._connections
 
 
-class Train(Vehicle, metaclass=abc.ABCMeta):
+class Train(Vehicle, metaclass=ABCMeta):
     """
     Interface specifying the attributes of a train
     """
@@ -241,7 +241,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         return station.calculate_distance(self.distance or self.position)
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def id(self) -> str:
         """
         The unique ID of this specific train
@@ -252,7 +252,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def type(self) -> str:
         """
         The abbreviated train type
@@ -263,7 +263,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def number(self) -> str:
         """
         The line number of this train
@@ -274,7 +274,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def stations(self) -> Dict[Any, Station]:
         """
         The stations that this train passes through returned as a dict with the station ID as the key
@@ -285,7 +285,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def origin(self) -> Station:
         """
         The station where this train started the current journey
@@ -299,7 +299,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         raise DataInvalidError("No origin station found")
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def current_station(self) -> Station:
         """
         The station where this train will arrive next or is currently at
@@ -312,7 +312,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def destination(self) -> Station:
         """
         The station where this train will end the current journey
@@ -326,7 +326,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         raise DataInvalidError("No destination station found")
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def speed(self) -> float:
         """
         The current speed of the train in meters / second
@@ -337,7 +337,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def distance(self) -> float:
         """
         The distance from the start in meters
@@ -348,7 +348,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def position(self) -> Position:
         """
         The current position of the train as a :class:`Position`
@@ -359,7 +359,7 @@ class Train(Vehicle, metaclass=abc.ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def delay(self) -> float:
         """
         The current delay of the train in seconds
