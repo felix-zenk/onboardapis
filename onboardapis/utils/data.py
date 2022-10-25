@@ -418,6 +418,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
         if not self._runner.is_alive():
             # If the thread is not alive, something went wrong
+            self.reset()
             raise InitialConnectionError("Failed to connect to the server")
 
     def stop(self):
