@@ -7,7 +7,7 @@ from ...utils.data import JSONDataConnector, DynamicDataConnector, Position
 API_BASE_URL_FLIXTAINMENT = "media.flixtrain.com"
 
 
-class _FlixTainmentDynamicConnector(DynamicDataConnector, JSONDataConnector):
+class _FlixTainmentDynamicConnector(JSONDataConnector, DynamicDataConnector):
     def __init__(self):
         super().__init__(API_BASE_URL_FLIXTAINMENT)
 

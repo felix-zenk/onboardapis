@@ -16,7 +16,7 @@ from ...utils.data import (
 API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
 
 
-class _RailnetStaticConnector(StaticDataConnector, JSONDataConnector):
+class _RailnetStaticConnector(JSONDataConnector, StaticDataConnector):
     def __init__(self):
         super().__init__(base_url=API_BASE_URL_RAILNET_REGIO)
 
@@ -27,7 +27,7 @@ class _RailnetStaticConnector(StaticDataConnector, JSONDataConnector):
         )
 
 
-class _RailnetDynamicConnector(DynamicDataConnector, JSONDataConnector):
+class _RailnetDynamicConnector(JSONDataConnector, DynamicDataConnector):
     def __init__(self):
         super().__init__(base_url=API_BASE_URL_RAILNET_REGIO)
 
