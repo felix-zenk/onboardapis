@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 import time
-from typing import Optional, Tuple, Dict, Union, Any, List, Callable
+from typing import Any, Callable, Iterable, TypeVar
 from abc import ABCMeta, abstractmethod
 
 from .. import Vehicle, IncompleteVehicleMixin
@@ -23,8 +23,7 @@ class Station(object):
 
     def __init__(self, station_id: Any, name: str, platform: ScheduledEvent[str] = None,
                  arrival: ScheduledEvent[datetime.datetime] = None, departure: ScheduledEvent[datetime.datetime] = None,
-                 position: Position = None, distance: float = None,
-                 connections: List["ConnectingTrain"] = None):
+                 position: Position = None, distance: float = None, connections: list["ConnectingTrain"] = None):
         """
         Initialize a new :class:`Station`
 
@@ -43,7 +42,7 @@ class Station(object):
         :param distance: The distance from the start to this station
         :type distance: float
         :param connections: The connecting services departing from this station
-        :type connections: List[ConnectingTrain]
+        :type connections: Iterable[ConnectingTrain]
         """
         self._id = station_id
         self._name = name
@@ -53,6 +52,9 @@ class Station(object):
         self._position = position
         self._distance = distance
         self._connections = connections
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self.name}>"
 
     @property
     def id(self) -> Any:
@@ -105,12 +107,12 @@ class Station(object):
         return self._departure
 
     @property
-    def connections(self) -> List["ConnectingTrain"]:
+    def connections(self) -> list[ConnectingTrain]:
         """
         The connecting services departing from this station
 
         :return: A list of ConnectingTrain objects
-        :rtype: List[ConnectingTrain]
+        :rtype: list[ConnectingTrain]
         """
         return self._connections
 
@@ -134,7 +136,7 @@ class Station(object):
         """
         return self._position
 
-    def calculate_distance(self, other: Union["Station", Tuple[float, float], int, float]) -> Optional[float]:
+    def calculate_distance(self, other: Station | tuple[float, float] | int | float) -> float | None:
         """
         Calculate the distance in meters between this station and something else
         Accepts a :class:`Station`, a tuple of (latitude, longitude) or an integer for the distance calculation
@@ -176,7 +178,7 @@ class _LazyStation(Station):
 
     __slots__ = ["_lazy_func", "_cache_valid_until", "_cache_timeout"]
 
-    def __init__(self, *args, lazy_func: Optional[Callable[..., List[ConnectingTrain]]] = None,
+    def __init__(self, *args, lazy_func: Callable[..., list[ConnectingTrain] | None] = None,
                  _cache_timeout: int = 60, **kwargs):
         super().__init__(*args, **kwargs)
         self._lazy_func = lazy_func
@@ -184,14 +186,14 @@ class _LazyStation(Station):
         self._cache_timeout = _cache_timeout
 
     @property
-    def connections(self) -> Optional[List[ConnectingTrain]]:
+    def connections(self) -> list[ConnectingTrain] | None:
         """
         The connecting services departing from this station
 
         :return: A list of ConnectingTrain objects
         :rtype: List[ConnectingTrain]
         """
-        def request_data() -> List[ConnectingTrain]:
+        def request_data() -> list[ConnectingTrain]:
             """
             Perform the request to get the data and return the response
             """
@@ -215,10 +217,19 @@ class _LazyStation(Station):
         return self._connections
 
 
+ID = TypeVar('ID', str, int)
+"""
+A TypeVar indicating the return type of Train.id and the key type of Train.stations
+"""
+
+
 class Train(Vehicle, metaclass=ABCMeta):
     """
     Interface specifying the attributes of a train
     """
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self.id}>"
 
     def now(self) -> datetime.datetime:
         """
@@ -242,7 +253,7 @@ class Train(Vehicle, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def id(self) -> str:
+    def id(self) -> ID:
         """
         The unique ID of this specific train
 
@@ -275,9 +286,10 @@ class Train(Vehicle, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def stations(self) -> Dict[Any, Station]:
+    def stations(self) -> dict[ID, Station]:
         """
-        The stations that this train passes through returned as a dict with the station ID as the key
+        The stations that this train passes through returned as a dict with the station ID as the key.
+        Mostly ID will be of type str.
 
         :return: The stations
         :rtype: Dict[str, Station]
@@ -379,36 +391,38 @@ class ConnectingTrain(object):
 
     __slots__ = ["train_type", "line_number", "platform", "destination", "departure"]
 
-    def __init__(self, train_type: Optional[str] = None, line_number: Optional[str] = None,
-                 platform: Optional[ScheduledEvent[str]] = None, destination: Optional[str] = None,
-                 departure: Optional[ScheduledEvent[datetime.datetime]] = None):
-        self.train_type: Optional[str] = train_type
+    def __init__(self, train_type: str | None = None, line_number: str | None = None,
+                 platform: ScheduledEvent[str] | None = None, destination: str | None = None,
+                 departure: ScheduledEvent[datetime.datetime] | None = None):
+        self.train_type: str | None = train_type
         """
         The abbreviated train type
         """
-        self.line_number: Optional[str] = line_number
+        self.line_number: str | None = line_number
         """
         The line number of the train
         """
-        self.platform: Optional[ScheduledEvent[str]] = platform
+        self.platform: ScheduledEvent[str] | None = platform
         """
         The platform where the train will depart from
         """
-        self.departure: Optional[ScheduledEvent[datetime.datetime]] = departure
+        self.departure: ScheduledEvent[datetime.datetime] | None = departure
         """
         The departure time of the train
         """
-        self.destination: Optional[str] = destination
+        self.destination: str | None = destination
         """
         The destination of the train
         """
 
     def __str__(self):
-        return f"{self.train_type}{self.line_number} to {self.destination} ({self.departure}, platform {self.platform})"
+        return (
+            f"{self.train_type}{self.line_number} to {self.destination} "
+            f"({self.departure.actual.strftime('%H:%M')}, platform {self.platform.actual})"
+        )
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.train_type}{self.line_number} " \
-               f"-> {self.destination} ({repr(self.departure)}, {repr(self.platform)})>"
+        return f"<{self.__class__.__name__} {self.train_type}{self.line_number} -> {self.destination}>"
 
 
 class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
@@ -418,7 +432,7 @@ class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
     """
 
     @property
-    def id(self) -> str:
+    def id(self) -> ID:
         raise NotImplementedInAPIError()
 
     @property
@@ -430,7 +444,7 @@ class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
         raise NotImplementedInAPIError()
 
     @property
-    def stations(self) -> Dict[Any, Station]:
+    def stations(self) -> dict[ID, Station]:
         raise NotImplementedInAPIError()
 
     @property
