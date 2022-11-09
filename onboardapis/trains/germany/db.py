@@ -1,13 +1,14 @@
 """
 Implementation of the german operator DB (Deutsche Bahn).
 """
+from __future__ import annotations
 
 import datetime
 import re
 
-from typing import Tuple, Dict, List, Optional, Literal
+from typing import Tuple, Dict, List, Optional, Literal, Generator
 
-from .. import Train, Station, ConnectingTrain, _LazyStation
+from .. import Train, Station, ConnectingTrain
 from ...exceptions import DataInvalidError, APIConnectionError
 from ...utils.conversions import kmh_to_ms
 from ...utils.data import (
@@ -18,7 +19,7 @@ API_BASE_URL_ICEPORTAL = "iceportal.de"
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]  # from /api1/rs/configs
 
 
-class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
+class _ICEPortalStaticConnector(JSONDataConnector, StaticDataConnector):
     __slots__ = []
 
     def __init__(self):
@@ -41,7 +42,7 @@ class _ICEPortalStaticConnector(StaticDataConnector, JSONDataConnector):
             self.store("names", {})
 
 
-class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
+class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
     __slots__ = ["_connections_cache_control"]
 
     def __init__(self):
@@ -52,6 +53,7 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         Connections for DB are only available shortly before the arrival
         -> Cache every already seen connection as well
         """
+
     def refresh(self):
         # status
         self.store(
@@ -64,7 +66,7 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
             self._get("/api1/rs/tripInfo/trip")
         )
 
-    def connections(self, station_id: str) -> List[ConnectingTrain]:
+    def connections(self, station_id: str) -> Generator[ConnectingTrain, None, None]:
         """
         Get all connections for a station
 
@@ -82,14 +84,16 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
 
         # Let the cache expire after 1 minute
         if cache_valid():
-            return self.load(f"connections_{station_id}", [])
+            yield from self.load(f"connections_{station_id}", [])
+            return
 
         # Request the connections
         try:
             connections_json = self._get(f"/api1/rs/tripInfo/connection/{station_id}")
         except APIConnectionError:
             # Try to return the last cached connections if new connections could not be fetched
-            return list() if self.load(f"connections_{station_id}") is None else self.load(f"connections_{station_id}")
+            yield from [] if self.load(f"connections_{station_id}") is None else self.load(f"connections_{station_id}")
+            return
 
         # Process the connections
         connections = list([
@@ -124,7 +128,8 @@ class _ICEPortalDynamicConnector(DynamicDataConnector, JSONDataConnector):
         ])
         self.store(f"connections_{station_id}", connections)
         self._connections_cache_control[station_id] = {"last_update": datetime.datetime.now()}
-        return connections
+        yield from connections
+        return
 
 
 class ICEPortal(Train):
@@ -160,7 +165,7 @@ class ICEPortal(Train):
         # Each stations connecting trains require an additional request
         # So use a LazyStation to only request the connections when needed
         return {
-            stop.get('station', {}).get('evaNr'): _LazyStation(
+            stop.get('station', {}).get('evaNr'): Station(
                 station_id=stop.get('station', {}).get('evaNr'),
                 name=stop.get('station', {}).get('name'),
                 platform=ScheduledEvent(
@@ -188,8 +193,7 @@ class ICEPortal(Train):
                     longitude=stop.get('station', {}).get('geocoordinates', {}).get('longitude')
                 ),
                 distance=stop.get('info', {}).get('distanceFromStart', 0),
-                connections=None,
-                lazy_func=self._dynamic_data.connections,
+                connections=self._dynamic_data.connections(station_id=stop.get('station', {}).get('evaNr')),
             )
             for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
         }
@@ -311,7 +315,7 @@ class ICEPortal(Train):
         return some_or_default(self._dynamic_data.load("status", {}).get('wagonClass'))
 
     def internet_connection(self) -> Tuple[
-        Optional[InternetStatus], Optional[InternetStatus], Optional[datetime.timedelta]
+        InternetStatus, InternetStatus, Optional[datetime.timedelta]
     ]:
         """
         Returns the internet connection status of the train,
@@ -325,16 +329,20 @@ class ICEPortal(Train):
         :return: The tuple (current, next, time_remaining)
         :rtype: Tuple[InternetStatus, InternetStatus, datetime.timedelta]
         """
+        remaining_seconds = (
+            self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds', '')
+        )
         return (
             # Current state
-            some_or_default(self._dynamic_data.load("status", {}).get('connectivity', {}).get('currentState')),
+            some_or_default(
+                self._dynamic_data.load("status", {}).get('connectivity', {}).get('currentState'),
+                "NO_INFO"
+            ),
             # Next state
-            some_or_default(self._dynamic_data.load("status", {}).get('connectivity', {}).get('nextState')),
+            some_or_default(
+                self._dynamic_data.load("status", {}).get('connectivity', {}).get('nextState'),
+                "NO_INFO"
+            ),
             # Remaining time
-            datetime.timedelta(
-                seconds=int(self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds'))
-            )
-            if some_or_default(
-                self._dynamic_data.load("status", {}).get('connectivity', {}).get('remainingTimeSeconds', '')
-            ) is not None else None
+            None if some_or_default(remaining_seconds) is None else datetime.timedelta(seconds=int(remaining_seconds))
         )
