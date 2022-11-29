@@ -66,14 +66,14 @@ class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
             self._get("/api1/rs/tripInfo/trip")
         )
 
-    def connections(self, station_id: str) -> Generator[ConnectingTrain, None, None]:
+    def connections(self, station_id: str) -> Generator[list[ConnectingTrain], None, None]:  # TODO edit
         """
         Get all connections for a station
 
         :param station_id: The station to get the connections for
         :type station_id: str
-        :return: A list of connections for the station
-        :rtype: List[ConnectingTrain]
+        :return: A generator yielding a list of connections for the station
+        :rtype: Generator[list[ConnectingTrain]]
         """
         # Function to determine when to update the cache
         def cache_valid() -> bool:
@@ -161,7 +161,7 @@ class ICEPortal(Train):
         return self._dynamic_data.load("trip", {}).get('trip', {}).get('vzn')
 
     @property
-    def stations(self) -> Dict[str, Station]:
+    def stations_dict(self) -> Dict[str, Station]:
         # Each stations connecting trains require an additional request
         # So use a LazyStation to only request the connections when needed
         return {
@@ -209,7 +209,7 @@ class ICEPortal(Train):
         station_id = some_or_default(stop_info.get('actualNext'))
         # Get the station from the stations dict
         try:
-            return self.stations[station_id]
+            return self.stations_dict[station_id]
         except AttributeError as e:
             raise DataInvalidError("No current station found") from e
 

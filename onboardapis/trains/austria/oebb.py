@@ -65,7 +65,7 @@ class RailnetRegio(Train):
         return None
 
     @property
-    def stations(self) -> Dict[Any, Station]:
+    def stations_dict(self) -> Dict[Any, Station]:
         def to_datetime(data: str, __future: bool = None) -> Optional[datetime.datetime]:
             if some_or_default(data, default=None) is None:
                 return None
@@ -145,7 +145,7 @@ class RailnetRegio(Train):
         station_id = self._dynamic_data.load('combined', {}).get('currentStation', {}).get('id', -1)
         # Get the station from the stations dict
         try:
-            return self.stations[station_id]
+            return self.stations_dict[station_id]
         except AttributeError as e:
             raise DataInvalidError("No current station found") from e
 
@@ -161,7 +161,7 @@ class RailnetRegio(Train):
     @property
     def distance(self) -> float:
         try:
-            return self.stations[self._dynamic_data.load(
+            return self.stations_dict[self._dynamic_data.load(
                 'combined', {}).get('operationalMessagesInfo', {}).get('distanceStation', -1)
                    ].distance + float(
                 self._dynamic_data.load('combined', {}).get('operationalMessagesInfo', {}).get('distance', 0)
