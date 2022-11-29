@@ -1,6 +1,7 @@
 """
 This module contains everything that has to do with data and data management
 """
+from __future__ import annotations
 
 import abc
 import json
@@ -12,6 +13,9 @@ import requests
 from os import PathLike
 from typing import Any, Optional, TypeVar, Generic, ItemsView, Union, Sequence
 from requests import Response, RequestException
+
+from geopy.point import Point
+from geopy.distance import geodesic
 
 from .conversions import coordinates_decimal_to_dms
 from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
@@ -56,7 +60,7 @@ class ScheduledEvent(Generic[T]):
 
     __slots__ = ["scheduled", "actual"]
 
-    def __init__(self, scheduled: Optional[T] = None, actual: Optional[T] = None):
+    def __init__(self, scheduled: T, actual: T | None = None):
         """
         Initialize a new :class:`ScheduledEvent`
 
@@ -66,7 +70,13 @@ class ScheduledEvent(Generic[T]):
         :type actual: Optional[T]
         """
         self.scheduled = scheduled
-        self.actual = actual
+        """
+        The expected value of this event
+        """
+        self.actual = actual  # TODO scheduled as default?
+        """
+        The actual value of this event, may differ from the scheduled value
+        """
 
     def __repr__(self):
         if self.actual is None:
@@ -160,15 +170,17 @@ class Position(object):
         """
         return self._heading
 
-    def calculate_distance(self, other: "Position") -> float:
+    def calculate_distance(self, other: Position) -> float:
         """
         Calculate the distance (in meters) between this position and another position.
 
         :param other: The other position
         :return: The distance in meters
         """
-        raise NotImplementedError()
-        # return coordinates_to_distance((self.latitude, self.longitude), (other.latitude, other.longitude))
+        return geodesic(
+            Point(latitude=self.latitude, longitude=self.longitude),  # altitude not supported
+            Point(latitude=other.latitude, longitude=other.longitude)  # altitude not supported
+        ).meters
 
 
 class DataStorage:
