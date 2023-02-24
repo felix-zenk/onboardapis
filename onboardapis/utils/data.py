@@ -120,8 +120,10 @@ class Position(object):
             (self.latitude, self.longitude)
         )
         coordinates = (
-            f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'} "
-            f"{abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
+            f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'}"
+            + f" {abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
+            + (f" {self.altitude}m" if self.altitude is not None else "")
+            + (f" {self.heading}°" if self.heading is not None else "")
         )
         return coordinates
 
@@ -261,7 +263,7 @@ class DataConnector(metaclass=abc.ABCMeta):
 
     def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> Response:
         """
-        Request data from the server
+        Request data from the server.
 
         :param str endpoint: The endpoint to request data from
         :param Any args: args to pass to the request
@@ -433,7 +435,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
             self.reset()
             raise InitialConnectionError("Failed to connect to the server")
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop requesting data and shut down the separate thread
         """
@@ -441,7 +443,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         if self._runner.is_alive():
             self._runner.join()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the thread and the cache so that they can be reused with ``start()``
         """
@@ -451,7 +453,6 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         )
         self._session = requests.Session()
         self._cache = DataStorage()
-        self._running = False
         self._initialized = False
 
 
@@ -470,6 +471,17 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
         kwargs["headers"] = headers
         try:
             return super(JSONDataConnector, self)._get(endpoint, *args, base_url=base_url, **kwargs).json()
+            # TODO this raises an error sometimes, stating, that dict has no attribute json()
+            #
+            #             DataConnector
+            #              _get() -> Response
+            #             /           \
+            # JSONDataConnector  StaticDataConnector
+            #  _get() -> dict     _get() -> Response
+            #             \           /
+            #       SomeJsonStaticDataConnector
+            #        _get(base_url=not None) -> dict
+            #
         except json.JSONDecodeError as e:
             logging.debug(f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}")
             raise DataInvalidError() from e
@@ -512,3 +524,10 @@ class DummyDataConnector(StaticDataConnector, DynamicDataConnector):
     def start(self) -> None:
         self._initialized = True
         self._running = True
+
+    def stop(self) -> None:
+        self._running = False
+
+    def reset(self) -> None:
+        self.stop()
+        self._initialized = False
