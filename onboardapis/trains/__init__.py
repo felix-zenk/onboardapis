@@ -56,6 +56,9 @@ class Station(object):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self.name}>"
 
+    def __str__(self) -> str:
+        return self.name
+
     @property
     def id(self) -> Any:
         """
@@ -172,54 +175,6 @@ class Station(object):
                 return self.position.calculate_distance(other.position)
 
 
-class _LazyStation(Station):
-    """
-    The LazyStation is a Station that maybe does not yet have information on connecting trains.
-    If it does not have information by the time it is requested by the user,
-    it will then proceed to load the information through ``lazy_func(self.id)``.
-    """
-
-    __slots__ = ["_lazy_func", "_cache_valid_until", "_cache_timeout"]
-
-    def __init__(self, *args, lazy_func: Callable[..., list[ConnectingTrain] | None] = None,
-                 _cache_timeout: int = 60, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._lazy_func = lazy_func
-        self._cache_valid_until = 0
-        self._cache_timeout = _cache_timeout
-
-    @property
-    def connections(self) -> list[ConnectingTrain] | None:
-        """
-        The connecting services departing from this station
-
-        :return: A list of ConnectingTrain objects
-        :rtype: List[ConnectingTrain]
-        """
-        def request_data() -> list[ConnectingTrain]:
-            """
-            Perform the request to get the data and return the response
-            """
-            connections = self._lazy_func(self.id)
-            self._connections = connections
-            self._cache_valid_until = time.time() + self._cache_timeout  # Cache this result for the next minute
-            return connections
-
-        if self._lazy_func is None:
-            return self._connections  # None or connections
-
-        # Lazy func is not None
-        # Connections may be None or not
-        if time.time() > self._cache_valid_until:
-            return request_data()
-        # Cache time is valid
-        # If there is no cache yet, request the data
-        if self._connections is None:
-            return request_data()
-        # Return cached connections
-        return self._connections
-
-
 ID = TypeVar('ID', str, int)
 """
 A TypeVar indicating the return type of Train.id and the key type of Train.stations
@@ -236,7 +191,7 @@ class Train(Vehicle, metaclass=ABCMeta):
 
     def now(self) -> datetime.datetime:
         """
-        Get the current time from the train
+        Get the current time as seen by the train
 
         :return: The current time
         :rtype: datetime.datetime
@@ -309,7 +264,6 @@ class Train(Vehicle, metaclass=ABCMeta):
         return list(self.stations_dict.values())
 
     @property
-    @abstractmethod
     def origin(self) -> Station:
         """
         The station where this train started the current journey
@@ -335,7 +289,6 @@ class Train(Vehicle, metaclass=ABCMeta):
         pass
 
     @property
-    @abstractmethod
     def destination(self) -> Station:
         """
         The station where this train will end the current journey
@@ -381,7 +334,6 @@ class Train(Vehicle, metaclass=ABCMeta):
         pass
 
     @property
-    @abstractmethod
     def delay(self) -> float:
         """
         The current delay of the train in seconds

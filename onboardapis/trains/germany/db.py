@@ -1,5 +1,5 @@
 """
-Implementation of the german operator DB (Deutsche Bahn).
+Implementation for the german operator DB (Deutsche Bahn).
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
             self._get("/api1/rs/tripInfo/trip")
         )
 
-    def connections(self, station_id: str) -> Generator[list[ConnectingTrain], None, None]:  # TODO edit
+    def connections(self, station_id: str) -> Generator[ConnectingTrain, None, None]:
         """
         Get all connections for a station
 
@@ -92,7 +92,7 @@ class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
             connections_json = self._get(f"/api1/rs/tripInfo/connection/{station_id}")
         except APIConnectionError:
             # Try to return the last cached connections if new connections could not be fetched
-            yield from [] if self.load(f"connections_{station_id}") is None else self.load(f"connections_{station_id}")
+            yield from self.load(f"connections_{station_id}", [])
             return
 
         # Process the connections
@@ -161,9 +161,10 @@ class ICEPortal(Train):
         return self._dynamic_data.load("trip", {}).get('trip', {}).get('vzn')
 
     @property
-    def stations_dict(self) -> Dict[str, Station]:
-        # Each stations connecting trains require an additional request
-        # So use a LazyStation to only request the connections when needed
+    def stations_dict(self) -> dict[str, Station]:
+        stops = self._dynamic_data.load("trip", {}).get('trip', {}).get('stops')
+        if stops is None:
+            raise DataInvalidError("API is missing data about stations")
         return {
             stop.get('station', {}).get('evaNr'): Station(
                 station_id=stop.get('station', {}).get('evaNr'),
@@ -195,7 +196,7 @@ class ICEPortal(Train):
                 distance=stop.get('info', {}).get('distanceFromStart', 0),
                 connections=self._dynamic_data.connections(station_id=stop.get('station', {}).get('evaNr')),
             )
-            for stop in self._dynamic_data.load("trip", {}).get('trip', {}).get('stops', [])
+            for stop in stops
         }
 
     @property
@@ -240,7 +241,7 @@ class ICEPortal(Train):
         return super(ICEPortal, self).delay
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         """
         Get the name of the train.
 
@@ -249,10 +250,11 @@ class ICEPortal(Train):
 
         :return: The name of the train
         """
-        # Request the mapping of train names
-        names = self._static_data.load('train_names', {}).get('names', {})
         # Use unverified names as fallback, because not many verified names are available at this time
-        names.update(self._static_data.load('train_names', {}).get('unverified_names', {}))
+        names = self._static_data.load('train_names', {}).get('unverified_names', {})
+        # overwrite the dict with verified train names
+        # (There should be no conflict, but if there is a conflict use verified names)
+        names.update(self._static_data.load('train_names', {}).get('names', {}))
 
         # The id is only the number, because formats vary between the API and printed on the side of the train
         match = re.search(r'\d+', self.id)
@@ -305,7 +307,7 @@ class ICEPortal(Train):
             return True
         return False
 
-    def wagon_class(self) -> Optional[Literal["FIRST", "SECOND"]]:
+    def wagon_class(self) -> Literal["FIRST", "SECOND"] | None:
         """
         Get the wagon class of the wagon you are currently in
 
@@ -314,8 +316,8 @@ class ICEPortal(Train):
         """
         return some_or_default(self._dynamic_data.load("status", {}).get('wagonClass'))
 
-    def internet_connection(self) -> Tuple[
-        InternetStatus, InternetStatus, Optional[datetime.timedelta]
+    def internet_connection(self) -> tuple[
+        InternetStatus, InternetStatus | None, datetime.timedelta | None
     ]:
         """
         Returns the internet connection status of the train,
