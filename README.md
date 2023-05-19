@@ -2,7 +2,7 @@
 
 [![PyPI-Versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
 [![PyPI version](https://badge.fury.io/py/onboardapis.svg)](https://pypi.org/project/onboardapis)
-[![build](https://img.shields.io/github/workflow/status/felix-zenk/onboardapis/publish-to-pypi)](https://github.com/felix-zenk/onboardapis)
+[![build](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/publish-to-pypi.yml?branch=main)](https://github.com/felix-zenk/onboardapis)
 [![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
 [![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
