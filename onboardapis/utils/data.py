@@ -244,6 +244,11 @@ class DataConnector(metaclass=abc.ABCMeta):
     A class for retrieving data from an API
     """
 
+    API_URL: str
+    """
+    The API URL this DataConnector points to
+    """
+
     __slots__ = ["base_url", "_session", "_cache", "_retries"]
 
     def __init__(self, base_url: str) -> None:
@@ -273,15 +278,13 @@ class DataConnector(metaclass=abc.ABCMeta):
         :rtype: Response
         """
         # Overwrite some kwargs
-        headers = kwargs.get("headers", {})
-        headers.update({
-            "user-agent": f"python-onboardapis/{__version__}"
-        })
-        kwargs.update({
-            "headers": headers,
+        kwargs |= {
+            "headers": kwargs.get('headers', {}) | {
+                "user-agent": f"python-onboardapis/{__version__}"
+            },
             "timeout": 1,
-            "verify": True if kwargs.get("verify") is None else bool(kwargs.get("verify"))
-        })
+            "verify": bool(kwargs.get('verify', 'True'))
+        }
         # Allow a different base url, but use self.base_url as default
         base_url = self.base_url if base_url is None else base_url
         try:
@@ -464,11 +467,9 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
     __slots__ = []
 
     def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> dict:
-        headers = kwargs.get("headers", {})
-        headers.update({
+        kwargs['headers'] = kwargs.get("headers", {}) | {
             "accept": "application/json",
-        })
-        kwargs["headers"] = headers
+        }
         try:
             return super(JSONDataConnector, self)._get(endpoint, *args, base_url=base_url, **kwargs).json()
             # TODO this raises an error sometimes, stating, that dict has no attribute json()
@@ -509,6 +510,10 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
         with open(path, "w") as f:
             json.dump(data, f, default=lambda o: o.__dict__)
+
+
+class GraphQLDataConnector(DataConnector, metaclass=abc.ABCMeta):
+    pass
 
 
 class DummyDataConnector(StaticDataConnector, DynamicDataConnector):
