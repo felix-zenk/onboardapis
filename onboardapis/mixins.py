@@ -6,6 +6,10 @@ from .data import Position
 from .types import ID, StationType
 
 
+class StatisticsMixin(metaclass=ABCMeta):  # TODO wifi metrics, statistics
+    pass
+
+
 class PositionMixin(metaclass=ABCMeta):
     @property
     @abstractmethod
