@@ -13,8 +13,7 @@ You can connect to the Wi-Fi of a supported transportation provider
 and access information about your journey, the vehicle you are travelling in and much more.
 
 > **Note:** For now the only vehicle type covered by this package is trains.
-
-> **Note:** At the time this package supports the DB ICE Portal and FlixTrain FlixTainment from germany and the ÖBB Railnet Regio from austria.
+> See the [supported APIs](#supported-apis) for more information.
 
 ---
 
@@ -43,7 +42,7 @@ and import the API wrapper class from it.
 Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany.
 
 ```python
-from onboardapis.trains.germany.db import ICEPortal
+from onboardapis.train.germany.db import ICEPortal
 ```
 
 Every implementation of an API wrapper class is a subclass of the abstract class of its vehicle type
@@ -51,8 +50,8 @@ Every implementation of an API wrapper class is a subclass of the abstract class
 
 ```python
 from onboardapis import Vehicle
-from onboardapis.trains import Train
-from onboardapis.trains.germany.db import ICEPortal
+from onboardapis.train import Train
+from onboardapis.train.germany.db import ICEPortal
 
 assert issubclass(Train, Vehicle)
 assert issubclass(ICEPortal, Train)
@@ -68,7 +67,7 @@ For example, the ``Train`` class defines the attributes ``speed`` and ``delay`` 
 (the next station you will arrive at) and others.
 
 ```python
-from onboardapis.trains.germany.db import ICEPortal
+from onboardapis.train.germany.db import ICEPortal
 from onboardapis.conversions import ms_to_kmh
 
 train = ICEPortal()
@@ -100,3 +99,23 @@ You can read more information about available attributes in the [trains document
 [![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
 
 #### [ReadTheDocs](https://onboardapis.readthedocs.io/en/latest/)
+
+## Supported APIs
+
+| API          | Type  | Country | Operator                            |
+|--------------|-------|---------|-------------------------------------|
+| RailnetRegio | train | austria | oebb (Österreichische Bundesbahnen) |
+| ICEPortal    | train | germany | db (Deutsche Bahn)                  |
+| FlixTainment | train | germany | flx (FlixTrain)                     |
+
+## APIs in testing phase
+
+| API         | Type  | Country | Operator                                              |
+|-------------|-------|---------|-------------------------------------------------------|
+| PortalINOUI | train | france  | sncf (Société nationale des chemins de fer français)  |
+
+## APIs in development
+
+| API       | Type  | Country | Operator                    |
+|-----------|-------|---------|-----------------------------|
+| ZugPortal | train | germany | db (Deutsche Bahn)          |
