@@ -8,6 +8,7 @@ __version_tuple__ = (1, 3, 2)
 __version__ = ".".join(map(str, __version_tuple__))
 
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable
 
@@ -94,41 +95,30 @@ class Vehicle(metaclass=ABCMeta):
         pass
 
 
+@dataclass
 class ConnectingVehicle(object):
-    __slots__ = ["vehicle_type", "line_number", "destination", "departure"]
+    """
+    A connecting vehicle is a vehicle that is not part of the main trip but of a connecting service
 
-    def __init__(
-            self,
-            vehicle_type: str | None = None,
-            line_number: str | None = None,
-            destination: str | None = None,
-            departure: ScheduledEvent[datetime] | None = None,
-    ):
-        self.vehicle_type: str | None = vehicle_type
-        """
-        The abbreviated vehicle type
-        """
-        self.line_number: str | None = line_number
-        """
-        The line number of the vehicle
-        """
-        self.departure: ScheduledEvent[datetime] | None = departure
-        """
-        The departure time of the vehicle
-        """
-        self.destination: str | None = destination
-        """
-        The destination of the vehicle
-        """
+    It may only have limited information available
+    """
 
-    def __str__(self):
-        return (
-            f"{self.vehicle_type}{self.line_number} to {self.destination} "
-            f"({self.departure.actual.strftime('%H:%M')})"
-        )
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__} {self.vehicle_type}{self.line_number} -> {self.destination}>"
+    vehicle_type: str | None
+    """
+    The abbreviated vehicle type
+    """
+    line_number: str | None
+    """
+    The line number of the vehicle
+    """
+    departure: ScheduledEvent[datetime] | None
+    """
+    The departure time of the vehicle
+    """
+    destination: str | None
+    """
+    The destination of the vehicle
+    """
 
 
 class IncompleteVehicleMixin(object, metaclass=ABCMeta):

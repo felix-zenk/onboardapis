@@ -4,6 +4,7 @@ Abstract base classes for trains
 from __future__ import annotations
 
 import datetime
+from dataclasses import dataclass
 from typing import Iterable
 from abc import ABCMeta, abstractmethod
 
@@ -129,6 +130,7 @@ class Train(Vehicle, PositionMixin, SpeedMixin, metaclass=ABCMeta):
         pass
 
 
+@dataclass
 class ConnectingTrain(ConnectingVehicle):
     """
     A connecting train is a train that is not part of the main trip but of a connecting service
@@ -136,27 +138,10 @@ class ConnectingTrain(ConnectingVehicle):
     It may only have limited information available
     """
 
-    __slots__ = ["platform"]
-
-    def __init__(self, train_type: str | None = None, line_number: str | None = None,
-                 platform: ScheduledEvent[str] | None = None, destination: str | None = None,
-                 departure: ScheduledEvent[datetime.datetime] | None = None):
-        super().__init__(
-            train_type=train_type,
-            line_number=line_number,
-            destination=destination,
-            departure=departure
-        )
-        self.platform: ScheduledEvent[str] | None = platform
-        """
-        The platform where the train will depart from
-        """
-
-    def __str__(self):
-        return (
-            f"{self.train_type}{self.line_number} to {self.destination} "
-            f"({self.departure.actual.strftime('%H:%M')}, platform {self.platform.actual})"
-        )
+    platform: ScheduledEvent[str] | None
+    """
+    The platform where the train will depart from
+    """
 
 
 class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
@@ -178,19 +163,19 @@ class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
         raise NotImplementedInAPIError()
 
     @property
-    def stations_dict(self) -> dict[ID, Station]:
+    def stations_dict(self) -> dict[ID, TrainStation]:
         raise NotImplementedInAPIError()
 
     @property
-    def origin(self) -> Station:
+    def origin(self) -> TrainStation:
         raise NotImplementedInAPIError()
 
     @property
-    def current_station(self) -> Station:
+    def current_station(self) -> TrainStation:
         raise NotImplementedInAPIError()
 
     @property
-    def destination(self) -> Station:
+    def destination(self) -> TrainStation:
         raise NotImplementedInAPIError()
 
     @property
