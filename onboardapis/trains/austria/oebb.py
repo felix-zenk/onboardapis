@@ -22,15 +22,13 @@ API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
 
 
 class _RailnetStaticConnector(JSONDataConnector, StaticDataConnector):
-    API_URL = 'railnet.oebb.at'
+    API_URL = "railnet.oebb.at"
 
     def refresh(self):
         self.store("trainInfo", self._get("/api/trainInfo"))
 
 
 class _RailnetDynamicConnector(JSONDataConnector, DynamicDataConnector):
-
-
     def refresh(self):
         self.store(
             "combined",
