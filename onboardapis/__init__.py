@@ -2,31 +2,34 @@
 Package metadata and base classes.
 """
 
-__project_name__ = 'onboardapis'
-__description__ = 'A pure Python wrapper for the on-board APIs of many different transportation providers'
-__version__ = '1.3.1'
-__author__ = 'Felix Zenk'
-__email__ = 'felix.zenk@web.de'
-__license__ = 'MIT'
-__copyright__ = 'Copyright (c) 2022 Felix Zenk'
-__url__ = 'https://github.com/felix-zenk/onboardapis'
+__version_tuple__ = (1, 3, 2)
+__version__ = ".".join(map(str, __version_tuple__))
+
+__project_name__ = "onboardapis"
+__description__ = "A pure Python wrapper for the on-board APIs of many different transportation providers"
+__author__ = "Felix Zenk"
+__email__ = "felix.zenk@web.de"
+__license__ = "MIT"
+__copyright__ = "Copyright (c) 2022 Felix Zenk"
+__url__ = "https://github.com/felix-zenk/onboardapis"
 
 from abc import ABCMeta
 
 from .exceptions import APIConnectionError, InitialConnectionError
-from .utils.data import StaticDataConnector, DynamicDataConnector, DummyDataConnector
+from .data import StaticDataConnector, DynamicDataConnector
 
 
 class Vehicle(object):
     """
     The base class for all vehicles.
     """
-    __slots__ = ["_static_data", "_dynamic_data", "_initialized"]
+
+    _dynamic_data: DynamicDataConnector
+    _static_data: StaticDataConnector
+    _initialized: bool
 
     def __init__(self):
         self._initialized = False
-        self._static_data: StaticDataConnector = DummyDataConnector()
-        self._dynamic_data: DynamicDataConnector = DummyDataConnector()
 
     def __enter__(self):
         self.init()
@@ -79,4 +82,5 @@ class IncompleteVehicleMixin(object, metaclass=ABCMeta):
     Base class for mixins that implement the abstract methods of their bases
     if the API does not provide the requested data.
     """
+
     pass
