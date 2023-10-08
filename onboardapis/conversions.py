@@ -5,7 +5,9 @@ Convert between different units
 from typing import Tuple
 
 
-def coordinates_to_distance(start: Tuple[float, float], end: Tuple[float, float]) -> float:
+def coordinates_to_distance(
+    start: Tuple[float, float], end: Tuple[float, float]
+) -> float:
     """
     Convert the two tuples ``start`` and ``end`` of coordinates
     into the ``distance`` in meters that lies between those two positions
@@ -23,7 +25,7 @@ def coordinates_to_distance(start: Tuple[float, float], end: Tuple[float, float]
 
 
 def coordinates_decimal_to_dms(
-        coordinates: Tuple[float, float]
+    coordinates: Tuple[float, float]
 ) -> Tuple[Tuple[int, int, float], Tuple[int, int, float]]:
     """
     Convert the tuple ``coordinates`` of coordinates to degrees, minutes, seconds
@@ -40,11 +42,15 @@ def coordinates_decimal_to_dms(
     lon_deg = int(abs(lon))
     lon_min = int((abs(lon) - lon_deg) * 60)
     lon_sec = ((abs(lon) - lon_deg) * 60 - lon_min) * 60
-    return (-lat_deg if lat < 0 else lat_deg, lat_min, lat_sec), (-lon_deg if lon < 0 else lon_deg, lon_min, lon_sec)
+    return (-lat_deg if lat < 0 else lat_deg, lat_min, lat_sec), (
+        -lon_deg if lon < 0 else lon_deg,
+        lon_min,
+        lon_sec,
+    )
 
 
 def coordinates_dms_to_decimal(
-        coordinates: Tuple[Tuple[int, int, float], Tuple[int, int, float]]
+    coordinates: Tuple[Tuple[int, int, float], Tuple[int, int, float]]
 ) -> Tuple[float, float]:
     """
     Convert the tuple ``coordinates`` of degrees, minutes, seconds to decimal degrees
@@ -133,3 +139,7 @@ def kn_to_ms(knots):
     :rtype: float
     """
     return knots * 1852 / 3600
+
+
+def ft_to_m(feat: float) -> float:
+    return feat * 0.3048
