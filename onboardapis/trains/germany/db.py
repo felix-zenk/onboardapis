@@ -8,7 +8,8 @@ import re
 
 from typing import Tuple, Dict, List, Optional, Literal, Generator
 
-from .. import Train, Station, ConnectingTrain
+from .. import Train, TrainStation, ConnectingTrain
+from ...mixins import StationsMixin
 from ...exceptions import DataInvalidError, APIConnectionError
 from ...conversions import kmh_to_ms
 from ...data import (
@@ -103,7 +104,7 @@ class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
         connections = list(
             [
                 ConnectingTrain(
-                    train_type=connection.get("trainType", None),
+                    vehicle_type=connection.get("trainType", None),
                     line_number=connection.get("vzn", None),
                     platform=ScheduledEvent(
                         scheduled=connection.get("track", {}).get("scheduled", None),
@@ -164,17 +165,14 @@ class _ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
         return
 
 
-class ICEPortal(Train):
+class ICEPortal(Train, StationsMixin[TrainStation]):
     """
     Wrapper for interacting with the DB ICE Portal API
     """
+    _static_data = _ICEPortalStaticConnector()
+    _dynamic_data = _ICEPortalDynamicConnector()
 
     __slots__ = []
-
-    def __init__(self):
-        super().__init__()
-        self._static_data = _ICEPortalStaticConnector()
-        self._dynamic_data = _ICEPortalDynamicConnector()
 
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
@@ -200,12 +198,12 @@ class ICEPortal(Train):
         return self._dynamic_data.load("trip", {}).get("trip", {}).get("vzn")
 
     @property
-    def stations_dict(self) -> dict[str, Station]:
+    def stations_dict(self) -> dict[str, TrainStation]:
         stops = self._dynamic_data.load("trip", {}).get("trip", {}).get("stops")
         if stops is None:
             raise DataInvalidError("API is missing data about stations")
         return {
-            stop.get("station", {}).get("evaNr"): Station(
+            stop.get("station", {}).get("evaNr"): TrainStation(
                 station_id=stop.get("station", {}).get("evaNr"),
                 name=stop.get("station", {}).get("name"),
                 platform=ScheduledEvent(
@@ -289,11 +287,7 @@ class ICEPortal(Train):
         }
 
     @property
-    def origin(self) -> Station:
-        return super(ICEPortal, self).origin
-
-    @property
-    def current_station(self) -> Station:
+    def current_station(self) -> TrainStation:
         # Get the current station id
         stop_info = (
             self._dynamic_data.load("trip", {}).get("trip", {}).get("stopInfo", {})
@@ -304,10 +298,6 @@ class ICEPortal(Train):
             return self.stations_dict[station_id]
         except AttributeError as e:
             raise DataInvalidError("No current station found") from e
-
-    @property
-    def destination(self) -> Station:
-        return super(ICEPortal, self).destination
 
     @property
     def speed(self) -> float:
@@ -327,10 +317,6 @@ class ICEPortal(Train):
             self._dynamic_data.load("status", {}).get("latitude"),
             self._dynamic_data.load("status", {}).get("longitude"),
         )
-
-    @property
-    def delay(self) -> float:
-        return super(ICEPortal, self).delay
 
     @property
     def name(self) -> str | None:
