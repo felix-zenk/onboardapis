@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from typing import Generic, TypeVar
 
 from .exceptions import DataInvalidError
 from .data import Position
@@ -32,35 +33,38 @@ class SpeedMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class StationsMixin(metaclass=ABCMeta):
+StationType = TypeVar("StationType", bound=Station)
+
+
+class StationsMixin(Generic[StationType], metaclass=ABCMeta):
     @property
     @abstractmethod
-    def stations_dict(self) -> dict[ID, Station]:
+    def stations_dict(self) -> dict[ID, StationType]:
         """
         The stations that this vehicle passes through returned as a dict with the station ID as the key.
         Mostly ID will be of type str.
 
         :return: The stations as a dict with
-        :rtype: Dict[str, Station]
+        :rtype: Dict[str, StationType]
         """
         pass
 
     @property
-    def stations(self) -> list[Station]:
+    def stations(self) -> list[StationType]:
         """
         Return the stations as a list
 
-        :rtype: List[Station]
+        :rtype: List[StationType]
         """
         return list(self.stations_dict.values())
 
     @property
-    def origin(self) -> Station:
+    def origin(self) -> StationType:
         """
         The station where this vehicle started the current journey
 
         :return: The first station on this trip
-        :rtype: Station
+        :rtype: StationType
         """
         if len(self.stations) > 0:
             return self.stations[0]
@@ -68,24 +72,24 @@ class StationsMixin(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def current_station(self) -> Station:
+    def current_station(self) -> StationType:
         """
         The station where this vehicle will arrive next or is currently at
 
         :return: The current station
-        :rtype: Station
+        :rtype: StationType
         """
         # Get the current station id
         # Get the station from the stations dict
         pass
 
     @property
-    def destination(self) -> Station:
+    def destination(self) -> StationType:
         """
         The station where this vehicle will end the current journey
 
         :return: The last station on this trip
-        :rtype: Station
+        :rtype: StationType
         """
         if len(self.stations) > 0:
             return self.stations[-1]
