@@ -320,6 +320,7 @@ class DataConnector(metaclass=ABCMeta):
             response = self._session.get(
                 f"https://{base_url}{endpoint}", *args, **kwargs
             )
+            response.raise_for_status()
             # Report possible errors / changes in the API
             if not response.ok:
                 logging.getLogger(__name__).warning(
