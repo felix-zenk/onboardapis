@@ -4,14 +4,13 @@ Abstract base classes for trains
 from __future__ import annotations
 
 import datetime
-import time
-from typing import Any, Callable, Iterable, TypeVar
+from typing import Any, Iterable, TypeVar
 from abc import ABCMeta, abstractmethod
 
+from ..mixins import PositionMixin, SpeedMixin
 from .. import Vehicle, IncompleteVehicleMixin
 from ..exceptions import DataInvalidError, NotImplementedInAPIError
-from ..utils.conversions import coordinates_to_distance
-from ..utils.data import ScheduledEvent, Position
+from ..data import ScheduledEvent, Position
 
 
 class Station(object):
@@ -19,11 +18,28 @@ class Station(object):
     A Station is a stop on the trip
     """
 
-    __slots__ = ["_id", "_name", "_platform", "_arrival", "_departure", "_position", "_distance", "_connections"]
+    __slots__ = [
+        "_id",
+        "_name",
+        "_platform",
+        "_arrival",
+        "_departure",
+        "_position",
+        "_distance",
+        "_connections",
+    ]
 
-    def __init__(self, station_id: Any, name: str, platform: ScheduledEvent[str] = None,
-                 arrival: ScheduledEvent[datetime.datetime] = None, departure: ScheduledEvent[datetime.datetime] = None,
-                 position: Position = None, distance: float = None, connections: Iterable[ConnectingTrain] = None):
+    def __init__(
+        self,
+        station_id: Any,
+        name: str,
+        platform: ScheduledEvent[str] = None,
+        arrival: ScheduledEvent[datetime.datetime] = None,
+        departure: ScheduledEvent[datetime.datetime] = None,
+        position: Position = None,
+        distance: float = None,
+        connections: Iterable[ConnectingTrain] = None,
+    ):
         """
         Initialize a new :class:`Station`
 
@@ -142,7 +158,9 @@ class Station(object):
         """
         return self._position
 
-    def calculate_distance(self, other: Station | Position | int | float) -> float | None:
+    def calculate_distance(
+        self, other: Station | Position | int | float
+    ) -> float | None:
         """
         Calculate the distance in meters between this station and something else.
 
@@ -159,7 +177,11 @@ class Station(object):
 
         # Both distances since the start are known
         if isinstance(other, (int, float)) and self.distance is not None:
-            return other - self.distance if self.distance - other < 0 else self.distance - other
+            return (
+                other - self.distance
+                if self.distance - other < 0
+                else self.distance - other
+            )
 
         # Both positions are known
         if isinstance(other, Position) and self.position is not None:
@@ -168,20 +190,22 @@ class Station(object):
         # Both are a station
         if isinstance(other, Station):
             if self.distance is not None and other.distance is not None:
-                return (other.distance - self.distance
-                        if self.distance - other.distance < 0
-                        else self.distance - other.distance)
+                return (
+                    other.distance - self.distance
+                    if self.distance - other.distance < 0
+                    else self.distance - other.distance
+                )
             if self.position is not None and other.position is not None:
                 return self.position.calculate_distance(other.position)
 
 
-ID = TypeVar('ID', str, int)
+ID = TypeVar("ID", str, int)
 """
 A TypeVar indicating the return type of Train.id and the key type of Train.stations
 """
 
 
-class Train(Vehicle, metaclass=ABCMeta):
+class Train(Vehicle, PositionMixin, SpeedMixin, metaclass=ABCMeta):
     """
     Interface specifying the attributes of a train
     """
@@ -302,34 +326,12 @@ class Train(Vehicle, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def speed(self) -> float:
-        """
-        The current speed of the train in meters / second
-
-        :return: The speed of the train
-        :rtype: float
-        """
-        pass
-
-    @property
-    @abstractmethod
     def distance(self) -> float:
         """
         The distance from the start in meters
 
         :return: The distance
         :rtype: float
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def position(self) -> Position:
-        """
-        The current position of the train as a :class:`Position`
-
-        :return: The position of the train
-        :rtype: Position
         """
         pass
 
@@ -341,7 +343,9 @@ class Train(Vehicle, metaclass=ABCMeta):
         :return: The delay of the train
         :rtype: float
         """
-        return (self.current_station.arrival.actual - self.current_station.arrival.scheduled).total_seconds()
+        return (
+            self.current_station.arrival.actual - self.current_station.arrival.scheduled
+        ).total_seconds()
 
 
 class ConnectingTrain(object):
@@ -353,9 +357,14 @@ class ConnectingTrain(object):
 
     __slots__ = ["train_type", "line_number", "platform", "destination", "departure"]
 
-    def __init__(self, train_type: str | None = None, line_number: str | None = None,
-                 platform: ScheduledEvent[str] | None = None, destination: str | None = None,
-                 departure: ScheduledEvent[datetime.datetime] | None = None):
+    def __init__(
+        self,
+        train_type: str | None = None,
+        line_number: str | None = None,
+        platform: ScheduledEvent[str] | None = None,
+        destination: str | None = None,
+        departure: ScheduledEvent[datetime.datetime] | None = None,
+    ):
         self.train_type: str | None = train_type
         """
         The abbreviated train type
@@ -422,15 +431,7 @@ class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
         raise NotImplementedInAPIError()
 
     @property
-    def speed(self) -> float:
-        raise NotImplementedInAPIError()
-
-    @property
     def distance(self) -> float:
-        raise NotImplementedInAPIError()
-
-    @property
-    def position(self) -> Position:
         raise NotImplementedInAPIError()
 
     @property
