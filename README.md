@@ -69,7 +69,7 @@ For example, the ``Train`` class defines the attributes ``speed`` and ``delay`` 
 
 ```python
 from onboardapis.trains.germany.db import ICEPortal
-from onboardapis.utils.conversions import ms_to_kmh
+from onboardapis.conversions import ms_to_kmh
 
 train = ICEPortal()
 train.init()
@@ -81,7 +81,7 @@ print(
 )
 
 print(
-    "Next stop:", train.current_station.name, 
+    "Next stop:", train.current_station.name,
     "at", train.current_station.arrival.actual.strftime("%H:%M")
 )
 
