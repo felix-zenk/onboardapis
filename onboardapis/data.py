@@ -67,7 +67,7 @@ class ScheduledEvent(Generic[T]):
         Initialize a new :class:`ScheduledEvent`
 
         :param scheduled: The value that should happen
-        :type scheduled: Optional[T]
+        :type scheduled: T
         :param actual: The value that actually happens
         :type actual: Optional[T]
         """
@@ -75,7 +75,7 @@ class ScheduledEvent(Generic[T]):
         """
         The expected value of this event
         """
-        self.actual = actual  # TODO scheduled as default?
+        self.actual = actual or scheduled
         """
         The actual value of this event, may differ from the scheduled value
         """
