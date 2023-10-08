@@ -1,9 +1,11 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
-from . import Position
+from .data import Position
 
 
 class PositionMixin(metaclass=ABCMeta):
+    @property
+    @abstractmethod
     def position(self) -> Position:
         """
         Get the current position of the vehicle.
@@ -15,6 +17,8 @@ class PositionMixin(metaclass=ABCMeta):
 
 
 class SpeedMixin(metaclass=ABCMeta):
+    @property
+    @abstractmethod
     def speed(self) -> float:
         """
         Get the current speed of the vehicle.
