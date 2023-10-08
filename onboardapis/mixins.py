@@ -1,10 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic
 
 from .exceptions import DataInvalidError
 from .data import Position
-from .types import ID
-from . import Station
+from .types import ID, StationType
 
 
 class PositionMixin(metaclass=ABCMeta):
@@ -31,9 +30,6 @@ class SpeedMixin(metaclass=ABCMeta):
         :rtype: float
         """
         raise NotImplementedError
-
-
-StationType = TypeVar("StationType", bound=Station)
 
 
 class StationsMixin(Generic[StationType], metaclass=ABCMeta):
