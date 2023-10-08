@@ -17,7 +17,13 @@ from .exceptions import APIConnectionError, InitialConnectionError
 from .data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
 
 
-class Vehicle(metaclass=ABCMeta):
+class API(object):
+    """
+    Base class for all APIs
+    """
+
+
+class Vehicle(API, metaclass=ABCMeta):
     """
     The base class for all vehicles.
     """
