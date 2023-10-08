@@ -321,8 +321,8 @@ class DataConnector(metaclass=ABCMeta):
                 f"https://{base_url}{endpoint}", *args, **kwargs
             )
             # Report possible errors / changes in the API
-            if response.status_code != 200:
-                logging.warning(
+            if not response.ok:
+                logging.getLogger(__name__).warning(
                     f"Request to https://{base_url}{endpoint} returned status code {response.status_code}"
                 )
             self._retries = 0
@@ -333,7 +333,7 @@ class DataConnector(metaclass=ABCMeta):
                 raise APIConnectionError() from e
             # Retry the request if it failed
             self._retries += 1
-            logging.debug(
+            logging.getLogger(__name__).debug(
                 f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)"
             )
             return self._get(endpoint, *args, base_url=base_url, **kwargs)
@@ -379,9 +379,6 @@ class StaticDataConnector(DataConnector, metaclass=ABCMeta):
     # Maybe add additional functionality over DataConnector?
 
     __slots__ = []
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
 
 
 class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
@@ -492,24 +489,11 @@ class JSONDataConnector(DataConnector, metaclass=ABCMeta):
     __slots__ = []
 
     def _get(self, endpoint: str, *args: Any, **kwargs: Any) -> dict:
-        kwargs["headers"] = kwargs.get("headers", {}) | {
-            "accept": "application/json",
-        }
+        kwargs["headers"] = kwargs.get("headers", {}) | {"accept": "application/json"}
         try:
             return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
-            # TODO this raises an error sometimes, stating, that dict has no attribute json()
-            #
-            #             DataConnector
-            #              _get() -> Response
-            #             /           \
-            # JSONDataConnector  StaticDataConnector
-            #  _get() -> dict     _get() -> Response
-            #             \           /
-            #       SomeJsonStaticDataConnector
-            #        _get(base_url=not None) -> dict
-            #
         except json.JSONDecodeError as e:
-            logging.debug(
+            logging.getLogger(__name__).debug(
                 f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}"
             )
             raise DataInvalidError() from e
