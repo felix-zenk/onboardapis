@@ -259,18 +259,6 @@ class DataStorage:
         return vars(self).items()
 
 
-class APIConnector(metaclass=ABCMeta):
-    API_URL: str
-
-    @abstractmethod
-    def static_refresh(self):
-        pass
-
-    @abstractmethod
-    def dynamic_refresh(self):
-        pass
-
-
 class DataConnector(metaclass=ABCMeta):
     """
     A class for retrieving data from an API
@@ -281,14 +269,44 @@ class DataConnector(metaclass=ABCMeta):
     The API URL this DataConnector points to
     """
 
-    __slots__ = ["API_URL", "_session", "_cache", "_retries"]
+    __slots__ = ("_cache",)
 
     def __init__(self) -> None:
         """
         Initialize a new :class:`DataConnector`
         """
-        self._session = requests.Session()
         self._cache = DataStorage()
+
+    def load(self, key: str, __default: Any = None) -> Any:
+        """
+        Load data from the cache
+
+        :param key: The key to load
+        :param __default: The default value to return if the key is not present
+        :return: The data if present, else the default
+        """
+        try:
+            return self._cache.get(key)
+        except AttributeError:
+            return __default
+
+    def store(self, key: str, value: Any) -> None:
+        """
+        Store data in the cache
+
+        :param key: The key the data should be stored under
+        :param value: The data to store
+        :return: Nothing
+        """
+        self._cache.set(key, value)
+
+
+class HTTPDataConnector(DataConnector, metaclass=ABCMeta):
+    __slots__ = ("_session", "_retries")
+
+    def __init__(self):
+        super().__init__()
+        self._session = requests.Session()
         self._retries = 0
 
     def __del__(self):
@@ -339,47 +357,22 @@ class DataConnector(metaclass=ABCMeta):
             )
             return self._get(endpoint, *args, base_url=base_url, **kwargs)
 
-    def load(self, key: str, __default: Any = None) -> Any:
-        """
-        Load data from the cache
-
-        :param key: The key to load
-        :param __default: The default value to return if the key is not present
-        :return: The data if present, else the default
-        """
-        try:
-            return self._cache.get(key)
-        except AttributeError:
-            return __default
-
-    def store(self, key: str, value: Any) -> None:
-        """
-        Store data in the cache
-
-        :param key: The key the data should be stored under
-        :param value: The data to store
-        :return: Nothing
-        """
-        self._cache.set(key, value)
-
-    @abstractmethod
-    def refresh(self) -> None:  # pragma: no cover
-        """
-        Method that collects data from the server and stores it in the cache
-
-        :return: Nothing
-        """
-        pass
-
 
 class StaticDataConnector(DataConnector, metaclass=ABCMeta):
     """
     A :class:`DataConnector` for data never changes and therefore has to be requested only once
     """
 
-    # Maybe add additional functionality over DataConnector?
-
     __slots__ = []
+
+    @abstractmethod
+    def refresh(self) -> None:
+        """
+        Method that collects data from the server and stores it in the cache
+
+        :return: Nothing
+        """
+        pass
 
 
 class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
@@ -477,12 +470,20 @@ class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
             name=f"DynamicDataConnector-Runner for '{self.API_URL}'",
             daemon=True,
         )
-        self._session = requests.Session()
         self._cache = DataStorage()
         self._initialized = False
 
+    @abstractmethod
+    def refresh(self) -> None:
+        """
+        Method that collects data from the server and stores it in the cache
 
-class JSONDataConnector(DataConnector, metaclass=ABCMeta):
+        :return: Nothing
+        """
+        pass
+
+
+class JSONDataConnector(HTTPDataConnector, DataConnector, metaclass=ABCMeta):
     """
     A :class:`DataConnector` that automatically parses the response to a json object
     """
@@ -532,7 +533,11 @@ class WebsocketDataConnector(DataConnector, metaclass=ABCMeta):
     pass
 
 
-class DummyDataConnector(StaticDataConnector, DynamicDataConnector):
+class SocketIODataConnector(DataConnector, metaclass=ABCMeta):
+    pass
+
+
+class DummyDataConnector(StaticDataConnector, DynamicDataConnector):  # TODO add other connectors
     """
     A dummy :class:`DataConnector` that can be used if the API does not supply static or dynamic data
     """
