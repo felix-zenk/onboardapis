@@ -4,7 +4,7 @@ Package metadata and base classes.
 
 from __future__ import annotations
 
-__version_tuple__ = (1, 3, 2)
+__version_tuple__ = (2, 0, 0)
 __version__ = ".".join(map(str, __version_tuple__))
 
 from abc import ABCMeta, abstractmethod
