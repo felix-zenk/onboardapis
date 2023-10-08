@@ -3,7 +3,6 @@ This module contains everything that has to do with data and data management
 """
 from __future__ import annotations
 
-import abc
 import json
 import logging
 import threading
@@ -11,6 +10,7 @@ import time
 import requests
 
 from os import PathLike
+from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, TypeVar, Generic, ItemsView, Union, Sequence
 from requests import Response, RequestException
 
@@ -18,11 +18,13 @@ from geopy.point import Point
 from geopy.distance import geodesic
 
 from .conversions import coordinates_decimal_to_dms
-from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
-from .. import __version__
+from .exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
+from . import __version__
 
 
-def some_or_default(data: Optional[Any], default: Optional[Any] = None) -> Optional[Any]:
+def some_or_default(
+    data: Optional[Any], default: Optional[Any] = None
+) -> Optional[Any]:
     """
     Return ``data`` if there is actually some content in data, else return ``default``.
 
@@ -46,7 +48,7 @@ def some_or_default(data: Optional[Any], default: Optional[Any] = None) -> Optio
     return data
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 """
 A type variable for generic functions
 """
@@ -95,9 +97,15 @@ class Position(object):
     but can also provide data on altitude and the current compass heading.
     """
 
-    __slots__ = ["_latitude", "_longitude", "_altitude", "_heading"]
+    __slots__ = ["_latitude", "_longitude", "_altitude", "_bearing"]
 
-    def __init__(self, latitude: float, longitude: float, altitude: float = None, bearing: float = None):
+    def __init__(
+        self,
+        latitude: float,
+        longitude: float,
+        altitude: float = None,
+        bearing: float = None,
+    ):
         """
         Initialize a new :class:`Position`.
 
@@ -113,17 +121,19 @@ class Position(object):
         self._latitude = latitude
         self._longitude = longitude
         self._altitude = altitude
-        self._heading = bearing
+        self._bearing = bearing
 
     def __str__(self) -> str:
-        (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec) = coordinates_decimal_to_dms(
-            (self.latitude, self.longitude)
-        )
+        (lat_deg, lat_min, lat_sec), (
+            lon_deg,
+            lon_min,
+            lon_sec,
+        ) = coordinates_decimal_to_dms((self.latitude, self.longitude))
         coordinates = (
             f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'}"
             + f" {abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
-            + (f" {self.altitude}m" if self.altitude is not None else "")
-            + (f" {self.heading}°" if self.heading is not None else "")
+            + (f" {self.altitude:.2f}m" if self.altitude is not None else "")
+            + (f" {self.bearing:.2f}°" if self.bearing is not None else "")
         )
         return coordinates
 
@@ -138,7 +148,7 @@ class Position(object):
         :return: The latitude
         :rtype: float
         """
-        return self._latitude
+        return float(self._latitude)
 
     @property
     def longitude(self) -> float:
@@ -148,7 +158,7 @@ class Position(object):
         :return: The longitude
         :rtype: float
         """
-        return self._longitude
+        return float(self._longitude)
 
     @property
     def altitude(self) -> float:
@@ -158,10 +168,10 @@ class Position(object):
         :return: The altitude
         :rtype: float
         """
-        return self._altitude
+        return float(self._altitude)
 
     @property
-    def heading(self) -> float:
+    def bearing(self) -> float:
         """
         The compass heading in degrees.
 
@@ -170,7 +180,7 @@ class Position(object):
         :return: The heading
         :rtype: float
         """
-        return self._heading
+        return float(self._bearing)
 
     def calculate_distance(self, other: Position) -> float:
         """
@@ -180,8 +190,12 @@ class Position(object):
         :return: The distance in meters
         """
         return geodesic(
-            Point(latitude=self.latitude, longitude=self.longitude),  # altitude not supported
-            Point(latitude=other.latitude, longitude=other.longitude)  # altitude not supported
+            Point(
+                latitude=self.latitude, longitude=self.longitude
+            ),  # altitude not supported
+            Point(
+                latitude=other.latitude, longitude=other.longitude
+            ),  # altitude not supported
         ).meters
 
 
@@ -189,6 +203,12 @@ class DataStorage:
     """
     A storage class that can be used to store data and retrieve it later.
     """
+
+    def __getitem__(self, item):
+        return self.get(item)
+
+    def __setitem__(self, key, value):
+        self.set(key, value)
 
     def get(self, key: str) -> Any:
         """
@@ -239,7 +259,19 @@ class DataStorage:
         return vars(self).items()
 
 
-class DataConnector(metaclass=abc.ABCMeta):
+class APIConnector(metaclass=ABCMeta):
+    API_URL: str
+
+    @abstractmethod
+    def static_refresh(self):
+        pass
+
+    @abstractmethod
+    def dynamic_refresh(self):
+        pass
+
+
+class DataConnector(metaclass=ABCMeta):
     """
     A class for retrieving data from an API
     """
@@ -249,16 +281,12 @@ class DataConnector(metaclass=abc.ABCMeta):
     The API URL this DataConnector points to
     """
 
-    __slots__ = ["base_url", "_session", "_cache", "_retries"]
+    __slots__ = ["API_URL", "_session", "_cache", "_retries"]
 
-    def __init__(self, base_url: str) -> None:
+    def __init__(self) -> None:
         """
         Initialize a new :class:`DataConnector`
-
-        :param base_url: The base url of the server to connect to
-        :type base_url: str
         """
-        self.base_url = base_url
         self._session = requests.Session()
         self._cache = DataStorage()
         self._retries = 0
@@ -266,7 +294,9 @@ class DataConnector(metaclass=abc.ABCMeta):
     def __del__(self):
         self._session.close()
 
-    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> Response:
+    def _get(
+        self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any
+    ) -> Response:
         """
         Request data from the server.
 
@@ -279,19 +309,22 @@ class DataConnector(metaclass=abc.ABCMeta):
         """
         # Overwrite some kwargs
         kwargs |= {
-            "headers": kwargs.get('headers', {}) | {
-                "user-agent": f"python-onboardapis/{__version__}"
-            },
+            "headers": kwargs.get("headers", {})
+            | {"user-agent": f"python-onboardapis/{__version__}"},
             "timeout": 1,
-            "verify": bool(kwargs.get('verify', 'True'))
+            "verify": bool(kwargs.get("verify", "True")),
         }
         # Allow a different base url, but use self.base_url as default
-        base_url = self.base_url if base_url is None else base_url
+        base_url = self.API_URL if base_url is None else base_url
         try:
-            response = self._session.get(f"https://{base_url}{endpoint}", *args, **kwargs)
+            response = self._session.get(
+                f"https://{base_url}{endpoint}", *args, **kwargs
+            )
             # Report possible errors / changes in the API
             if response.status_code != 200:
-                logging.warning(f"Request to https://{base_url}{endpoint} returned status code {response.status_code}")
+                logging.warning(
+                    f"Request to https://{base_url}{endpoint} returned status code {response.status_code}"
+                )
             self._retries = 0
             return response
         except RequestException as e:
@@ -300,7 +333,9 @@ class DataConnector(metaclass=abc.ABCMeta):
                 raise APIConnectionError() from e
             # Retry the request if it failed
             self._retries += 1
-            logging.debug(f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)")
+            logging.debug(
+                f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)"
+            )
             return self._get(endpoint, *args, base_url=base_url, **kwargs)
 
     def load(self, key: str, __default: Any = None) -> Any:
@@ -326,7 +361,7 @@ class DataConnector(metaclass=abc.ABCMeta):
         """
         self._cache.set(key, value)
 
-    @abc.abstractmethod
+    @abstractmethod
     def refresh(self) -> None:  # pragma: no cover
         """
         Method that collects data from the server and stores it in the cache
@@ -336,41 +371,35 @@ class DataConnector(metaclass=abc.ABCMeta):
         pass
 
 
-class StaticDataConnector(DataConnector, metaclass=abc.ABCMeta):
+class StaticDataConnector(DataConnector, metaclass=ABCMeta):
     """
     A :class:`DataConnector` for data never changes and therefore has to be requested only once
     """
+
     # Maybe add additional functionality over DataConnector?
 
     __slots__ = []
 
-    def __init__(self, base_url: str, *args, **kwargs):
-        super().__init__(base_url)
+    def __init__(self, *args, **kwargs):
+        super().__init__()
 
 
-class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
+class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
     """
     A :class:`DataConnector` for data that changes frequently and therefore has to be requested continuously
     """
 
     __slots__ = ["_runner", "_running", "_initialized", "optimize", "silent"]
 
-    def __init__(self, base_url: str, *args, optimize: bool = True, silent: bool = True, **kwargs):
-        super().__init__(base_url)
+    def __init__(self, *args, **kwargs):
+        super().__init__()
         self._runner = threading.Thread(
-            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True,
+            target=self._run,
+            name=f"DynamicDataConnector-Runner for '{self.API_URL}'",
+            daemon=True,
         )
         self._running = False
         self._initialized = False
-
-        self.optimize = optimize
-        """
-        Whether to adapt the refresh rate of the data connector to be as close as possible to 1Hz.
-        """
-        self.silent = silent
-        """
-        Suppress exceptions that occur in the runner thread
-        """
 
     @property
     def connected(self) -> bool:
@@ -406,11 +435,8 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
                 self.refresh()
             except APIConnectionError as e:
                 self._running = False
-                if self.silent:
-                    continue  # End loop, terminate thread cleanly
-
-                # If not silent, raise the exception
-                raise e
+                logging.getLogger(__name__).error(f"{e}")
+                continue
 
             # Signal that the data has been refreshed at least once (for thread synchronization)
             if not self._initialized:
@@ -418,10 +444,7 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
             # If optimize is enabled, measure the time it took to refresh the data
             # and calculate the remaining ticks until target time
-            if self.optimize:
-                counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
-            else:
-                counter = (counter + 1) % tps
+            counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
 
     def start(self) -> None:
         """
@@ -452,26 +475,28 @@ class DynamicDataConnector(DataConnector, metaclass=abc.ABCMeta):
         """
         self.stop()
         self._runner = threading.Thread(
-            target=self._run, name=f"DynamicDataConnector-Runner for '{self.base_url}'", daemon=True
+            target=self._run,
+            name=f"DynamicDataConnector-Runner for '{self.API_URL}'",
+            daemon=True,
         )
         self._session = requests.Session()
         self._cache = DataStorage()
         self._initialized = False
 
 
-class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
+class JSONDataConnector(DataConnector, metaclass=ABCMeta):
     """
     A :class:`DataConnector` that automatically parses the response to a json object
     """
 
     __slots__ = []
 
-    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> dict:
-        kwargs['headers'] = kwargs.get("headers", {}) | {
+    def _get(self, endpoint: str, *args: Any, **kwargs: Any) -> dict:
+        kwargs["headers"] = kwargs.get("headers", {}) | {
             "accept": "application/json",
         }
         try:
-            return super(JSONDataConnector, self)._get(endpoint, *args, base_url=base_url, **kwargs).json()
+            return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
             # TODO this raises an error sometimes, stating, that dict has no attribute json()
             #
             #             DataConnector
@@ -484,7 +509,9 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
             #        _get(base_url=not None) -> dict
             #
         except json.JSONDecodeError as e:
-            logging.debug(f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}")
+            logging.debug(
+                f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}"
+            )
             raise DataInvalidError() from e
 
     def export(self, path: Union[str, PathLike], keys: Sequence = None) -> None:
@@ -512,7 +539,11 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
             json.dump(data, f, default=lambda o: o.__dict__)
 
 
-class GraphQLDataConnector(DataConnector, metaclass=abc.ABCMeta):
+class GraphQLDataConnector(DataConnector, metaclass=ABCMeta):
+    pass
+
+
+class WebsocketDataConnector(DataConnector, metaclass=ABCMeta):
     pass
 
 
@@ -520,8 +551,8 @@ class DummyDataConnector(StaticDataConnector, DynamicDataConnector):
     """
     A dummy :class:`DataConnector` that can be used if the API does not supply static or dynamic data
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(base_url="127.0.0.1")
+
+    API_URL = "127.0.0.1"
 
     def refresh(self) -> None:
         pass
