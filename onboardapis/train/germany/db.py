@@ -39,7 +39,7 @@ class _ICEPortalStaticConnector(JSONDataConnector, StaticDataConnector):
             self.store(
                 "names",
                 self._get(
-                    "/projects/onboardapis/res/trains/germany/db/names.json",
+                    "/projects/onboardapis/res/train/germany/db/names.json",
                     base_url="felix-zenk.github.io",
                 ),
             )
@@ -323,7 +323,7 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
         """
         Get the name of the train.
 
-        Most of the DB ICE trains have names.
+        Most of the DB ICE train have names.
         Names are not available through the API, instead a public list of names will be used.
 
         :return: The name of the train

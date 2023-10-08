@@ -69,7 +69,7 @@ class _InouiDynamicConnector(JSONDataConnector, DynamicDataConnector):
                 )
                 for connection in self._get(
                     f"/router/api/information/trainboard/{station_id}"
-                ).get("trains", [])
+                ).get("train", [])
             )
         except HTTPError:
             return

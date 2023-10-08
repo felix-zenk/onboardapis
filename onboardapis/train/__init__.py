@@ -1,5 +1,5 @@
 """
-Abstract base classes for trains
+Abstract base classes for train
 """
 from __future__ import annotations
 
