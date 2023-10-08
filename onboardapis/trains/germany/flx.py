@@ -1,25 +1,24 @@
 """
 Implementation of the german operator FLX (Flixtrain GmbH).
 """
+from ...mixins import PositionMixin, SpeedMixin
+from ...data import JSONDataConnector, DynamicDataConnector, Position
 from .. import Train, IncompleteTrainMixin
-from ...utils.data import JSONDataConnector, DynamicDataConnector, Position
-
-API_BASE_URL_FLIXTAINMENT = "media.flixtrain.com"
 
 
 class _FlixTainmentDynamicConnector(JSONDataConnector, DynamicDataConnector):
-    def __init__(self):
-        super().__init__(API_BASE_URL_FLIXTAINMENT)
+    API_URL = "media.flixtrain.com"
 
     def refresh(self) -> None:
         self.store("position", "/services/pis/v1/position")
 
 
-class FlixTainment(IncompleteTrainMixin, Train):
+class FlixTainment(Train, PositionMixin, SpeedMixin, IncompleteTrainMixin):
     """
     Wrapper for interacting with the Flixtrain FLIXTainment API
     (few methods are available, because the API is very sparse)
     """
+
     def __init__(self):
         super().__init__()
         self._dynamic_data = _FlixTainmentDynamicConnector()
@@ -27,10 +26,10 @@ class FlixTainment(IncompleteTrainMixin, Train):
     def position(self) -> Position:
         return Position(
             latitude=self._dynamic_data.load("position", {}).get("latitude", None),
-            longitude=self._dynamic_data.load("position", {}).get("longitude", None)
+            longitude=self._dynamic_data.load("position", {}).get("longitude", None),
         )
 
     def speed(self) -> float:
-        return float(self._dynamic_data.load("position", {}).get("speed", 0.0))  # float casting for linting
+        return float(self._dynamic_data.load("position", {}).get("speed", 0.0))
 
     # No more information available
