@@ -14,6 +14,7 @@ from .connectors import (
     ZugPortalStaticConnector,
     ZugPortalDynamicConnector,
 )
+from .mappings import id_name_map
 from ... import Train, TrainStation
 from ....mixins import StationsMixin
 from ....exceptions import DataInvalidError
@@ -191,20 +192,11 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
 
         :return: The name of the train
         """
-        # Use unverified names as fallback, because not many verified names are available at this time
-        names = self._static_data.load("train_names", {}).get("unverified_names", {})
-        # overwrite the dict with verified train names
-        # (There should be no conflict, but if there is a conflict use verified names)
-        names.update(self._static_data.load("train_names", {}).get("names", {}))
-
-        # The id is only the number, because formats vary between the API and printed on the side of the train
-        match = re.search(r"\d+", self.id)
-        # No number found, so no name is available
+        match = re.search(r"\d+", f'{self.id}')
         if match is None:
             return None
 
-        # Return the name, may also be None if the train has no name
-        return names.get(match.group(0).lstrip("0"), None)
+        return id_name_map.get(int(match.group(0)))
 
     @property
     def all_delay_reasons(self) -> Dict[str, Optional[List[str]]]:
