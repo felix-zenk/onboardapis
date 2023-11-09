@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from typing import Generic
 
 from .exceptions import DataInvalidError
 from .data import Position
-from .types import ID, StationType
+from ._types import ID, StationType
 
 
 class StatisticsMixin(metaclass=ABCMeta):  # TODO wifi metrics, statistics

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable
 
-from .types import ID
+from ._types import ID
 from .exceptions import APIConnectionError, InitialConnectionError
 from .data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
 

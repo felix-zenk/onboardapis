@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from .types import ID, StationType
+from ._types import ID, StationType
 
 
 class SupportsPosition(Protocol):

@@ -8,7 +8,7 @@ from typing import Dict, Any, Generator
 
 from requests import HTTPError
 
-from ...types import ID
+from ..._types import ID
 from ...mixins import StationsMixin
 from .. import Train, TrainStation, ConnectingTrain
 from data import (

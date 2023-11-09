@@ -12,7 +12,7 @@ from .. import Vehicle, IncompleteVehicleMixin, Station, ConnectingVehicle
 from ..mixins import PositionMixin, SpeedMixin
 from ..exceptions import NotImplementedInAPIError
 from ..data import ScheduledEvent, Position
-from ..types import ID
+from .._types import ID
 
 
 __all__ = [

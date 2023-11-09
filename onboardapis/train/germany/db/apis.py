@@ -20,10 +20,11 @@ from ....mixins import StationsMixin
 from ....exceptions import DataInvalidError
 from ....conversions import kmh_to_ms
 from ....data import (
-    some_or_default,
+    default,
     ScheduledEvent,
     Position,
 )
+from ...._types import ID
 
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
 
@@ -41,9 +42,9 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
             int(
-                some_or_default(
+                default(
                     self._dynamic_data.load("status", {}).get("serverTime", None),
-                    default=0,
+                    __default=0,
                 )
             )
             / 1000
@@ -77,61 +78,61 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
                 arrival=ScheduledEvent(
                     scheduled=datetime.datetime.fromtimestamp(
                         int(
-                            some_or_default(
+                            default(
                                 stop.get("timetable", {}).get("scheduledArrivalTime"),
-                                default=0,
+                                __default=0,
                             )
                         )
                         / 1000
                     )
-                    if some_or_default(
+                    if default(
                         stop.get("timetable", {}).get("scheduledArrivalTime")
                     )
-                    is not None
+                       is not None
                     else None,
                     actual=datetime.datetime.fromtimestamp(
                         (
-                            some_or_default(
+                            default(
                                 stop.get("timetable", {}).get("actualArrivalTime"),
-                                default=0,
+                                __default=0,
                             )
                         )
                         / 1000
                     )
-                    if some_or_default(
+                    if default(
                         stop.get("timetable", {}).get("actualArrivalTime")
                     )
-                    is not None
+                       is not None
                     else None,
                 ),
                 departure=ScheduledEvent(
                     scheduled=datetime.datetime.fromtimestamp(
                         int(
-                            some_or_default(
+                            default(
                                 stop.get("timetable", {}).get("scheduledDepartureTime"),
-                                default=0,
+                                __default=0,
                             )
                         )
                         / 1000
                     )
-                    if some_or_default(
+                    if default(
                         stop.get("timetable", {}).get("scheduledDepartureTime")
                     )
-                    is not None
+                       is not None
                     else None,
                     actual=datetime.datetime.fromtimestamp(
                         int(
-                            some_or_default(
+                            default(
                                 stop.get("timetable", {}).get("actualDepartureTime"),
-                                default=0,
+                                __default=0,
                             )
                         )
                         / 1000
                     )
-                    if some_or_default(
+                    if default(
                         stop.get("timetable", {}).get("actualDepartureTime")
                     )
-                    is not None
+                       is not None
                     else None,
                 ),
                 position=Position(
@@ -156,7 +157,7 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
         stop_info = (
             self._dynamic_data.load("trip", {}).get("trip", {}).get("stopInfo", {})
         )
-        station_id = some_or_default(stop_info.get("actualNext"))
+        station_id = default(stop_info.get("actualNext"))
         # Get the station from the stations dict
         try:
             return self.stations_dict[station_id]
@@ -209,8 +210,8 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
         return {
             stop.get("station", {}).get("evaNr", None): list(
                 [
-                    some_or_default(reason.get("text", None))
-                    for reason in some_or_default(stop.get("delayReasons"), [])
+                    default(reason.get("text", None))
+                    for reason in default(stop.get("delayReasons"), [])
                 ]
             )
             for stop in self._dynamic_data.load("trip", {})
@@ -264,7 +265,7 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
         :return: The wagon class
         :rtype: Literal["FIRST", "SECOND"]
         """
-        return some_or_default(self._dynamic_data.load("status", {}).get("wagonClass"))
+        return default(self._dynamic_data.load("status", {}).get("wagonClass"))
 
     def internet_connection(
         self,
@@ -288,14 +289,14 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
         )
         return (
             # Current state
-            some_or_default(
+            default(
                 self._dynamic_data.load("status", {})
                 .get("connectivity", {})
                 .get("currentState"),
                 "NO_INFO",
             ),
             # Next state
-            some_or_default(
+            default(
                 self._dynamic_data.load("status", {})
                 .get("connectivity", {})
                 .get("nextState"),
@@ -303,7 +304,7 @@ class ICEPortal(Train, StationsMixin[TrainStation]):
             ),
             # Remaining time
             None
-            if some_or_default(remaining_seconds) is None
+            if default(remaining_seconds) is None
             else datetime.timedelta(seconds=int(remaining_seconds)),
         )
 
@@ -315,3 +316,27 @@ class ZugPortal(Train):
 
     _static_data = ZugPortalStaticConnector()
     _dynamic_data = ZugPortalDynamicConnector()
+
+    @property
+    def type(self) -> str:
+        pass
+
+    @property
+    def number(self) -> str:
+        pass
+
+    @property
+    def distance(self) -> float:
+        pass
+
+    @property
+    def id(self) -> ID:
+        pass
+
+    @property
+    def position(self) -> Position:
+        pass
+
+    @property
+    def speed(self) -> float:
+        pass

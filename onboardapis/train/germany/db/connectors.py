@@ -8,7 +8,7 @@ from ....data import (
     StaticDataConnector,
     DynamicDataConnector,
     ScheduledEvent,
-    some_or_default,
+    default,
 )
 
 
@@ -20,18 +20,6 @@ class ICEPortalStaticConnector(JSONDataConnector, StaticDataConnector):
     def refresh(self):
         # Bestellen am Platz
         self.store("bap", self._get("/bap/api/bap-service-status"))
-        # train names (optional)
-        try:
-            self.store(
-                "names",
-                self._get(
-                    "/projects/onboardapis/res/train/germany/db/names.json",
-                    base_url="felix-zenk.github.io",
-                ),
-            )
-        # Try to get the names from GitHub. If there is no internet connection, then don't use names.
-        except ConnectionError:
-            self.store("names", {})
 
 
 class ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
@@ -101,41 +89,41 @@ class ICEPortalDynamicConnector(JSONDataConnector, DynamicDataConnector):
                         scheduled=(
                             datetime.fromtimestamp(
                                 int(
-                                    some_or_default(
+                                    default(
                                         connection.get("timetable", {}).get(
                                             "scheduledDepartureTime"
                                         ),
-                                        default=0,
+                                        __default=0,
                                     )
                                 )
                                 / 1000
                             )
-                            if some_or_default(
+                            if default(
                                 connection.get("timetable", {}).get(
                                     "scheduledDepartureTime"
                                 )
                             )
-                            is not None
+                               is not None
                             else None
                         ),
                         actual=(
                             datetime.fromtimestamp(
                                 (
-                                    some_or_default(
+                                    default(
                                         connection.get("timetable", {}).get(
                                             "actualDepartureTime"
                                         ),
-                                        default=0,
+                                        __default=0,
                                     )
                                 )
                                 / 1000
                             )
-                            if some_or_default(
+                            if default(
                                 connection.get("timetable", {}).get(
                                     "actualDepartureTime"
                                 )
                             )
-                            is not None
+                               is not None
                             else None
                         ),
                     ),

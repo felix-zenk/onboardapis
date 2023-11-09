@@ -13,7 +13,7 @@ from ...data import (
     StaticDataConnector,
     DynamicDataConnector,
     JSONDataConnector,
-    some_or_default,
+    default,
     ScheduledEvent,
     Position,
 )
@@ -47,11 +47,11 @@ class RailnetRegio(Train):
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
             int(
-                some_or_default(
+                default(
                     self._dynamic_data.load("combined", {})
                     .get("operationalMessagesInfo", {})
                     .get("time"),
-                    default=0,
+                    __default=0,
                 )
             )
         )
@@ -74,7 +74,7 @@ class RailnetRegio(Train):
         def to_datetime(
             data: str, __future: bool = None
         ) -> Optional[datetime.datetime]:
-            if some_or_default(data, default=None) is None:
+            if default(data, __default=None) is None:
                 return None
             # Now
             now = self.now()
@@ -103,7 +103,7 @@ class RailnetRegio(Train):
             # The first station has no distance
             if station_json.get("distance", "") != "":
                 distance += float(
-                    some_or_default(station_json.get("distance"), default=0.0)
+                    default(station_json.get("distance"), __default=0.0)
                 )
 
             connections = list(
@@ -216,12 +216,12 @@ class RailnetRegio(Train):
         return Position(
             latitude=(
                 float(map_info.get("latitude"))
-                if some_or_default(map_info.get("latitude")) is not None
+                if default(map_info.get("latitude")) is not None
                 else None
             ),
             longitude=(
                 float(map_info.get("longitude"))
-                if some_or_default(map_info.get("longitude")) is not None
+                if default(map_info.get("longitude")) is not None
                 else None
             ),
         )
