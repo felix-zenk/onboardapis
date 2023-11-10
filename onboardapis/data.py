@@ -3,49 +3,49 @@ This module contains everything that has to do with data and data management
 """
 from __future__ import annotations
 
-import json
 import logging
 import threading
 import time
-import requests
+from collections import UserDict
 
-from os import PathLike
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, TypeVar, Generic, ItemsView, Union, Sequence
-from requests import Response, RequestException
+from typing import Any, Optional, TypeVar, Generic, Collection
 
 from geopy.point import Point
 from geopy.distance import geodesic
+from restfly import APISession
 
 from .conversions import coordinates_decimal_to_dms
-from .exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
+from .exceptions import APIConnectionError, InitialConnectionError
 from . import __version__
 
 
-def some_or_default(
-    data: Optional[Any], default: Optional[Any] = None
+def default(
+    arg: Optional[Any],
+    __default: Optional[Any] = None,
+    *,
+    empty_collection: bool = False,
 ) -> Optional[Any]:
     """
     Return ``data`` if there is actually some content in data, else return ``default``.
 
     Useful when data such as "" or b'' should also be treated as empty.
 
-    :param data: The data to test
-    :type data: Any
-    :param default: The default value to return if no data is present
-    :type default: Any
+    :param Any arg: The data to test
+    :param Any __default: The default value to return if no data is present
+    :param bool empty_collection: Treat an empty sequence as a missing value and return the default
     :return: The data if present, else the default
     :rtype: Optional[Any]
     """
-    if data is None:
+    if arg is None:
+        return __default
+    if isinstance(arg, str) and arg == "":
+        return __default
+    if isinstance(arg, bytes) and arg == b"":
+        return __default
+    if empty_collection and isinstance(arg, Collection) and len(arg) == 0:
         return default
-    if isinstance(data, str) and data == "":
-        return default
-    if isinstance(data, bytes) and data == b"":
-        return default
-    # if isinstance(data, Sized) and len(data) == 0:
-    #     return default
-    return data
+    return arg
 
 
 T = TypeVar("T")
@@ -199,64 +199,10 @@ class Position(object):
         ).meters
 
 
-class DataStorage:
+class DataStorage(UserDict):
     """
     A storage class that can be used to store data and retrieve it later.
     """
-
-    def __getitem__(self, item):
-        return self.get(item)
-
-    def __setitem__(self, key, value):
-        self.set(key, value)
-
-    def get(self, key: str) -> Any:
-        """
-        Get the value of the given key out of the storage.
-
-        Raises an :class:`AttributeError` if the key is not present.
-
-        :param key: The key to get the value of
-        :type key: str
-        :return: The stored value
-        :rtype: Any
-        """
-        return getattr(self, key)
-
-    def set(self, key: str, value: Any) -> None:
-        """
-        Set the value of the given key in the storage.
-
-        Overwrites existing keys.
-
-        :param key: The key to set the value of
-        :type key: str
-        :param value: The value to store
-        :type value: Any
-        :return: Nothing
-        :rtype: None
-        """
-        setattr(self, key, value)
-
-    def remove(self, key: str) -> None:
-        """
-        Remove the given key and its value from the storage.
-
-        :param key: The key to remove
-        :type key: str
-        :return: Nothing
-        :rtype: None
-        """
-        delattr(self, key)
-
-    def items(self) -> ItemsView[str, Any]:
-        """
-        Get all keys and values from the storage.
-
-        :return: A view of all keys and values
-        :rtype: ItemsView[str, Any]
-        """
-        return vars(self).items()
 
 
 class DataConnector(metaclass=ABCMeta):
@@ -266,16 +212,26 @@ class DataConnector(metaclass=ABCMeta):
 
     API_URL: str
     """
-    The API URL this DataConnector points to
+    The base URL under which the API can be accessed
     """
 
-    __slots__ = ("_cache",)
+    _data: DataStorage
+    _runner: threading.Thread
+    _initialized: bool
+    _running: bool
 
     def __init__(self) -> None:
         """
         Initialize a new :class:`DataConnector`
         """
-        self._cache = DataStorage()
+        self._data = DataStorage()
+        self._runner = threading.Thread(
+            target=self._run,
+            name=f"DataConnector-Runner for '{self.API_URL}'",
+            daemon=True,
+        )
+        self._running = False
+        self._initialized = False
 
     def load(self, key: str, __default: Any = None) -> Any:
         """
@@ -285,10 +241,7 @@ class DataConnector(metaclass=ABCMeta):
         :param __default: The default value to return if the key is not present
         :return: The data if present, else the default
         """
-        try:
-            return self._cache.get(key)
-        except AttributeError:
-            return __default
+        return self._data.get(key, __default)
 
     def store(self, key: str, value: Any) -> None:
         """
@@ -298,99 +251,13 @@ class DataConnector(metaclass=ABCMeta):
         :param value: The data to store
         :return: Nothing
         """
-        self._cache.set(key, value)
+        self._data[key] = value
 
+    def __getitem__(self, item):
+        return self.load(item)
 
-class HTTPDataConnector(DataConnector, metaclass=ABCMeta):
-    __slots__ = ("_session", "_retries")
-
-    def __init__(self):
-        super().__init__()
-        self._session = requests.Session()
-        self._retries = 0
-
-    def __del__(self):
-        self._session.close()
-
-    def _get(
-        self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any
-    ) -> Response:
-        """
-        Request data from the server.
-
-        :param str endpoint: The endpoint to request data from
-        :param Any args: args to pass to the request
-        :param str base_url: An optional different base url to use for the request
-        :param Any kwargs: kwargs to pass to the request
-        :return: The response from the server
-        :rtype: Response
-        """
-        # Overwrite some kwargs
-        kwargs |= {
-            "headers": kwargs.get("headers", {})
-            | {"user-agent": f"python-onboardapis/{__version__}"},
-            "timeout": 1,
-            "verify": bool(kwargs.get("verify", "True")),
-        }
-        # Allow a different base url, but use self.base_url as default
-        base_url = self.API_URL if base_url is None else base_url
-        try:
-            response = self._session.get(
-                f"https://{base_url}{endpoint}", *args, **kwargs
-            )
-            response.raise_for_status()
-            # Report possible errors / changes in the API
-            if not response.ok:
-                logging.getLogger(__name__).warning(
-                    f"Request to https://{base_url}{endpoint} returned status code {response.status_code}"
-                )
-            self._retries = 0
-            return response
-        except RequestException as e:
-            # If the request failed 3 times in a row, raise an error
-            if self._retries > 2:
-                raise APIConnectionError() from e
-            # Retry the request if it failed
-            self._retries += 1
-            logging.getLogger(__name__).debug(
-                f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)"
-            )
-            return self._get(endpoint, *args, base_url=base_url, **kwargs)
-
-
-class StaticDataConnector(DataConnector, metaclass=ABCMeta):
-    """
-    A :class:`DataConnector` for data never changes and therefore has to be requested only once
-    """
-
-    __slots__ = []
-
-    @abstractmethod
-    def refresh(self) -> None:
-        """
-        Method that collects data from the server and stores it in the cache
-
-        :return: Nothing
-        """
-        pass
-
-
-class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
-    """
-    A :class:`DataConnector` for data that changes frequently and therefore has to be requested continuously
-    """
-
-    __slots__ = ["_runner", "_running", "_initialized", "optimize", "silent"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self._runner = threading.Thread(
-            target=self._run,
-            name=f"DynamicDataConnector-Runner for '{self.API_URL}'",
-            daemon=True,
-        )
-        self._running = False
-        self._initialized = False
+    def __setitem__(self, key, value):
+        self.store(key, value)
 
     @property
     def connected(self) -> bool:
@@ -399,7 +266,7 @@ class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
         """
         return self._initialized and self._running
 
-    def _run(self) -> None:
+    def _run(self) -> None:  # TODO overhaul
         """
         The main loop that will run in a separate thread
 
@@ -433,8 +300,7 @@ class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
             if not self._initialized:
                 self._initialized = True
 
-            # If optimize is enabled, measure the time it took to refresh the data
-            # and calculate the remaining ticks until target time
+            # Calculate the tps to wait until the next refresh
             counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
 
     def start(self) -> None:
@@ -465,13 +331,7 @@ class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
         Reset the thread and the cache so that they can be reused with ``start()``
         """
         self.stop()
-        self._runner = threading.Thread(
-            target=self._run,
-            name=f"DynamicDataConnector-Runner for '{self.API_URL}'",
-            daemon=True,
-        )
-        self._cache = DataStorage()
-        self._initialized = False
+        self.__init__()
 
     @abstractmethod
     def refresh(self) -> None:
@@ -483,46 +343,16 @@ class DynamicDataConnector(DataConnector, metaclass=ABCMeta):
         pass
 
 
-class JSONDataConnector(HTTPDataConnector, DataConnector, metaclass=ABCMeta):
-    """
-    A :class:`DataConnector` that automatically parses the response to a json object
-    """
+class RESTDataConnector(APISession, DataConnector, metaclass=ABCMeta):
+    def __init__(self, **kwargs):
+        kwargs['_url'] = kwargs.pop('_url', self.API_URL)
+        super().__init__(**kwargs)
 
-    __slots__ = []
-
-    def _get(self, endpoint: str, *args: Any, **kwargs: Any) -> dict:
-        kwargs["headers"] = kwargs.get("headers", {}) | {"accept": "application/json"}
-        try:
-            return super(JSONDataConnector, self)._get(endpoint, *args, **kwargs).json()
-        except json.JSONDecodeError as e:
-            logging.getLogger(__name__).debug(
-                f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}"
-            )
-            raise DataInvalidError() from e
-
-    def export(self, path: Union[str, PathLike], keys: Sequence = None) -> None:
-        """
-        Export the cache to a json file
-
-        :param Union[str, PathLike] path: The path to export to
-        :param Sequence keys: The specific keys to export, if empty export all keys
-        :return: Nothing
-        :rtype: None
-        """
-        data = {}
-        for key, value in self._cache.items():
-            if keys is None:
-                data[key] = value
-            # assume keys is Sequence
-            elif key in keys:
-                data[key] = value
-            # else pass
-
-        if not str(path).endswith(".json"):
-            path = f"{path}.json"
-
-        with open(path, "w") as f:
-            json.dump(data, f, default=lambda o: o.__dict__)
+    def _build_session(self, **kwargs) -> None:
+        super()._build_session(**kwargs)
+        self._session.headers.update(
+            {"user-agent": f"python-onboardapis/{__version__}"}
+        )
 
 
 class GraphQLDataConnector(DataConnector, metaclass=ABCMeta):
@@ -537,7 +367,7 @@ class SocketIODataConnector(DataConnector, metaclass=ABCMeta):
     pass
 
 
-class DummyDataConnector(StaticDataConnector, DynamicDataConnector):  # TODO add other connectors
+class DummyDataConnector(DataConnector):
     """
     A dummy :class:`DataConnector` that can be used if the API does not supply static or dynamic data
     """
