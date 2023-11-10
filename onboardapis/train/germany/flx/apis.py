@@ -1,16 +1,6 @@
-"""
-Implementation of the german operator FLX (Flixtrain GmbH).
-"""
 from ...mixins import PositionMixin, SpeedMixin
 from ...data import JSONDataConnector, DynamicDataConnector, Position
 from .. import Train, IncompleteTrainMixin
-
-
-class _FlixTainmentDynamicConnector(JSONDataConnector, DynamicDataConnector):
-    API_URL = "media.flixtrain.com"
-
-    def refresh(self) -> None:
-        self.store("position", "/services/pis/v1/position")
 
 
 class FlixTainment(Train, PositionMixin, SpeedMixin, IncompleteTrainMixin):
