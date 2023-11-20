@@ -9,6 +9,8 @@ import time
 from collections import UserDict
 
 from abc import ABCMeta, abstractmethod
+from functools import wraps
+from types import MethodType
 from typing import Any, Optional, TypeVar, Generic, Collection
 
 from geopy.point import Point
@@ -16,7 +18,7 @@ from geopy.distance import geodesic
 from restfly import APISession
 
 from .conversions import coordinates_decimal_to_dms
-from .exceptions import APIConnectionError, InitialConnectionError
+from .exceptions import APIConnectionError
 from . import __version__
 
 
@@ -60,7 +62,7 @@ class ScheduledEvent(Generic[T]):
     but can also happen different from the expected and actually happens as ``actual``
     """
 
-    __slots__ = ["scheduled", "actual"]
+    __slots__ = ("scheduled", "actual")
 
     def __init__(self, scheduled: T, actual: T | None = None):
         """
@@ -68,7 +70,7 @@ class ScheduledEvent(Generic[T]):
 
         :param scheduled: The value that should happen
         :type scheduled: T
-        :param actual: The value that actually happens
+        :param actual: The value that actually happens, will be the scheduled value if passed as None
         :type actual: Optional[T]
         """
         self.scheduled = scheduled
@@ -97,14 +99,14 @@ class Position(object):
     but can also provide data on altitude and the current compass heading.
     """
 
-    __slots__ = ["_latitude", "_longitude", "_altitude", "_bearing"]
+    __slots__ = ("_latitude", "_longitude", "_altitude", "_heading")
 
     def __init__(
         self,
         latitude: float,
         longitude: float,
         altitude: float = None,
-        bearing: float = None,
+        heading: float = None,
     ):
         """
         Initialize a new :class:`Position`.
@@ -115,13 +117,13 @@ class Position(object):
         :type longitude: float
         :param altitude: The altitude in meters
         :type altitude: float
-        :param bearing: The compass heading in degrees
-        :type bearing: float
+        :param heading: The compass heading in degrees
+        :type heading: float
         """
         self._latitude = latitude
         self._longitude = longitude
         self._altitude = altitude
-        self._bearing = bearing
+        self._heading = heading
 
     def __str__(self) -> str:
         (lat_deg, lat_min, lat_sec), (
@@ -180,7 +182,7 @@ class Position(object):
         :return: The heading
         :rtype: float
         """
-        return float(self._bearing)
+        return float(self._heading)
 
     def calculate_distance(self, other: Position) -> float:
         """
@@ -216,22 +218,12 @@ class DataConnector(metaclass=ABCMeta):
     """
 
     _data: DataStorage
-    _runner: threading.Thread
-    _initialized: bool
-    _running: bool
 
     def __init__(self) -> None:
         """
         Initialize a new :class:`DataConnector`
         """
         self._data = DataStorage()
-        self._runner = threading.Thread(
-            target=self._run,
-            name=f"DataConnector-Runner for '{self.API_URL}'",
-            daemon=True,
-        )
-        self._running = False
-        self._initialized = False
 
     def load(self, key: str, __default: Any = None) -> Any:
         """
@@ -254,32 +246,47 @@ class DataConnector(metaclass=ABCMeta):
         self._data[key] = value
 
     def __getitem__(self, item):
-        return self.load(item)
+        return self._data[item]
 
     def __setitem__(self, key, value):
-        self.store(key, value)
+        self._data[key] = value
+
+
+class PollingDataConnector(DataConnector, threading.Thread):
+    _connected: bool
+    _running: bool
+
+    def __init__(self):
+        DataConnector.__init__(self)
+        threading.Thread.__init__(
+            self,
+            target=self._run,
+            name=f"DataConnector-Runner for '{self.API_URL}'",
+            daemon=True,
+        )
+        self._running = False
+        self._connected = False
 
     @property
     def connected(self) -> bool:
         """
         Check whether the connector is connected to the server
         """
-        return self._initialized and self._running
+        return self._connected and self._running
 
-    def _run(self) -> None:  # TODO overhaul
+    def _run(self) -> None:
         """
         The main loop that will run in a separate thread
 
         :return: Nothing
         :rtype: None
         """
-        # tps is the amount of checks per second for a thread join while waiting for the next refresh
-        # During a refresh it does not check for a thread join
-        tps = 20  # 20 ticks per second -> check for thread join every 0.05 seconds, refresh the data each second
+        # thread join checks per second
+        tps = 20
 
         counter = 0
         while self._running:
-            # If the counter is not 0, just wait and check for a thread join (self._running == False)
+            # If the counter is not 0, just wait and check for a thread join
             if counter != 0:
                 time.sleep(1 / tps)
                 counter = (counter + 1) % tps
@@ -288,50 +295,31 @@ class DataConnector(metaclass=ABCMeta):
             # The target time for when to perform the next refresh after this one
             target = time.time_ns() + int(1e9)
 
-            # Perform the actual refresh
             try:
                 self.refresh()
+                self._connected = True
             except APIConnectionError as e:
-                self._running = False
                 logging.getLogger(__name__).error(f"{e}")
                 continue
 
-            # Signal that the data has been refreshed at least once (for thread synchronization)
-            if not self._initialized:
-                self._initialized = True
-
-            # Calculate the tps to wait until the next refresh
             counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
-
-    def start(self) -> None:
-        """
-        Start requesting data
-        """
-        self._running = True
-        self._runner.start()
-        while self._runner.is_alive() and not self._initialized:  # pragma: no cover
-            # Wait until the new thread has initialized (received data at least once)
-            pass
-
-        if not self._runner.is_alive():
-            # If the thread is not alive, something went wrong
-            self.reset()
-            raise InitialConnectionError("Failed to connect to the server")
 
     def stop(self) -> None:
         """
         Stop requesting data and shut down the separate thread
         """
         self._running = False
-        if self._runner.is_alive():
-            self._runner.join()
+        if self.is_alive():
+            self.join()
 
     def reset(self) -> None:
         """
         Reset the thread and the cache so that they can be reused with ``start()``
         """
         self.stop()
-        self.__init__()
+        threading.Thread.__init__(self)
+        DataConnector.__init__(self)
+        self._connected = False
 
     @abstractmethod
     def refresh(self) -> None:
@@ -343,13 +331,14 @@ class DataConnector(metaclass=ABCMeta):
         pass
 
 
-class RESTDataConnector(APISession, DataConnector, metaclass=ABCMeta):
+class RESTDataConnector(APISession, PollingDataConnector, metaclass=ABCMeta):
     def __init__(self, **kwargs):
         kwargs['_url'] = kwargs.pop('_url', self.API_URL)
-        super().__init__(**kwargs)
+        APISession.__init__(self, **kwargs)
+        PollingDataConnector.__init__(self)
 
     def _build_session(self, **kwargs) -> None:
-        super()._build_session(**kwargs)
+        APISession._build_session(self, **kwargs)
         self._session.headers.update(
             {"user-agent": f"python-onboardapis/{__version__}"}
         )
@@ -369,21 +358,38 @@ class SocketIODataConnector(DataConnector, metaclass=ABCMeta):
 
 class DummyDataConnector(DataConnector):
     """
-    A dummy :class:`DataConnector` that can be used if the API does not supply static or dynamic data
+    A dummy :class:`DataConnector` that does nothing and can be used for testing
     """
 
     API_URL = "127.0.0.1"
 
-    def refresh(self) -> None:
-        pass
+    def load(self, key: str, __default: Any = None) -> Any:
+        return 'Dummy value'
 
-    def start(self) -> None:
-        self._initialized = True
-        self._running = True
 
-    def stop(self) -> None:
-        self._running = False
+def store(name: str | MethodType = None):
+    """
+    Decorator / decorator factory to apply to a :class:`DataConnector` method
+    to immediately store the return value of the decorated method
+    as the key ``name`` or the method name if left out.
+    """
+    def decorator(method: MethodType):
+        @wraps(method)
+        def wrapper(self: DataConnector, *args, **kwargs):
+            if isinstance(self, DataConnector):
+                self[name or method.__name__] = method(self, *args, **kwargs)
+                return self[name or method.__name__]
+            return method(self, *args, **kwargs)
 
-    def reset(self) -> None:
-        self.stop()
-        self._initialized = False
+        return wrapper
+
+    if isinstance(name, str) or name is None:
+        return decorator
+
+    if callable(name):
+        m = name
+        name = m.__name__
+        return decorator(m)
+
+    raise ValueError('You need to apply this decorator to a method of a DataConnector!')
+    # Really any callable works just fine, but in this case the decorator will do nothing
