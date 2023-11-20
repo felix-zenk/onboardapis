@@ -1,25 +1,25 @@
-from ...mixins import PositionMixin, SpeedMixin
-from ...data import JSONDataConnector, DynamicDataConnector, Position
-from .. import Train, IncompleteTrainMixin
+from ....data import Position
+from ... import Train, IncompleteTrainMixin
+from .connectors import FlixTainmentConnector
 
 
-class FlixTainment(Train, PositionMixin, SpeedMixin, IncompleteTrainMixin):
+class FlixTainment(IncompleteTrainMixin, Train):
     """
     Wrapper for interacting with the Flixtrain FLIXTainment API
     (few methods are available, because the API is very sparse)
     """
 
-    def __init__(self):
-        super().__init__()
-        self._dynamic_data = _FlixTainmentDynamicConnector()
+    _data = FlixTainmentConnector()
 
+    @property
     def position(self) -> Position:
         return Position(
-            latitude=self._dynamic_data.load("position", {}).get("latitude", None),
-            longitude=self._dynamic_data.load("position", {}).get("longitude", None),
+            latitude=self._data["position"].get("latitude", None),
+            longitude=self._data["position"].get("longitude", None),
         )
 
+    @property
     def speed(self) -> float:
-        return float(self._dynamic_data.load("position", {}).get("speed", 0.0))
+        return float(self._data["position"].get("speed", 0.0))
 
     # No more information available

@@ -1,8 +1,12 @@
-from ...data import JSONDataConnector, DynamicDataConnector, Position
+from ....data import RESTDataConnector, store
 
 
-class _FlixTainmentDynamicConnector(JSONDataConnector, DynamicDataConnector):
-    API_URL = "media.flixtrain.com"
+class FlixTainmentConnector(RESTDataConnector):
+    API_URL = "https://media.flixtrain.com"
+
+    @store
+    def position(self) -> dict:
+        return self.get("services/pis/v1/position")
 
     def refresh(self) -> None:
-        self.store("position", "/services/pis/v1/position")
+        self.position()
