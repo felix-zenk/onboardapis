@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, NoReturn
 from abc import ABCMeta, abstractmethod
 
 from .. import Vehicle, IncompleteVehicleMixin, Station, ConnectingVehicle
@@ -144,52 +144,52 @@ class ConnectingTrain(ConnectingVehicle):
     """
 
 
-class IncompleteTrainMixin(Train, IncompleteVehicleMixin):
+class IncompleteTrainMixin(IncompleteVehicleMixin, Train):
     """
     Class that implements all remaining abstract methods.
     Used when the operator does not provide the requested data via the API.
     """
 
     @property
-    def id(self) -> ID:
+    def id(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def type(self) -> str:
+    def type(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def number(self) -> str:
+    def number(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def stations_dict(self) -> dict[ID, TrainStation]:
+    def stations_dict(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def origin(self) -> TrainStation:
+    def origin(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def current_station(self) -> TrainStation:
+    def current_station(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def destination(self) -> TrainStation:
+    def destination(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def distance(self) -> float:
+    def distance(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def delay(self) -> float:
+    def delay(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def position(self) -> Position:
+    def position(self) -> NoReturn:
         raise NotImplementedInAPIError()
 
     @property
-    def speed(self) -> float:
+    def speed(self) -> NoReturn:
         raise NotImplementedInAPIError()

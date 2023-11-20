@@ -4,17 +4,17 @@ Package metadata and base classes.
 
 from __future__ import annotations
 
-__version_tuple__ = (2, 0, 0)
-__version__ = ".".join(map(str, __version_tuple__))
+__version_info__ = (2, 0, 0)
+__version__ = ".".join(map(str, __version_info__))
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterable
+from typing import Iterable, NoReturn
 
+from .exceptions import NotImplementedInAPIError
 from ._types import ID
-from .exceptions import APIConnectionError, InitialConnectionError
-from .data import StaticDataConnector, DynamicDataConnector, ScheduledEvent, Position
+from .data import DataConnector, PollingDataConnector, ScheduledEvent, Position
 
 
 class API(object):
@@ -28,12 +28,7 @@ class Vehicle(API, metaclass=ABCMeta):
     The base class for all vehicles.
     """
 
-    _dynamic_data: DynamicDataConnector
-    _static_data: StaticDataConnector
-    _initialized: bool
-
-    def __init__(self):
-        self._initialized = False
+    _data: DataConnector
 
     def __enter__(self):
         self.init()
@@ -44,41 +39,25 @@ class Vehicle(API, metaclass=ABCMeta):
 
     def init(self) -> None:
         """
-        Initialize the :class:`DataConnector` objects.
-
-        Calls ``refresh`` on the :class:`StaticDataConnector`
-        and ``start`` on the :class:`DynamicDataConnector` by default.
+        Initialize the :class:`DataConnector`.
 
         :return: Nothing
         :rtype: None
         """
-        if self._initialized:
+        if isinstance(self._data, PollingDataConnector):
+            self._data.start()
             return
-        try:
-            self._dynamic_data.start()
-            self._static_data.refresh()
-            self._initialized = True
-        except APIConnectionError as e:
-            raise InitialConnectionError() from e
+
+        raise NotImplementedError
 
     def shutdown(self) -> None:
         """
-        Safely close the :class:`DataConnector` objects of this vehicle.
+        Method to call when exiting the context handler
 
         :return: Nothing
         :rtype: None
         """
-        self._dynamic_data.stop()
-
-    @property
-    def connected(self) -> bool:
-        """
-        Whether the vehicle is connected to the API
-
-        :return: Whether the vehicle is connected to the API
-        :rtype: bool
-        """
-        return self._dynamic_data.connected
+        pass
 
     def now(self) -> datetime:
         """
@@ -127,13 +106,15 @@ class ConnectingVehicle(object):
     """
 
 
-class IncompleteVehicleMixin(object, metaclass=ABCMeta):
+class IncompleteVehicleMixin(Vehicle, metaclass=ABCMeta):
     """
     Base class for mixins that implement the abstract methods of their bases
     if the API does not provide the requested data.
     """
 
-    pass
+    @property
+    def id(self) -> NoReturn:
+        raise NotImplementedInAPIError
 
 
 class Station(object):
@@ -141,7 +122,7 @@ class Station(object):
     A Station is a stop on the trip
     """
 
-    __slots__ = [
+    __slots__ = (
         "_id",
         "_name",
         "_arrival",
@@ -149,7 +130,7 @@ class Station(object):
         "_position",
         "_distance",
         "_connections",
-    ]
+    )
 
     def __init__(
         self,
