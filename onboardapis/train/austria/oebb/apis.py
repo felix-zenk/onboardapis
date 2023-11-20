@@ -1,56 +1,31 @@
-"""
-Implementation of the austrian operator ÖBB (Österreichische Bundesbahnen).
-"""
+from __future__ import annotations
 
 import datetime
-import time
-from typing import Dict, Optional, Any
 
-from .. import Train, Station, ConnectingTrain
-from ...exceptions import DataInvalidError
-from ...conversions import kmh_to_ms
-from ...data import (
-    StaticDataConnector,
-    DynamicDataConnector,
-    JSONDataConnector,
+from ...._types import ID
+from ....exceptions import DataInvalidError
+from ....conversions import kmh_to_ms
+from ....data import (
     default,
     ScheduledEvent,
     Position,
 )
-
-API_BASE_URL_RAILNET_REGIO = "railnet.oebb.at"
-
-
-class _RailnetStaticConnector(JSONDataConnector, StaticDataConnector):
-    API_URL = "railnet.oebb.at"
-
-    def refresh(self):
-        self.store("trainInfo", self._get("/api/trainInfo"))
-
-
-class _RailnetDynamicConnector(JSONDataConnector, DynamicDataConnector):
-    def refresh(self):
-        self.store(
-            "combined",
-            self._get(
-                "/assets/modules/fis/combined.json", params={"_time": time.time()}
-            ),
-        )
+from ... import Train, ConnectingTrain, TrainStation
+from .connectors import RailnetConnector
 
 
 class RailnetRegio(Train):
-    def __init__(self):
-        super().__init__()
-        self._static_data = _RailnetStaticConnector()
-        self._dynamic_data = _RailnetDynamicConnector()
+    """
+    Wrapper for interacting with the ÖBB RailnetRegio API
+    """
+
+    _data = RailnetConnector()
 
     def now(self) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(
             int(
                 default(
-                    self._dynamic_data.load("combined", {})
-                    .get("operationalMessagesInfo", {})
-                    .get("time"),
+                    self._data["combined"].get("operationalMessagesInfo", {}).get("time"),
                     __default=0,
                 )
             )
@@ -58,22 +33,20 @@ class RailnetRegio(Train):
 
     @property
     def type(self) -> str:
-        return self._static_data.load("trainInfo", {}).get("trainType", None)
+        return self._data["train_info"].get("trainType", None)
 
     @property
     def number(self) -> str:
-        return self._static_data.load("trainInfo", {}).get("lineNumber", None)
+        return self._data["train_info"].get("lineNumber", None)
 
     @property
     def id(self) -> None:
         # Not available in Railnet
-        return None
+        return None  # TODO IncompleteTrainMixin?
 
     @property
-    def stations_dict(self) -> Dict[Any, Station]:
-        def to_datetime(
-            data: str, __future: bool = None
-        ) -> Optional[datetime.datetime]:
+    def stations_dict(self) -> dict[ID, TrainStation]:
+        def to_datetime(data: str, __future: bool = None) -> datetime.datetime | None:
             if default(data, __default=None) is None:
                 return None
             # Now
@@ -97,7 +70,7 @@ class RailnetRegio(Train):
         stations = {}
         distance = 0.0
         future = False
-        for station_json in self._dynamic_data.load("combined", {}).get(
+        for station_json in self._data["combined"].get(
             "stationList", []
         ):
             # The first station has no distance
@@ -109,7 +82,7 @@ class RailnetRegio(Train):
             connections = list(
                 [
                     ConnectingTrain(
-                        train_type=connection.get("type", None),
+                        vehicle_type=connection.get("type", None),
                         line_number=connection.get("line", None),
                         platform=ScheduledEvent(
                             scheduled=connection.get("track", {}).get("all", None),
@@ -123,17 +96,12 @@ class RailnetRegio(Train):
                             actual=to_datetime(connection.get("actual", None), True),
                         ),
                     )
-                    for connection in self._dynamic_data.load("combined")
-                    .get("connectionInfo", {})
-                    .get("connections", [])
-                    if self._dynamic_data.load("combined")
-                    .get("connectionInfo", {})
-                    .get("station_id", -1)
-                    == station_json.get("id", -2)
+                    for connection in self._data["combined"].get("connectionInfo", {}).get("connections", [])
+                    if self._data["combined"].get("connectionInfo", {}).get("station_id", -1) == station_json.get("id")
                 ]
             )
 
-            stations[station_json.get("id")] = Station(
+            stations[station_json.get("id")] = TrainStation(
                 station_id=station_json.get("id"),
                 name=station_json.get("name", {}).get("all", None),
                 platform=ScheduledEvent(
@@ -158,20 +126,14 @@ class RailnetRegio(Train):
                 connections=connections,
             )
 
-            future = future or station_json.get("id", -1) == self._dynamic_data.load(
-                "combined", {}
-            ).get("currentStation", {}).get("id", None)
+            future = future or station_json.get("id", -1) == self._data["combined"].get("currentStation", {}).get("id")
         return stations
 
     @property
-    def origin(self) -> Station:
-        return super(RailnetRegio, self).origin
-
-    @property
-    def current_station(self) -> Station:
+    def current_station(self) -> TrainStation:
         # Get the current station id
         station_id = (
-            self._dynamic_data.load("combined", {})
+            self._data["combined"]
             .get("currentStation", {})
             .get("id", -1)
         )
@@ -182,14 +144,10 @@ class RailnetRegio(Train):
             raise DataInvalidError("No current station found") from e
 
     @property
-    def destination(self) -> Station:
-        return super(RailnetRegio, self).destination
-
-    @property
     def speed(self) -> float:
         return kmh_to_ms(
             float(
-                self._dynamic_data.load("combined", {})
+                self._data["combined"]
                 .get("operationalMessagesInfo", {})
                 .get("speed", 0)
             )
@@ -199,11 +157,11 @@ class RailnetRegio(Train):
     def distance(self) -> float:
         try:
             return self.stations_dict[
-                self._dynamic_data.load("combined", {})
+                self._data["combined"]
                 .get("operationalMessagesInfo", {})
                 .get("distanceStation", -1)
             ].distance + float(
-                self._dynamic_data.load("combined", {})
+                self._data["combined"]
                 .get("operationalMessagesInfo", {})
                 .get("distance", 0)
             )
@@ -212,7 +170,7 @@ class RailnetRegio(Train):
 
     @property
     def position(self) -> Position:
-        map_info = self._dynamic_data.load("combined", {}).get("mapInfo", {})
+        map_info = self._data["combined"].get("mapInfo", {})
         return Position(
             latitude=(
                 float(map_info.get("latitude"))
@@ -229,7 +187,7 @@ class RailnetRegio(Train):
     @property
     def delay(self) -> float:
         return float(
-            self._dynamic_data.load("combined", {})
+            self._data["combined"]
             .get("operationalMessagesInfo", {})
             .get("delay", 0)
         )
