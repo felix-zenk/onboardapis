@@ -4,7 +4,7 @@ from ....data import RESTDataConnector, store
 class FlixTainmentConnector(RESTDataConnector):
     API_URL = "https://media.flixtrain.com"
 
-    @store
+    @store('position')
     def position(self) -> dict:
         return self.get("services/pis/v1/position")
 
