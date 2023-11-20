@@ -9,7 +9,7 @@ from typing import Iterable, NoReturn
 from abc import ABCMeta, abstractmethod
 
 from .. import Vehicle, IncompleteVehicleMixin, Station, ConnectingVehicle
-from ..mixins import PositionMixin, SpeedMixin
+from ..mixins import PositionMixin, SpeedMixin, StationsMixin
 from ..exceptions import NotImplementedInAPIError
 from ..data import ScheduledEvent, Position
 from .._types import ID
@@ -77,7 +77,7 @@ class TrainStation(Station):
         return self._platform
 
 
-class Train(Vehicle, PositionMixin, SpeedMixin, metaclass=ABCMeta):
+class Train(PositionMixin, SpeedMixin, StationsMixin[TrainStation], Vehicle, metaclass=ABCMeta):
     """
     Interface specifying the attributes of a train
     """
