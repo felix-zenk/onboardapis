@@ -48,5 +48,5 @@ class NotImplementedInAPIError(NotImplementedError):
     """
     __slots__ = []
 
-    def __init__(self, message: str = "This providers API does not provide this data!", *args):
+    def __init__(self, message: str = "The API does not provide this data!", *args):
         super(NotImplementedInAPIError, self).__init__(message, *args)
