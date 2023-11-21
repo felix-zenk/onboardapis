@@ -9,6 +9,7 @@ import time
 from collections import UserDict
 
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from functools import wraps
 from types import MethodType
 from typing import Any, Optional, TypeVar, Generic, Collection
@@ -93,37 +94,21 @@ class ScheduledEvent(Generic[T]):
         return f"{self.actual}"
 
 
+@dataclass
 class Position(object):
     """
     A position requires at least a latitude and longitude,
     but can also provide data on altitude and the current compass heading.
     """
 
-    __slots__ = ("_latitude", "_longitude", "_altitude", "_heading")
-
-    def __init__(
-        self,
-        latitude: float,
-        longitude: float,
-        altitude: float = None,
-        heading: float = None,
-    ):
-        """
-        Initialize a new :class:`Position`.
-
-        :param latitude: The latitude in decimal degrees
-        :type latitude: float
-        :param longitude: The longitude in decimal degrees
-        :type longitude: float
-        :param altitude: The altitude in meters
-        :type altitude: float
-        :param heading: The compass heading in degrees
-        :type heading: float
-        """
-        self._latitude = latitude
-        self._longitude = longitude
-        self._altitude = altitude
-        self._heading = heading
+    latitude: float
+    """The latitude in decimal degrees"""
+    longitude: float
+    """The longitude in decimal degrees"""
+    altitude: float = None
+    """The altitude in meters"""
+    heading: float = None
+    """The compass heading in degrees"""
 
     def __str__(self) -> str:
         (lat_deg, lat_min, lat_sec), (
@@ -135,54 +120,12 @@ class Position(object):
             f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'}"
             + f" {abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
             + (f" {self.altitude:.2f}m" if self.altitude is not None else "")
-            + (f" {self.bearing:.2f}°" if self.bearing is not None else "")
+            + (f" {self.heading:.2f}°" if self.heading is not None else "")
         )
         return coordinates
 
     def __getitem__(self, item):
-        return list([self.latitude, self.longitude])[item]
-
-    @property
-    def latitude(self) -> float:
-        """
-        The latitude in decimal degrees.
-
-        :return: The latitude
-        :rtype: float
-        """
-        return float(self._latitude)
-
-    @property
-    def longitude(self) -> float:
-        """
-        The longitude in decimal degrees.
-
-        :return: The longitude
-        :rtype: float
-        """
-        return float(self._longitude)
-
-    @property
-    def altitude(self) -> float:
-        """
-        The altitude in meters.
-
-        :return: The altitude
-        :rtype: float
-        """
-        return float(self._altitude)
-
-    @property
-    def bearing(self) -> float:
-        """
-        The compass heading in degrees.
-
-        0 is north, 90 is east, 180 is south, 270 is west.
-
-        :return: The heading
-        :rtype: float
-        """
-        return float(self._heading)
+        return ([self.latitude, self.longitude])[item]
 
     def calculate_distance(self, other: Position) -> float:
         """
@@ -191,14 +134,10 @@ class Position(object):
         :param other: The other position
         :return: The distance in meters
         """
-        return geodesic(
-            Point(
-                latitude=self.latitude, longitude=self.longitude
-            ),  # altitude not supported
-            Point(
-                latitude=other.latitude, longitude=other.longitude
-            ),  # altitude not supported
-        ).meters
+        return geodesic(self.to_point(), other.to_point()).meters
+
+    def to_point(self, altitude: bool = False) -> Point:
+        return Point(self.latitude, self.longitude, altitude=self.altitude if altitude else None)
 
 
 class DataStorage(UserDict):
