@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable, NoReturn
 
-from .exceptions import NotImplementedInAPIError
 from ._types import ID
 from .data import DataConnector, PollingDataConnector, ScheduledEvent, Position
+from .exceptions import NotImplementedInAPIError
 
 
 class API(object):
@@ -29,6 +29,7 @@ class Vehicle(API, metaclass=ABCMeta):
     """
 
     _data: DataConnector
+    """The :class:`DataConnector` that supplies the data for this vehicle"""
 
     def __enter__(self):
         self.init()
@@ -52,7 +53,7 @@ class Vehicle(API, metaclass=ABCMeta):
 
     def shutdown(self) -> None:
         """
-        Method to call when exiting the context handler
+        Method to call when exiting the context manager
 
         :return: Nothing
         :rtype: None
