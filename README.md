@@ -45,37 +45,19 @@ Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn tr
 from onboardapis.train.germany.db import ICEPortal
 ```
 
-Every implementation of an API wrapper class is a subclass of the abstract class of its vehicle type
-(here ``Train``) found in the vehicle package. Every vehicle type itself is a subclass of ``Vehicle``.
-
-```python
-from onboardapis import Vehicle
-from onboardapis.train import Train
-from onboardapis.train.germany.db import ICEPortal
-
-assert issubclass(Train, Vehicle)
-assert issubclass(ICEPortal, Train)
-assert issubclass(ICEPortal, Vehicle)
-
-assert isinstance(ICEPortal(), Train)
-assert isinstance(ICEPortal(), Vehicle)
-```
-
-The abstract base class defines common attributes that are used by all implementations.
-
-For example, the ``Train`` class defines the attributes ``speed`` and ``delay`` alongside with the ``current station``
-(the next station you will arrive at) and others.
+Every vehicle has an ``init``-method that needs to be called to initialize the connection to the API.
+When using a vehicle as a context manager the ``init``-method will automatically be called.
 
 ```python
 from onboardapis.train.germany.db import ICEPortal
-from onboardapis.conversions import ms_to_kmh
+from onboardapis.units import kilometers, hours
 
 train = ICEPortal()
-train.init()
+train.init()  # Explicit call to init method to initialize API connection
 
 print(
     "Travelling at", train.speed, "m/s",
-    f"({ms_to_kmh(train.speed):.2f} km/h)",
+    f"({kilometers(meters=hours(seconds=train.speed)):.2f} km/h)",
     "with a delay of", train.delay, "seconds"
 )
 
@@ -84,10 +66,11 @@ print(
     "at", train.current_station.arrival.actual.strftime("%H:%M")
 )
 
-print(
-    f"Distance to {train.current_station.name}:",
-    f"{train.calculate_distance(train.current_station) / 1000:.1f} km"
-)
+with ICEPortal() as train:  # init automatically called
+    print(
+        f"Distance to {train.current_station.name}:",
+        f"{kilometers(meters=train.calculate_distance(train.current_station)):.1f} km"
+    )
 ```
 
 And there you go!
@@ -110,12 +93,12 @@ You can read more information about available attributes in the [trains document
 
 ## APIs in testing phase
 
-| API         | Type  | Country | Operator                                              |
-|-------------|-------|---------|-------------------------------------------------------|
-| PortalINOUI | train | france  | sncf (Société nationale des chemins de fer français)  |
+| API         | Type  | Country | Operator                                             |
+|-------------|-------|---------|------------------------------------------------------|
+| PortalINOUI | train | france  | sncf (Société nationale des chemins de fer français) |
+| ZugPortal   | train | germany | db (Deutsche Bahn)                                   |
 
 ## APIs in development
 
-| API       | Type  | Country | Operator                    |
-|-----------|-------|---------|-----------------------------|
-| ZugPortal | train | germany | db (Deutsche Bahn)          |
+| API              | Type  | Country        | Operator                             |
+|------------------|-------|----------------|--------------------------------------|
