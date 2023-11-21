@@ -93,10 +93,11 @@ You can read more information about available attributes in the [trains document
 
 ## APIs in testing phase
 
-| API         | Type  | Country | Operator                                             |
-|-------------|-------|---------|------------------------------------------------------|
-| PortalINOUI | train | france  | sncf (Société nationale des chemins de fer français) |
-| ZugPortal   | train | germany | db (Deutsche Bahn)                                   |
+| API              | Type  | Country | Operator                                             |
+|------------------|-------|---------|------------------------------------------------------|
+| PortalINOUI      | train | france  | sncf (Société nationale des chemins de fer français) |
+| ZugPortal        | train | germany | db (Deutsche Bahn)                                   |
+| PortaleRegionale | train | italy   | ti (Trenitalia)                                      |
 
 ## APIs in development
 
