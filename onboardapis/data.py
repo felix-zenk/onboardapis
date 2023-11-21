@@ -111,11 +111,9 @@ class Position(object):
     """The compass heading in degrees"""
 
     def __str__(self) -> str:
-        (lat_deg, lat_min, lat_sec), (
-            lon_deg,
-            lon_min,
-            lon_sec,
-        ) = coordinates_decimal_to_dms((self.latitude, self.longitude))
+        (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec,) = coordinates_decimal_to_dms(
+            (self.latitude, self.longitude)
+        )
         coordinates = (
             f"{abs(lat_deg)}°{lat_min}'{lat_sec:.3f}\"{'N' if lat_deg >= 0 else 'S'}"
             + f" {abs(lon_deg)}°{lon_min}'{lon_sec:.3f}\"{'E' if lon_deg >= 0 else 'W'}"
