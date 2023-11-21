@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from datetime import timedelta
 from typing import Generic
 
 from .exceptions import DataInvalidError
@@ -98,13 +99,13 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
         raise DataInvalidError("No destination station found")
 
     @property
-    def delay(self) -> float:
+    def delay(self) -> timedelta:
         """
-        The current delay of the vehicle in seconds
+        The current delay of the vehicle
 
         :return: The delay of the vehicle
-        :rtype: float
+        :rtype: timedelta
         """
-        return (
+        return timedelta(seconds=(
             self.current_station.arrival.actual - self.current_station.arrival.scheduled
-        ).total_seconds()
+        ).total_seconds())

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+from datetime import datetime, timedelta
 
 from ...._types import ID
 from ....exceptions import DataInvalidError
@@ -21,15 +21,10 @@ class RailnetRegio(Train):
 
     _data = RailnetConnector()
 
-    def now(self) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(
-            int(
-                default(
-                    self._data["combined"].get("operationalMessagesInfo", {}).get("time"),
-                    __default=0,
-                )
-            )
-        )
+    def now(self) -> datetime:
+        return datetime.fromtimestamp(int(default(
+            self._data["combined"].get("operationalMessagesInfo", {}).get("time"), 0
+        )))
 
     @property
     def type(self) -> str:
@@ -40,19 +35,19 @@ class RailnetRegio(Train):
         return self._data["train_info"].get("lineNumber", None)
 
     @property
-    def id(self) -> None:
+    def id(self) -> ID:
         # Not available in Railnet
-        return None  # TODO IncompleteTrainMixin?
+        return self.number
 
     @property
     def stations_dict(self) -> dict[ID, TrainStation]:
-        def to_datetime(data: str, __future: bool = None) -> datetime.datetime | None:
-            if default(data, __default=None) is None:
+        def to_datetime(data: str, __future: bool = None) -> datetime | None:
+            if default(data, None) is None:
                 return None
             # Now
             now = self.now()
             # Assume that the day is the same as the current day
-            obj = datetime.datetime.strptime(data, "%H:%M").replace(
+            obj = datetime.strptime(data, "%H:%M").replace(
                 year=now.year, month=now.month, day=now.day
             )
 
@@ -60,25 +55,20 @@ class RailnetRegio(Train):
                 # We know that the event is in the future,
                 # but obj is currently in the past
                 if __future and obj < now:
-                    obj += datetime.timedelta(days=1)
+                    obj += timedelta(days=1)
                 # We know that the event is in the past,
                 # but obj is currently in the future
                 elif not __future and obj > now:
-                    obj -= datetime.timedelta(days=1)
+                    obj -= timedelta(days=1)
             return obj
 
         stations = {}
         distance = 0.0
         future = False
-        for station_json in self._data["combined"].get(
-            "stationList", []
-        ):
+        for station_json in self._data["combined"].get("stationList", []):
             # The first station has no distance
             if station_json.get("distance", "") != "":
-                distance += float(
-                    default(station_json.get("distance"), __default=0.0)
-                )
-
+                distance += float(default(station_json.get("distance"), __default=0.0))
             connections = list(
                 [
                     ConnectingTrain(
@@ -111,14 +101,14 @@ class RailnetRegio(Train):
                 arrival=ScheduledEvent(
                     to_datetime(
                         station_json.get("arrivalSchedule", None),
-                        self.delay > 0 if future else False,
+                        self.delay > timedelta() if future else False,
                     ),
                     to_datetime(station_json.get("arrivalForecast", None), future),
                 ),
                 departure=ScheduledEvent(
                     to_datetime(
                         station_json.get("departureSchedule", None),
-                        self.delay > 0 if future else False,
+                        self.delay > timedelta() if future else False,
                     ),
                     to_datetime(station_json.get("departureForecast", None), future),
                 ),
@@ -132,11 +122,7 @@ class RailnetRegio(Train):
     @property
     def current_station(self) -> TrainStation:
         # Get the current station id
-        station_id = (
-            self._data["combined"]
-            .get("currentStation", {})
-            .get("id", -1)
-        )
+        station_id = (self._data["combined"].get("currentStation", {}).get("id", -1))
         # Get the station from the stations dict
         try:
             return self.stations_dict[station_id]
@@ -146,46 +132,28 @@ class RailnetRegio(Train):
     @property
     def speed(self) -> float:
         return meters(kilometers=seconds(hours=float(
-            self._data["combined"]
-            .get("operationalMessagesInfo", {})
-            .get("speed", 0)
+            self._data["combined"].get("operationalMessagesInfo", {}).get("speed", 0)
         )))
 
     @property
     def distance(self) -> float:
         try:
-            return self.stations_dict[
-                self._data["combined"]
-                .get("operationalMessagesInfo", {})
-                .get("distanceStation", -1)
-            ].distance + float(
-                self._data["combined"]
-                .get("operationalMessagesInfo", {})
-                .get("distance", 0)
+            reference_station = self._data["combined"].get("operationalMessagesInfo", {}).get("distanceStation", -1)
+            return (
+                self.stations_dict[reference_station].distance
+                + float(self._data["combined"].get("operationalMessagesInfo", {}).get("distance", 0))
             )
         except AttributeError as e:
-            raise DataInvalidError("No base station found for distance") from e
+            raise DataInvalidError("No reference station found for distance") from e
 
     @property
     def position(self) -> Position:
         map_info = self._data["combined"].get("mapInfo", {})
         return Position(
-            latitude=(
-                float(map_info.get("latitude"))
-                if default(map_info.get("latitude")) is not None
-                else None
-            ),
-            longitude=(
-                float(map_info.get("longitude"))
-                if default(map_info.get("longitude")) is not None
-                else None
-            ),
+            latitude=(float(map_info.get("latitude")) if default(map_info.get("latitude")) is not None else None),
+            longitude=(float(map_info.get("longitude")) if default(map_info.get("longitude")) is not None else None),
         )
 
     @property
-    def delay(self) -> float:
-        return float(
-            self._data["combined"]
-            .get("operationalMessagesInfo", {})
-            .get("delay", 0)
-        )
+    def delay(self) -> timedelta:
+        return timedelta(seconds=float(self._data["combined"].get("operationalMessagesInfo", {}).get("delay", 0)))
