@@ -4,7 +4,7 @@ import datetime
 
 from ...._types import ID
 from ....exceptions import DataInvalidError
-from ....conversions import kmh_to_ms
+from ....units import seconds, meters
 from ....data import (
     default,
     ScheduledEvent,
@@ -145,13 +145,11 @@ class RailnetRegio(Train):
 
     @property
     def speed(self) -> float:
-        return kmh_to_ms(
-            float(
-                self._data["combined"]
-                .get("operationalMessagesInfo", {})
-                .get("speed", 0)
-            )
-        )
+        return meters(kilometers=seconds(hours=float(
+            self._data["combined"]
+            .get("operationalMessagesInfo", {})
+            .get("speed", 0)
+        )))
 
     @property
     def distance(self) -> float:
