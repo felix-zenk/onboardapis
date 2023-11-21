@@ -6,6 +6,8 @@
 [![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
 [![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
+> **Warning**: Version `2.0.0` introduces breaking changes!
+
 ## Description
 
 onboardapis allows you to interact with different on-board APIs.
