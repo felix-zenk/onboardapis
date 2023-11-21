@@ -18,7 +18,7 @@ from geopy.point import Point
 from geopy.distance import geodesic
 from restfly import APISession
 
-from .conversions import coordinates_decimal_to_dms
+from .units import coordinates_decimal_to_dms
 from .exceptions import APIConnectionError
 from . import __version__
 
