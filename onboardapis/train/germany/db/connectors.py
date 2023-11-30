@@ -50,7 +50,7 @@ class ICEPortalConnector(RESTDataConnector):
         :return: A generator yielding a list of connections for the station
         :rtype: Generator[list[ConnectingTrain]]
         """
-        cached = self[f"connections_{station_id}"]  # TODO refresh cached connections with newer data if available
+        cached = self._data.get(f"connections_{station_id}")  # TODO refresh cached connections with newer data if available
         if cached is not None:
             yield from cached
             return
