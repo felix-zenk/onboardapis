@@ -52,14 +52,14 @@ When using a vehicle as a context manager the ``init``-method will automatically
 
 ```python
 from onboardapis.train.germany.db import ICEPortal
-from onboardapis.units import kilometers, hours
+from onboardapis.units import kilometers, kmh
 
 train = ICEPortal()
 train.init()  # Explicit call to init method to initialize API connection
 
 print(
     "Travelling at", train.speed, "m/s",
-    f"({kilometers(meters=hours(seconds=train.speed)):.2f} km/h)",
+    f"({kmh(ms=train.speed):.2f} km/h)",
     "with a delay of", train.delay, "seconds"
 )
 
@@ -77,6 +77,11 @@ with ICEPortal() as train:  # init automatically called
 
 And there you go!
 You can read more information about available attributes in the [trains documentation](https://onboardapis.readthedocs.io/en/latest/source/onboardapis.trains.html).
+
+> As you may have noticed by now, the package always returns datetime or timedelta objects for time based values
+> and other values like distances, velocity, etc. in SI units,
+> so you have to convert to other units if you want to use values different from the SI units.
+> For convenience the ``onboardapis.units`` module has functions to convert between units.
 
 ---
 
