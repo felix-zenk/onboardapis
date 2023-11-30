@@ -22,6 +22,8 @@ __all__ = [
     'hours',
     'coordinates_decimal_to_dms',
     'coordinates_dms_to_decimal',
+    'kmh',
+    'ms',
 ]
 
 
@@ -93,4 +95,20 @@ def hours(minutes: float = 0, seconds: float = 0) -> float:
         ret += minutes / 60
     if seconds:
         ret += seconds / 3600
+    return ret
+
+
+def kmh(ms: float = None) -> float:
+    """Convert to kilometers per hour"""
+    ret = 0
+    if ms:
+        ret += kilometers(meters=ms) / hours(seconds=1)
+    return ret
+
+
+def ms(kmh: float = None) -> float:
+    """Convert to meters per second"""
+    ret = 0
+    if kmh:
+        ret += meters(kilometers=kmh) / seconds(hours=1)
     return ret
