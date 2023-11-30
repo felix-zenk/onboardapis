@@ -220,8 +220,8 @@ class PollingDataConnector(DataConnector, threading.Thread):
         """
         # thread join checks per second
         tps = 20
-
         counter = 0
+        self._running = True
         while self._running:
             # If the counter is not 0, just wait and check for a thread join
             if counter != 0:
@@ -270,7 +270,8 @@ class PollingDataConnector(DataConnector, threading.Thread):
 
 class RESTDataConnector(APISession, PollingDataConnector, metaclass=ABCMeta):
     def __init__(self, **kwargs):
-        kwargs['_url'] = kwargs.pop('_url', self.API_URL)
+        kwargs['url'] = kwargs.pop('url', self.API_URL)
+        print('init APISession:', kwargs)  # TODO Fix all init on import
         APISession.__init__(self, **kwargs)
         PollingDataConnector.__init__(self)
 
