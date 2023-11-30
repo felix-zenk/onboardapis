@@ -47,6 +47,8 @@ class Vehicle(API, metaclass=ABCMeta):
         """
         if isinstance(self._data, PollingDataConnector):
             self._data.start()
+            while not self._data.connected:
+                pass
             return
 
         raise NotImplementedError
