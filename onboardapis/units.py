@@ -27,7 +27,9 @@ __all__ = [
 ]
 
 
-def coordinates_decimal_to_dms(coordinates: tuple[float, float]) -> tuple[tuple[int, int, float], tuple[int, int, float]]:
+def coordinates_decimal_to_dms(
+        coordinates: tuple[float, float]
+) -> tuple[tuple[int, int, float], tuple[int, int, float]]:
     """
     Convert the tuple ``coordinates`` of coordinates to degrees, minutes, seconds
 
@@ -50,7 +52,9 @@ def coordinates_decimal_to_dms(coordinates: tuple[float, float]) -> tuple[tuple[
     )
 
 
-def coordinates_dms_to_decimal(coordinates: tuple[tuple[int, int, float], tuple[int, int, float]]) -> tuple[float, float]:
+def coordinates_dms_to_decimal(
+        coordinates: tuple[tuple[int, int, float], tuple[int, int, float]]
+) -> tuple[float, float]:
     """
     Convert the tuple ``coordinates`` of degrees, minutes, seconds to decimal degrees
 
@@ -68,7 +72,7 @@ def coordinates_dms_to_decimal(coordinates: tuple[tuple[int, int, float], tuple[
 # Convert between different units
 
 
-def seconds(hours: float = 0, minutes: float = 0) -> float:
+def seconds(hours: float = 0, minutes: float = 0) -> float:  # noqa: F402
     """Convert to seconds"""
     ret = 0
     if hours:
@@ -78,7 +82,7 @@ def seconds(hours: float = 0, minutes: float = 0) -> float:
     return ret
 
 
-def minutes(hours: float = 0, seconds: float = 0) -> float:
+def minutes(hours: float = 0, seconds: float = 0) -> float:  # noqa: F402
     """Convert to minutes"""
     ret = 0
     if hours:
@@ -88,7 +92,7 @@ def minutes(hours: float = 0, seconds: float = 0) -> float:
     return ret
 
 
-def hours(minutes: float = 0, seconds: float = 0) -> float:
+def hours(minutes: float = 0, seconds: float = 0) -> float:  # noqa: F402
     """Convert to hours"""
     ret = 0
     if minutes:
@@ -98,7 +102,7 @@ def hours(minutes: float = 0, seconds: float = 0) -> float:
     return ret
 
 
-def kmh(ms: float = None) -> float:
+def kmh(ms: float = None) -> float:  # noqa: F402
     """Convert to kilometers per hour"""
     ret = 0
     if ms:
@@ -106,7 +110,7 @@ def kmh(ms: float = None) -> float:
     return ret
 
 
-def ms(kmh: float = None) -> float:
+def ms(kmh: float = None) -> float:  # noqa: F402
     """Convert to meters per second"""
     ret = 0
     if kmh:

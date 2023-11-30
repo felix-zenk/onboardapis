@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Generator
 
-from requests import HTTPError
-
 from ...._types import ID
 from ... import ConnectingTrain
 from ....data import (

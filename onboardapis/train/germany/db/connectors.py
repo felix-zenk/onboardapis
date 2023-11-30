@@ -64,16 +64,14 @@ class ICEPortalConnector(RESTDataConnector):
                     departure=ScheduledEvent(
                         scheduled=(
                             datetime.fromtimestamp(int(default(
-                                connection.get("timetable", {}).get("scheduledDepartureTime"),
-                                __default=0,
+                                connection.get("timetable", {}).get("scheduledDepartureTime"), 0,
                             )) / 1000)
                             if default(connection.get("timetable", {}).get("scheduledDepartureTime")) is not None
                             else None
                         ),
                         actual=(
                             datetime.fromtimestamp(int(default(
-                                connection.get("timetable", {}).get("actualDepartureTime"),
-                                __default=0,
+                                connection.get("timetable", {}).get("actualDepartureTime"), 0
                             )) / 1000)
                             if default(connection.get("timetable", {}).get("actualDepartureTime")) is not None
                             else None
