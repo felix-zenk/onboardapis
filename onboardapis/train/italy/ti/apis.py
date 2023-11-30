@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from ...._types import ID
-from ....units import meters, seconds
+from ....units import ms
 from ... import Train, IncompleteTrainMixin, TrainStation
 from .connectors import PortaleRegionaleConnector
 
@@ -11,12 +11,13 @@ class PortaleRegionale(IncompleteTrainMixin, Train):
     Wrapper for interacting with the Trenitalia PortaleRegionale API
     """
 
-    _data = PortaleRegionaleConnector()
+    _data: PortaleRegionaleConnector
 
     _stations: dict[ID, TrainStation]
     """A dict that contains the known stations (origin, destination and passed stations)"""
 
     def __init__(self):
+        self._data = PortaleRegionaleConnector()
         IncompleteTrainMixin.__init__(self)
         Train.__init__(self)
         self._stations = dict()
@@ -35,7 +36,7 @@ class PortaleRegionale(IncompleteTrainMixin, Train):
     @property
     def speed(self) -> float:
         if self._data['infovaggio'].get('isGpsValid', 'false') == 'true':
-            return meters(kilometers=seconds(hours=(float(self._data['infovaggio']['infos']['speed']))))
+            return ms(kmh=(float(self._data['infovaggio']['infos']['speed'])))
         return 0.
 
     @property

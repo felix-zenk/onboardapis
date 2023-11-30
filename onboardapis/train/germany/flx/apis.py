@@ -1,3 +1,4 @@
+from ....units import ms
 from ....data import Position
 from ... import Train, IncompleteTrainMixin
 from .connectors import FlixTainmentConnector
@@ -9,7 +10,11 @@ class FlixTainment(IncompleteTrainMixin, Train):
     (few methods are available, because the API is very sparse)
     """
 
-    _data = FlixTainmentConnector()
+    _data: FlixTainmentConnector
+
+    def __init__(self):
+        self._data = FlixTainmentConnector()
+        super().__init__()
 
     @property
     def position(self) -> Position:
@@ -20,6 +25,6 @@ class FlixTainment(IncompleteTrainMixin, Train):
 
     @property
     def speed(self) -> float:
-        return float(self._data["position"].get("speed", 0.0))
+        return ms(kmh=float(self._data["position"].get("speed", 0.0)))
 
     # No more information available

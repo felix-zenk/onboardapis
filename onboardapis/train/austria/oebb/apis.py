@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from ...._types import ID
 from ....exceptions import DataInvalidError
-from ....units import seconds, meters
+from ....units import ms
 from ....data import (
     default,
     ScheduledEvent,
@@ -19,7 +19,11 @@ class RailnetRegio(Train):
     Wrapper for interacting with the ÖBB RailnetRegio API
     """
 
-    _data = RailnetConnector()
+    _data: RailnetConnector()
+
+    def __init__(self):
+        self._data = RailnetConnector()
+        super().__init__()
 
     def now(self) -> datetime:
         return datetime.fromtimestamp(int(default(
@@ -131,9 +135,9 @@ class RailnetRegio(Train):
 
     @property
     def speed(self) -> float:
-        return meters(kilometers=seconds(hours=float(
+        return ms(kmh=float(
             self._data["combined"].get("operationalMessagesInfo", {}).get("speed", 0)
-        )))
+        ))
 
     @property
     def distance(self) -> float:

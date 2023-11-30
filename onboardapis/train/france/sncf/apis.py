@@ -10,7 +10,11 @@ from .connectors import InouiConnector
 
 
 class PortalINOUI(Train):
-    _data = InouiConnector()
+    _data: InouiConnector
+
+    def __init__(self):
+        self._data = InouiConnector()
+        super().__init__()
 
     @property
     def id(self) -> str:

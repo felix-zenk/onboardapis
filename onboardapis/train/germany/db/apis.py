@@ -9,7 +9,7 @@ from typing import Literal
 from datetime import datetime, timedelta
 
 from ....exceptions import DataInvalidError
-from ....units import meters, seconds
+from ....units import ms
 from ...._types import ID
 from ....data import (
     default,
@@ -31,9 +31,11 @@ class ICEPortal(Train):
     Wrapper for interacting with the DB ICE Portal API
     """
 
-    _data = ICEPortalConnector()
+    _data: ICEPortalConnector
 
-    __slots__ = tuple()
+    def __init__(self):
+        self._data = ICEPortalConnector()
+        super().__init__()
 
     def now(self) -> datetime:
         return datetime.fromtimestamp(int(default(
@@ -114,7 +116,7 @@ class ICEPortal(Train):
 
     @property
     def speed(self) -> float:
-        return meters(kilometers=seconds(hours=self._data["status"].get("speed", 0)))
+        return ms(kmh=self._data["status"].get("speed", 0))
 
     @property
     def distance(self) -> float:
@@ -242,7 +244,11 @@ class ZugPortal(IncompleteTrainMixin, Train):
     Wrapper for interacting with the DB Zug Portal API
     """
 
-    _data = ZugPortalConnector()
+    _data: ZugPortalConnector
+
+    def __init__(self):
+        self._data = ZugPortalConnector()
+        super().__init__()
 
     @property
     def id(self) -> ID:
