@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from types import MethodType
-from typing import Any, Optional, TypeVar, Generic, Collection
+from typing import Any, TypeVar, Generic
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -23,32 +23,21 @@ from .exceptions import APIConnectionError
 from . import __version__
 
 
-def default(
-    arg: Optional[Any],
-    __default: Optional[Any] = None,
-    *,
-    empty_collection: bool = False,
-) -> Optional[Any]:
+def default(arg: Any | None, __default: Any | None = None, *, bool: bool = True) -> Any | None:  # noqa
     """
     Return ``data`` if there is actually some content in data, else return ``default``.
 
     Useful when data such as "" or b'' should also be treated as empty.
 
     :param Any arg: The data to test
-    :param Any __default: The default value to return if no data is present
-    :param bool empty_collection: Treat an empty sequence as a missing value and return the default
+    :param Any __default: The default value to return if no data is present (None)
+    :param bool bool: Return the default if `arg` evaluates to False
     :return: The data if present, else the default
     :rtype: Optional[Any]
     """
-    if arg is None:
-        return __default
-    if isinstance(arg, str) and arg == "":
-        return __default
-    if isinstance(arg, bytes) and arg == b"":
-        return __default
-    if empty_collection and isinstance(arg, Collection) and len(arg) == 0:
-        return default
-    return arg
+    if bool and arg:
+        return arg
+    return __default if arg is None else arg
 
 
 T = TypeVar("T")
