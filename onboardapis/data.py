@@ -271,7 +271,6 @@ class PollingDataConnector(DataConnector, threading.Thread):
 class RESTDataConnector(APISession, PollingDataConnector, metaclass=ABCMeta):
     def __init__(self, **kwargs):
         kwargs['url'] = kwargs.pop('url', self.API_URL)
-        print('init APISession:', kwargs)  # TODO Fix all init on import
         APISession.__init__(self, **kwargs)
         PollingDataConnector.__init__(self)
 
