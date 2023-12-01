@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from types import MethodType
-from typing import Any, TypeVar, Generic
+from typing import Any, TypeVar, Generic, Callable, Tuple, Dict
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -35,8 +35,8 @@ def default(arg: Any | None, __default: Any | None = None, *, bool: bool = True)
     :return: The data if present, else the default
     :rtype: Optional[Any]
     """
-    if bool and arg:
-        return arg
+    if bool:
+        return arg if arg else __default
     return __default if arg is None else arg
 
 
@@ -293,7 +293,7 @@ class DummyDataConnector(DataConnector):
         return 'Dummy value'
 
 
-def store(name: str | MethodType = None):
+def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], Any]] | Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], Any]:
     """
     Decorator / decorator factory to apply to a :class:`DataConnector` method
     to immediately store the return value of the decorated method
