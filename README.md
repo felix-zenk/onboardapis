@@ -34,24 +34,24 @@ $ python -m pip install onboardapis
 To begin with development you will need to know a few things first:
 
 * What vehicle type you want to use
-* Who operates the vehicle
-* What country is the operator from
+* Who operates the vehicle ([VKM register code](https://www.era.europa.eu/domains/registers/vkm_en) for trains from europe)
+* What country is the operator from ([ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes))
 
 With this information you can get the needed module from the package 
 ``onboardapis.<vehicle-type>.<country>.<operator>`` 
-and import the API wrapper class from it.
+and import the API class from it.
 
 Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany.
 
 ```python
-from onboardapis.train.germany.db import ICEPortal
+from onboardapis.train.de.db import ICEPortal
 ```
 
 Every vehicle has an ``init``-method that needs to be called to initialize the connection to the API.
 When using a vehicle as a context manager the ``init``-method will automatically be called.
 
 ```python
-from onboardapis.train.germany.db import ICEPortal
+from onboardapis.train.de.db import ICEPortal
 from onboardapis.units import kilometers, kmh
 
 train = ICEPortal()
@@ -92,21 +92,21 @@ You can read more information about available attributes in the [trains document
 
 ## Supported APIs
 
-| API          | Type  | Country | Operator                            |
-|--------------|-------|---------|-------------------------------------|
-| RailnetRegio | train | austria | oebb (Österreichische Bundesbahnen) |
-| ICEPortal    | train | germany | db (Deutsche Bahn)                  |
-| FlixTainment | train | germany | flx (FlixTrain)                     |
+| API          | Type  | Country      | Operator                           |
+|--------------|-------|--------------|------------------------------------|
+| RailnetRegio | train | at (austria) | obb (Österreichische Bundesbahnen) |
+| ICEPortal    | train | de (germany) | db (Deutsche Bahn)                 |
+| FlixTainment | train | de (germany) | flix (FlixTrain)                   |
 
 ## APIs in testing phase
 
-| API              | Type  | Country | Operator                                             |
-|------------------|-------|---------|------------------------------------------------------|
-| PortalINOUI      | train | france  | sncf (Société nationale des chemins de fer français) |
-| ZugPortal        | train | germany | db (Deutsche Bahn)                                   |
-| PortaleRegionale | train | italy   | ti (Trenitalia)                                      |
+| API              | Type  | Country      | Operator                                             |
+|------------------|-------|--------------|------------------------------------------------------|
+| PortalINOUI      | train | fr (france)  | sncf (Société nationale des chemins de fer français) |
+| ZugPortal        | train | de (germany) | db (Deutsche Bahn)                                   |
+| PortaleRegionale | train | it (italy)   | ti (Trenitalia)                                      |
 
 ## APIs in development
 
-| API              | Type  | Country        | Operator                             |
-|------------------|-------|----------------|--------------------------------------|
+| API              | Type  | Country             | Operator                             |
+|------------------|-------|---------------------|--------------------------------------|
