@@ -17,18 +17,18 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-from setup import __version__, __project_name__, __author__
+import onboardapis
 
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = __project_name__
-author = __author__
+project = onboardapis.__package__
+author = 'Felix Zenk'
 copyright = f"{datetime.datetime.today().year}, {author}"
 
-version = __version__
-release = __version__
+version = onboardapis.__version__
+release = onboardapis.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
