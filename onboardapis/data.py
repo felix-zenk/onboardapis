@@ -293,15 +293,18 @@ class DummyDataConnector(DataConnector):
         return 'Dummy value'
 
 
-def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], Any]] | Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], Any]:
+T_return = TypeVar('T_return')
+
+
+def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]] | Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
     """
     Decorator / decorator factory to apply to a :class:`DataConnector` method
     to immediately store the return value of the decorated method
     as the key ``name`` or the method name if left out.
     """
-    def decorator(method: MethodType):
+    def decorator(method: MethodType) -> Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
         @wraps(method)
-        def wrapper(self: DataConnector, *args, **kwargs):
+        def wrapper(self: DataConnector, *args, **kwargs) -> T_return:
             if isinstance(self, DataConnector):
                 self[name or method.__name__] = method(self, *args, **kwargs)
                 return self[name or method.__name__]
