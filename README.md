@@ -34,12 +34,13 @@ $ python -m pip install onboardapis
 To begin with development you will need to know a few things first:
 
 * What vehicle type you want to use
-* Who operates the vehicle ([VKM register code](https://www.era.europa.eu/domains/registers/vkm_en) for trains from europe)
-* What country is the operator from ([ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes))
+* Who operates the vehicle
+* What country is the operator from
 
 With this information you can get the needed module from the package 
-``onboardapis.<vehicle-type>.<country>.<operator>`` 
+``onboardapis.<vehicle-type>.<country-code>.<operator-code>`` 
 and import the API class from it.
+Read more on finding the API you are looking for in [Finding your API](#find-your-api)
 
 Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany.
 
@@ -92,21 +93,47 @@ You can read more information about available attributes in the [trains document
 
 ## Supported APIs
 
-| API          | Type  | Country      | Operator                           |
-|--------------|-------|--------------|------------------------------------|
-| RailnetRegio | train | at (austria) | obb (Österreichische Bundesbahnen) |
-| ICEPortal    | train | de (germany) | db (Deutsche Bahn)                 |
-| FlixTainment | train | de (germany) | flix (FlixTrain)                   |
+| API           | [API scope](#api-scope) | Type  | Country      | Operator                                  |
+|---------------|-------------------------|-------|--------------|-------------------------------------------|
+| RailnetRegio  | full                    | train | at (austria) | obb (Österreichische Bundesbahnen)        |
+| ICEPortal     | full                    | train | de (germany) | db (Deutsche Bahn)                        |
+| FlixTainment  | geo                     | train | de (germany) | flix (FlixTrain)                          |
+| CaptivePortal | basic                   | train | de (germany) | me (metronom Eisenbahngesellschaft) / bth |
 
 ## APIs in testing phase
 
-| API              | Type  | Country      | Operator                                             |
-|------------------|-------|--------------|------------------------------------------------------|
-| PortalINOUI      | train | fr (france)  | sncf (Société nationale des chemins de fer français) |
-| ZugPortal        | train | de (germany) | db (Deutsche Bahn)                                   |
-| PortaleRegionale | train | it (italy)   | ti (Trenitalia)                                      |
+| API              | [API scope](#api-scope) | Type  | Country      | Operator                                             |
+|------------------|-------------------------|-------|--------------|------------------------------------------------------|
+| PortalINOUI      | full                    | train | fr (france)  | sncf (Société nationale des chemins de fer français) |
+| ZugPortal        | full                    | train | de (germany) | db (Deutsche Bahn)                                   |
+| PortaleRegionale | journey-simple          | train | it (italy)   | ti (Trenitalia)                                      |
 
 ## APIs in development
 
-| API              | Type  | Country             | Operator                             |
-|------------------|-------|---------------------|--------------------------------------|
+| API           | [API scope](#api-scope) | Type  | Country             | Operator                                                                 |
+|---------------|-------------------------|-------|---------------------|--------------------------------------------------------------------------|
+| Transdev      | journey-simple          | train | de (germany)        | tdh (Transdev Hannover GmbH)                                             |
+
+
+## Find your API
+
+##### 1. Vehicle type: ``train``, ``plane``, ``bus``, ``ship``, ``other``.
+##### 2. [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes)
+##### 3. Operator code
+
+| Vehicle type | Region | Register                                                    |
+|--------------|--------|-------------------------------------------------------------|
+| plane        | global | [ICAO](https://en.wikipedia.org/wiki/List_of_airline_codes) |
+| train        | europe | [VKM](https://www.era.europa.eu/domains/registers/vkm_en)   |
+
+
+# API scope
+
+The API scope defines what information can be accessed through the API and is a general indicator of the API's quality.
+The currently possible API scopes are:
+- ``basic``: Only basic information is available such as connection status to the API.
+- ``vehicle``: The API supplies information about the vehicle such as the train ID, line number, etc.
+- ``geo``: The API supplies information about the current location, speed, etc. of the vehicle.
+- ``journey-simple``: The API supplies simple journey information including the current station and the destination station.
+- ``journey``: The API supplies detailed journey information including the all station and possibly connecting trains.
+- ``full``: All of the above.
