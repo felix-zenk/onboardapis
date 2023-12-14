@@ -1,4 +1,0 @@
-geopy>=2.3.0
-restfly>=1.4.7
-requests>=2.31.0
-beautifulsoup4>=4.12.2
