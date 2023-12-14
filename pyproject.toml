@@ -35,9 +35,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://felix-zenk.github.io/projects/onboardapis"
+Homepage = "https://felix-zenk.github.io/onboardapis"
 Source = "https://github.com/felix-zenk/onboardapis"
-Documentation = "https://felix-zenk.github.io/projects/onboardapis/docs"
+Documentation = "https://felix-zenk.github.io/onboardapis/docs/"
 Issues = "https://github.com/felix-zenk/onboardapis/issues"
 
 [tool.setuptools.dynamic]
