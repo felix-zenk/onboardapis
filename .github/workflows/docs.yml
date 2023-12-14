@@ -24,6 +24,7 @@ jobs:
           pip install .
           pip install pdoc3
           pdoc -o docs/ --html onboardapis
+          mv docs/onboardapis docs/docs
       - name: Fix permissions
         run: |
           chmod -c -R +rX "docs/" | while read line; do
