@@ -1,9 +1,9 @@
 # onboardapis
 
-[![PyPI-Versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
+[![Python versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
 [![PyPI version](https://badge.fury.io/py/onboardapis.svg)](https://pypi.org/project/onboardapis)
-[![build](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/publish-to-pypi.yml?branch=main)](https://github.com/felix-zenk/onboardapis)
-[![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
+![Build status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/build.yml?branch=main)
+[![Documentation status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/docs.yml?label=docs)](https://felix-zenk.github.io/onboardapis/docs/)
 [![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
 > **Warning**: Version `2.0.0` introduces breaking changes!
@@ -21,11 +21,41 @@ and access information about your journey, the vehicle you are travelling in and
 
 ## Installation
 
-Install the latest version of onboardapis from [PyPI](https://pypi.org/project/onboardapis) using [pip](https://pip.pypa.io/en/stable/installation/):
+Install the latest stable version of onboardapis
+from [PyPI](https://pypi.org/project/onboardapis)
+using [pip](https://pip.pypa.io/en/stable/installation/):
 
 ```shell
 $ python -m pip install onboardapis
 ```
+
+![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)
+
+---
+
+Install the latest development version of onboardapis
+from [GitHub](https://github.com/felix-zenk/onboardapis)
+using [pip](https://pip.pypa.io/en/stable/installation/):
+
+```shell
+$ python -m pip install git+https://github.com/felix-zenk/onboardapis.git
+```
+
+![Version](https://img.shields.io/badge/v2.0.0-%20?color=1081c2)
+
+---
+
+Clone the repository
+from [GitHub](https://github.com/felix-zenk/onboardapis)
+and install the package in development mode:
+
+```shell
+$ git clone https://github.com/felix-zenk/onboardapis.git
+$ cd onboardapis
+$ python -m pip install -e .
+```
+
+![Version](https://img.shields.io/badge/v2.0.0-%20?color=1081c2)
 
 ---
 
@@ -77,7 +107,7 @@ with ICEPortal() as train:  # init automatically called
 ```
 
 And there you go!
-You can read more information about available attributes in the [trains documentation](https://onboardapis.readthedocs.io/en/latest/source/onboardapis.trains.html).
+You can read more information about available attributes in the [trains documentation](https://felix-zenk.github.io/onboardapis/docs/train/index.html#onboardapis.train.Train).
 
 > As you may have noticed by now, the package always returns datetime or timedelta objects for time based values
 > and other values like distances, velocity, etc. in SI units,
@@ -87,9 +117,10 @@ You can read more information about available attributes in the [trains document
 ---
 
 ## Documentation
-[![Documentation](https://img.shields.io/readthedocs/onboardapis)](https://onboardapis.readthedocs.io/en/latest/)
+[![Documentation status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/docs.yml?label=docs)](https://felix-zenk.github.io/onboardapis/docs/)
 
-#### [ReadTheDocs](https://onboardapis.readthedocs.io/en/latest/)
+#### Read more on [GitHub-Pages](https://felix-zenk.github.io/onboardapis/docs/)
+
 
 ## Supported APIs
 
