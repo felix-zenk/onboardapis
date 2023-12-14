@@ -76,7 +76,7 @@ class PortalINOUI(Train):
         return sum(
             float(stop.get('progress', {}).get('traveledDistance', 0))
             for stop
-            in self._data['details'].get('stops', []),
+            in self._data['details'].get('stops', [])
         )
 
     @property
