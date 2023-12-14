@@ -19,9 +19,16 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - run: pip install .
-      - run: pip install pdoc3
-      - run: pdoc -o docs/ --html onboardapis
+      - name: Build docs
+        run: |
+          pip install .
+          pip install pdoc3
+          pdoc -o docs/ --html onboardapis
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "docs/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
       - uses: actions/upload-pages-artifact@v2
         with:
           path: docs/
