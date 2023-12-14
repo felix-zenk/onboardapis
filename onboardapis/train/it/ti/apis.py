@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 from ...._types import ID
@@ -40,7 +42,7 @@ class PortaleRegionale(IncompleteTrainMixin, Train):
         return 0.
 
     @property
-    def stations_dict(self) -> dict[ID, TrainStation]:
+    def stations_dict(self) -> Dict[ID, TrainStation]:
         first = self._data['infovaggio']['infos']['stazionePartenza']
         current = self._data['infovaggio']['nextStation']
         last = self._data['infovaggio']['infos']['stazioneArrivo']
