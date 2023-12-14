@@ -3,14 +3,16 @@ Package metadata and base classes.
 """
 
 from __future__ import annotations
+from pkgutil import extend_path
 
+__path__ = extend_path(__path__, __name__)
 __version_info__ = (2, 0, 0)
 __version__ = ".".join(map(str, __version_info__))
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterable, NoReturn
+from typing import Iterable
 
 from ._types import ID
 from .data import DataConnector, PollingDataConnector, ScheduledEvent, Position
@@ -116,7 +118,7 @@ class IncompleteVehicleMixin(Vehicle, metaclass=ABCMeta):
     """
 
     @property
-    def id(self) -> NoReturn:
+    def id(self) -> ID:
         raise NotImplementedInAPIError
 
 
