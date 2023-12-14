@@ -90,14 +90,15 @@ train = ICEPortal()
 train.init()  # Explicit call to init method to initialize API connection
 
 print(
-    "Travelling at", train.speed, "m/s",
+    f"Travelling at {train.speed} m/s",
     f"({kmh(ms=train.speed):.2f} km/h)",
-    "with a delay of", train.delay, "seconds"
+    f"with a delay of {train.delay.total_seconds():.0f} seconds"
 )
 
 print(
-    "Next stop:", train.current_station.name,
-    "at", train.current_station.arrival.actual.strftime("%H:%M")
+    f"Next stop: {train.current_station.name}",
+    f"at {train.current_station.arrival.actual.strftime('%H:%M')}",
+    f"on platform {train.current_station.platform.actual}"
 )
 
 with ICEPortal() as train:  # init automatically called
@@ -113,7 +114,7 @@ You can read more information about available attributes in the [trains document
 > As you may have noticed by now, the package always returns datetime or timedelta objects for time based values
 > and other values like distances, velocity, etc. in SI units,
 > so you have to convert to other units if you want to use values different from the SI units.
-> For convenience the ``onboardapis.units`` module has functions to convert between units.
+> For convenience the ``onboardapis.units`` module provides functions to convert between units.
 
 ---
 
