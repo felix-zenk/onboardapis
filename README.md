@@ -30,6 +30,7 @@ $ python -m pip install onboardapis
 ```
 
 ![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)
+[![Documentation (v1.3.1)](https://img.shields.io/badge/Docs_v1.3.1-_?color=3581b6)](https://onboardapis.readthedocs.io/en/stable/)
 
 ---
 
