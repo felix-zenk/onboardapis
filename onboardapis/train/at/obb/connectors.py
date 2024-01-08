@@ -16,7 +16,7 @@ class RailnetConnector(RESTDataConnector):
 
     @store('combined')
     def combined(self) -> dict:
-        return self.get("/assets/modules/fis/combined.json", params={"_time": time.time()})
+        return self.get("/assets/modules/fis/combined.json", params={"_time": time.time()}).json()
 
     def refresh(self) -> None:
         self.train_info()
