@@ -128,7 +128,7 @@ You can read more information about available attributes in the [trains document
 
 | API           | [API scope](#api-scope) | Type  | Country      | Operator                                  |
 |---------------|-------------------------|-------|--------------|-------------------------------------------|
-| RailnetRegio  | full                    | train | at (austria) | obb (Österreichische Bundesbahnen)        |
+| RailnetRegio  | geo                     | train | at (austria) | obb (Österreichische Bundesbahnen)        |
 | ICEPortal     | full                    | train | de (germany) | db (Deutsche Bahn)                        |
 | FlixTainment  | geo                     | train | de (germany) | flix (FlixTrain)                          |
 | CaptivePortal | basic                   | train | de (germany) | me (metronom Eisenbahngesellschaft) / bth |
