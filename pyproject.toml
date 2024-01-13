@@ -17,6 +17,7 @@ dependencies = [
     "restfly >= 1.4.7",
     "requests >= 2.31.0",
     "beautifulsoup4 >= 4.12.2",
+    "typing-extensions>=4.9.0",
 ]
 
 classifiers = [
