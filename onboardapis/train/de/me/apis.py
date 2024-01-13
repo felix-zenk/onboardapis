@@ -1,16 +1,16 @@
 from ... import IncompleteTrainMixin, Train
 
-from .connectors import CaptivePortalConnector
+from .connectors import MetronomCaptivePortalConnector
 
 
-class CaptivePortal(IncompleteTrainMixin, Train):
+class MetronomCaptivePortal(IncompleteTrainMixin, Train):
     """
     Basically no information about the train.
     """
-    _data: CaptivePortalConnector
+    _data: MetronomCaptivePortalConnector
 
     def __init__(self) -> None:
-        self._data = CaptivePortalConnector()
+        self._data = MetronomCaptivePortalConnector()
 
     @property
     def logged_in(self) -> bool:

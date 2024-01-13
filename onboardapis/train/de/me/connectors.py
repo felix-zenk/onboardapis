@@ -10,7 +10,7 @@ CaptivePortalInfo = TypedDict('CaptivePortalInfo', {
 CaptivePortalInfo.__doc__ = "A dict containing information about the state of the captive portal"
 
 
-class CaptivePortalConnector(RESTDataConnector):
+class MetronomCaptivePortalConnector(RESTDataConnector):
     """
     Connector for the captive portal of the Metronom trains.
     """

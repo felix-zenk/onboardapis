@@ -1,8 +1,8 @@
 """
 Implementation for the german operator metronom Eisenbahngesellschaft mbH
 """
-from .apis import CaptivePortal
+from .apis import MetronomCaptivePortal
 
 __all__ = [
-    'CaptivePortal',
+    'MetronomCaptivePortal',
 ]
