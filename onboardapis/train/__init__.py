@@ -1,11 +1,18 @@
 """
-Abstract base classes for train
+Package for trains
+
+## Operator ID
+
+The operator ID for trains is different depending on the region.
+
+For Europe, the operator ID is the [VKM register code](https://www.era.europa.eu/domains/registers/vkm_en).
 """
 from __future__ import annotations
 from pkgutil import extend_path
+
 __path__ = extend_path(__path__, __name__)
 
-import datetime
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Iterable, NoReturn
 from abc import ABCMeta, abstractmethod
@@ -18,14 +25,18 @@ from .._types import ID
 
 
 __all__ = [
-    "TrainStation",
-    "Train",
-    "ConnectingTrain",
-    "IncompleteTrainMixin",
+    'TrainStation',
+    'Train',
+    'ConnectingTrain',
+    'IncompleteTrainMixin',
 ]
 
 
 class TrainStation(Station):
+    """
+    An `onboardapis.Station` with the additional information of a platform
+    """
+
     def __init__(
         self,
         station_id: ID,

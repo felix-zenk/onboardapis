@@ -1,7 +1,58 @@
 """
-Package metadata and base classes.
-"""
+# What is onboardapis?
 
+onboardapis is a Python library that provides a unified interface to the APIs of public transport providers.
+
+# How does it work?
+
+onboardapis provides a common interface for all public transport providers. This interface is defined by the
+`onboardapis.Vehicle` class. This class provides a common interface for all vehicles, regardless of the API they are
+implemented in. The `onboardapis.Vehicle` is subclassed by `onboardapis.train.Train`, `onboardapis.bus.Bus`,
+`onboardapis.plane.Plane` and `onboardapis.ship.Ship` which
+provide a common interface for all vehicles of that type. These classes are then subclassed by the actual API
+implementations. For example, the `onboardapis.train.de.db.ICEPortal` class provides a common interface
+for all trains of the Deutsche Bahn that provide access to the ICE Portal.
+
+# How do install it?
+
+To use onboardapis, you need to install it first. You can do this by running the following command:
+
+```bash
+$ python3 -m pip install onboardapis
+```
+
+or if you are on Windows and have the py launcher installed:
+
+```shell
+> py -m pip install onboardapis
+```
+
+After that, you can use onboardapis in your project by importing it:
+
+```python
+import onboardapis
+```
+
+Development versions can be installed directly from GitHub:
+
+```bash
+$ python3 -m pip install git+https://github.com/felix-zenk/onboardapis
+```
+
+# How do I get started?
+
+To get started, you need to follow the package structure of onboardapis.
+The structure is in the format of `onboardapis.<vehicle-type>.<country-code>.<operator-id>`.
+You will find the API implementations for that operator in this package.
+A single operator may have multiple APIs,
+for example the Deutsche Bahn has the `onboardapis.train.de.db.ICEPortal` and the `onboardapis.train.de.db.ZugPortal`.
+
+The vehicle type is one of **train**, **bus**, **plane** or **ship**.
+The country code is the
+[ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements)
+of the country the operator is based in.
+The operator ID is a unique identifier for the operator and depends on the vehicle type.
+"""
 from __future__ import annotations
 from pkgutil import extend_path
 
@@ -27,7 +78,7 @@ class API(object):
 
 class Vehicle(API, metaclass=ABCMeta):
     """
-    The base class for all vehicles.
+    Base class for all vehicles
     """
 
     _data: DataConnector
@@ -42,7 +93,7 @@ class Vehicle(API, metaclass=ABCMeta):
 
     def init(self) -> None:
         """
-        Initialize the :class:`DataConnector`.
+        Initialize the :class:`DataConnector` of this vehicle.
 
         :return: Nothing
         :rtype: None
@@ -57,7 +108,7 @@ class Vehicle(API, metaclass=ABCMeta):
 
     def shutdown(self) -> None:
         """
-        Method to call when exiting the context manager
+        This method will be called when exiting the context manager and can be overwritten by subclasses.
 
         :return: Nothing
         :rtype: None
@@ -82,7 +133,7 @@ class Vehicle(API, metaclass=ABCMeta):
         :return: The ID
         :rtype: str
         """
-        pass
+        raise NotImplementedInAPIError
 
 
 @dataclass
@@ -138,14 +189,14 @@ class Station(object):
     )
 
     def __init__(
-        self,
-        station_id: ID,
-        name: str,
-        arrival: ScheduledEvent[datetime] = None,
-        departure: ScheduledEvent[datetime] = None,
-        position: Position = None,
-        distance: float = None,
-        connections: Iterable[ConnectingVehicle] = None,
+            self,
+            station_id: ID,
+            name: str,
+            arrival: ScheduledEvent[datetime] = None,
+            departure: ScheduledEvent[datetime] = None,
+            position: Position = None,
+            distance: float = None,
+            connections: Iterable[ConnectingVehicle] = None,
     ):
         """
         Initialize a new :class:`Station`
@@ -253,7 +304,7 @@ class Station(object):
         return self._position
 
     def calculate_distance(
-        self, other: Station | Position | int | float
+            self, other: Station | Position | int | float
     ) -> float | None:
         """
         Calculate the distance in meters between this station and something else.

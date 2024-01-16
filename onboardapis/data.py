@@ -1,5 +1,8 @@
 """
-This module contains everything that has to do with data and data management
+Module for data generation and processing.
+
+This module contains classes and functions that are used to generate and process data fetched from the APIs.
+It also provides common data structures that are used throughout the library.
 """
 from __future__ import annotations
 

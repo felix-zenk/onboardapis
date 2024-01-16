@@ -1,3 +1,8 @@
+"""
+Module for defining protocols for type checking.
+
+The protocols defined here match the properties of the classes in `onboardapis.mixins`.
+"""
 from __future__ import annotations
 
 from typing import Protocol

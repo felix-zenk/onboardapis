@@ -1,3 +1,8 @@
+"""
+Mixins for vehicles.
+
+The mixins are used to indicate and add functionality to the vehicle classes.
+"""
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
