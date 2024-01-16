@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from types import MethodType
-from typing import Any, TypeVar, Generic, Callable, Tuple, Dict
+from typing import Any, TypeVar, Generic, Callable, Tuple, Dict, Optional
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -94,9 +94,9 @@ class Position(object):
     """The latitude in decimal degrees"""
     longitude: float
     """The longitude in decimal degrees"""
-    altitude: float = None
+    altitude: Optional[float] = None
     """The altitude in meters"""
-    heading: float = None
+    heading: Optional[float] = None
     """The compass heading in degrees"""
 
     def __str__(self) -> str:

@@ -26,4 +26,7 @@ class RailnetRegio(IncompleteTrainMixin, Train):
         return Position(
             latitude=self._data['gps']['JSON']['lat'],
             longitude=self._data['gps']['JSON']['lon'],
+            # these are only present in newer trains
+            altitude=self._data['gps']['JSON'].get('alt', None),
+            heading=self._data['gps']['JSON'].get('bearing', None),
         )
