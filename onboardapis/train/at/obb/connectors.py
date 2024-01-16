@@ -10,10 +10,11 @@ from ....data import (
 )
 
 Endpoints = TypedDict("Endpoints", {
-    'train_info': int,
-    'gps': dict,
-    'speed': float,
+    'api/train_info': int,
+    'api/gps': dict,
+    'api/speed': float,
 })
+"""A dict containing information about the endpoints of the Railnet API"""
 
 
 class RailnetRegioConnector(RESTDataConnector):

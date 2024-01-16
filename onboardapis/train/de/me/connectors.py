@@ -4,10 +4,10 @@ from bs4 import BeautifulSoup
 
 from ....data import RESTDataConnector, store
 
-CaptivePortalInfo = TypedDict('CaptivePortalInfo', {
+MetronomCaptivePortalInfo = TypedDict('MetronomCaptivePortalInfo', {
     'has_internet_access': bool,
 })
-CaptivePortalInfo.__doc__ = "A dict containing information about the state of the captive portal"
+"""A dict containing information about the state of the captive portal"""
 
 
 class MetronomCaptivePortalConnector(RESTDataConnector):
@@ -18,10 +18,10 @@ class MetronomCaptivePortalConnector(RESTDataConnector):
     API_URL = 'http://wifi.metronom.de'
 
     @store('captive_portal')
-    def captive_portal(self) -> CaptivePortalInfo:
+    def captive_portal(self) -> MetronomCaptivePortalInfo:
         soup = BeautifulSoup(self.get('de').text, 'html.parser')
         user_online = soup.find(class_='user-online', recursive=True)
-        return CaptivePortalInfo(
+        return MetronomCaptivePortalInfo(
             has_internet_access=user_online is not None,
         )
 
