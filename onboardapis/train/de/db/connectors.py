@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from enum import Enum
 from functools import lru_cache
+from http import HTTPStatus
 from typing import Generator, Iterable
 
+from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
 
@@ -14,8 +17,12 @@ from ....data import (
     ScheduledEvent,
     default,
     store,
+    SynchronousRESTDataConnector,
+    InternetAccessInterface, InternetMetricsInterface,
 )
 from ... import ConnectingTrain
+
+logger = logging.getLogger(__name__)
 
 
 class ICEPortalConnector(RESTDataConnector):
@@ -89,6 +96,66 @@ class ICEPortalConnector(RESTDataConnector):
         self[f"connections_{station_id}"] = connections
         yield from connections
         return
+
+
+class ICEInternetAccessInterface(SynchronousRESTDataConnector, InternetAccessInterface, InternetMetricsInterface):
+    API_URL = 'https://login.wifionice.de'
+
+    def enable(self):
+        """WIP: DOES NOT WORK YET!"""
+        soup = BeautifulSoup(self.get('de').text, 'html.parser')
+
+        # Check if the user is offline
+        user_offline = soup.find(id='accept', recursive=True)
+        if user_offline is None:
+            return
+
+        # User is offline
+        # csrf_token = soup.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
+        # No need to look for the CSRF token, as it is stored as the cookie `csrf`
+        response = self.post('de', json={
+            'CSRFToken': self._session.cookies['csrf'],
+            'login': True,
+        })
+        response.raise_for_status()
+
+        # Check if login was successful
+        if not (response.is_redirect and response.url.startswith(ICEPortalConnector.API_URL)):
+            raise ConnectionError('Login failed!')
+
+    def disable(self):
+        """WIP: DOES NOT WORK YET!"""
+        soup = BeautifulSoup(self.get('de').text, 'html.parser')
+
+        # Check if user is online
+        user_online = soup.find(class_='online-text', recursive=True)
+        if user_online is None:
+            return
+
+        # User is online
+        # csrf_token = user_online.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
+        # No need to look for the CSRF token, as it is stored as the cookie `csrf`
+        response = self.post('de', json={
+            'CSRFToken': self._session.cookies['csrf'],
+            'logout': True,
+        })
+        response.raise_for_status()
+
+        # Check if logout was successful
+        if BeautifulSoup(response.text, 'html.parser').find(id='accept', recursive=True) is None:
+            raise ConnectionError('Logout failed!')
+
+    @property
+    def is_enabled(self) -> bool:
+        return BeautifulSoup(
+            self.get('de').text, 'html.parser'
+        ).find(class_='online-text', recursive=True) is not None
+
+    def limit(self) -> float | None:
+        usage_info = self.get('usage_info')
+        if usage_info.status_code == HTTPStatus.NOT_IMPLEMENTED:
+            return None
+        return usage_info.json()['limit']  # TODO min api version = 14?
 
 
 class ModeOfTransport(Enum):
