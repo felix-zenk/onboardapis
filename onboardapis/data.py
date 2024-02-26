@@ -6,6 +6,7 @@ It also provides common data structures that are used throughout the library.
 """
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 import threading
 import time
@@ -15,7 +16,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from types import MethodType
-from typing import Any, TypeVar, Generic, Callable, Tuple, Dict, Optional
+from typing import Any, TypeVar, Generic, Callable, Optional
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -23,7 +24,14 @@ from restfly import APISession
 
 from .units import coordinates_decimal_to_dms
 from .exceptions import APIConnectionError
-from . import __version__
+
+
+def _get_package_version() -> str:
+    """Return the version of the onboardapis package."""
+    try:
+        return importlib.metadata.version('onboardapis')
+    except importlib.metadata.PackageNotFoundError:
+        return 'unknown'
 
 
 def default(arg: Any | None, __default: Any | None = None, *, bool: bool = True) -> Any | None:  # noqa
@@ -181,7 +189,7 @@ class DataConnector(metaclass=ABCMeta):
         self._data[key] = value
 
 
-class PollingDataConnector(DataConnector, threading.Thread):
+class ThreadedDataConnector(DataConnector, threading.Thread):
     _connected: bool
     _running: bool
 
@@ -260,17 +268,30 @@ class PollingDataConnector(DataConnector, threading.Thread):
         pass
 
 
-class RESTDataConnector(APISession, PollingDataConnector, metaclass=ABCMeta):
+class RESTDataConnector(APISession, ThreadedDataConnector, metaclass=ABCMeta):
+    """A RESTful :class:`DataConnector` that uses the :class:`APISession` to fetch data."""
+
     def __init__(self, **kwargs):
         kwargs['url'] = kwargs.pop('url', self.API_URL)
         APISession.__init__(self, **kwargs)
-        PollingDataConnector.__init__(self)
+        ThreadedDataConnector.__init__(self)
 
     def _build_session(self, **kwargs) -> None:
         APISession._build_session(self, **kwargs)
-        self._session.headers.update(
-            {"user-agent": f"python-onboardapis/{__version__}"}
-        )
+        self._session.headers.update({"User-Agent": f"Python/onboardapis ({_get_package_version()})"})
+
+
+class SynchronousRESTDataConnector(APISession, DataConnector):
+    """A blocking version of the RESTDataConnector that does not use a separate thread to refresh the data."""
+
+    def __init__(self, **kwargs):
+        kwargs['url'] = kwargs.pop('url', self.API_URL)
+        APISession.__init__(self, **kwargs)
+        DataConnector.__init__(self)
+
+    def _build_session(self, **kwargs) -> None:
+        APISession._build_session(self, **kwargs)
+        self._session.headers.update({"User-Agent": f"Python/onboardapis ({_get_package_version()})"})
 
 
 class GraphQLDataConnector(DataConnector, metaclass=ABCMeta):
@@ -305,7 +326,7 @@ def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[Dat
     to immediately store the return value of the decorated method
     as the key ``name`` or the method name if left out.
     """
-    def decorator(method: MethodType) -> Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
+    def decorator(method: Callable[[object, tuple, dict], T_return]) -> Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
         @wraps(method)
         def wrapper(self: DataConnector, *args, **kwargs) -> T_return:
             if isinstance(self, DataConnector):
@@ -325,3 +346,52 @@ def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[Dat
 
     raise ValueError('You need to apply this decorator to a method of a DataConnector!')
     # Really any callable works just fine, but in this case the decorator will do nothing
+
+
+class InternetAccessInterface(metaclass=ABCMeta):
+    """
+    Interface adding functions for connecting and disconnecting to the internet
+    as well as viewing the current status.
+    """
+    _is_enabled: bool = False
+    """Cached information on connection status"""
+
+    @abstractmethod
+    def enable(self) -> None:
+        """Enable the internet access for this device.
+
+        Request internet access for this device by automatically accepting the terms of service
+        and signing in to the captive portal.
+
+        Raises:
+            ConnectionError: If the internet access is temporarily not available.
+        """
+        self._is_enabled = True
+
+    @abstractmethod
+    def disable(self) -> None:
+        """Disable the internet access for this device.
+
+        Disable the internet access for this device by signing out of the captive portal.
+
+        Raises:
+            ConnectionError: If the internet access is temporarily not available.
+        """
+        if not self.is_enabled:
+            return
+
+        self._is_enabled = False
+
+    @property
+    def is_enabled(self) -> bool:
+        """Return whether the internet access is enabled for this device."""
+        return self._is_enabled
+
+
+class InternetMetricsInterface(metaclass=ABCMeta):
+    """
+    Interface for information on limited internet access.
+    """
+    @abstractmethod
+    def limit(self) -> float | None:
+        """Return the total internet access quota in MB or `None` if there is none."""
