@@ -54,9 +54,6 @@ of the country the operator is based in.
 The operator ID is a unique identifier for the operator and depends on the vehicle type.
 """
 from __future__ import annotations
-from pkgutil import extend_path
-
-__path__ = extend_path(__path__, __name__)
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
@@ -64,17 +61,11 @@ from datetime import datetime
 from typing import Iterable
 
 from ._types import ID
-from .data import DataConnector, PollingDataConnector, ScheduledEvent, Position
+from .data import DataConnector, ThreadedDataConnector, ScheduledEvent, Position
 from .exceptions import NotImplementedInAPIError
 
 
-class API(object):
-    """
-    Base class for all APIs
-    """
-
-
-class Vehicle(API, metaclass=ABCMeta):
+class Vehicle(metaclass=ABCMeta):
     """
     Base class for all vehicles
     """
@@ -97,7 +88,7 @@ class Vehicle(API, metaclass=ABCMeta):
         Raises:
           InitialConnectionError: If the connection to the API could not be established.
         """
-        if isinstance(self._data, PollingDataConnector):
+        if isinstance(self._data, ThreadedDataConnector):
             self._data.start()
             while not self._data.connected:
                 pass
@@ -135,7 +126,7 @@ class Vehicle(API, metaclass=ABCMeta):
         raise NotImplementedInAPIError
 
 
-@dataclass(frozen=True)
+@dataclass
 class ConnectingVehicle(object):
     """
     A connecting vehicle is a vehicle that is not part of the main trip but of a connecting service.
