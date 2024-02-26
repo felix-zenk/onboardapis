@@ -13,7 +13,7 @@ provide a common interface for all vehicles of that type. These classes are then
 implementations. For example, the `onboardapis.train.de.db.ICEPortal` class provides a common interface
 for all trains of the Deutsche Bahn that provide access to the ICE Portal.
 
-# How do install it?
+# How do I install it?
 
 To use onboardapis, you need to install it first. You can do this by running the following command:
 
@@ -57,8 +57,6 @@ from __future__ import annotations
 from pkgutil import extend_path
 
 __path__ = extend_path(__path__, __name__)
-__version_info__ = (2, 0, 0)
-__version__ = ".".join(map(str, __version_info__))
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
@@ -92,11 +90,12 @@ class Vehicle(API, metaclass=ABCMeta):
         self.shutdown()
 
     def init(self) -> None:
-        """
-        Initialize the :class:`DataConnector` of this vehicle.
+        """Initialize the connection to the API.
 
-        :return: Nothing
-        :rtype: None
+        Call the init method of the DataConnector that supplies the data for this vehicle.
+
+        Raises:
+          InitialConnectionError: If the connection to the API could not be established.
         """
         if isinstance(self._data, PollingDataConnector):
             self._data.start()
@@ -136,93 +135,40 @@ class Vehicle(API, metaclass=ABCMeta):
         raise NotImplementedInAPIError
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConnectingVehicle(object):
     """
-    A connecting vehicle is a vehicle that is not part of the main trip but of a connecting service
-
-    It may only have limited information available
+    A connecting vehicle is a vehicle that is not part of the main trip but of a connecting service.
+    It may only have limited information available.
     """
-
     vehicle_type: str | None
-    """
-    The abbreviated vehicle type
-    """
+    """The abbreviated vehicle type"""
     line_number: str | None
-    """
-    The line number of the vehicle
-    """
+    """The line number of the vehicle"""
     departure: ScheduledEvent[datetime] | None
-    """
-    The departure time of the vehicle
-    """
+    """The departure time of the vehicle"""
     destination: str | None
-    """
-    The destination of the vehicle
-    """
+    """The destination of the vehicle"""
 
 
-class IncompleteVehicleMixin(Vehicle, metaclass=ABCMeta):
-    """
-    Base class for mixins that implement the abstract methods of their bases
-    if the API does not provide the requested data.
-    """
-
-    @property
-    def id(self) -> ID:
-        raise NotImplementedInAPIError
-
-
+@dataclass
 class Station(object):
     """
     A Station is a stop on the trip
     """
-
-    __slots__ = (
-        "_id",
-        "_name",
-        "_arrival",
-        "_departure",
-        "_position",
-        "_distance",
-        "_connections",
-    )
-
-    def __init__(
-            self,
-            station_id: ID,
-            name: str,
-            arrival: ScheduledEvent[datetime] = None,
-            departure: ScheduledEvent[datetime] = None,
-            position: Position = None,
-            distance: float = None,
-            connections: Iterable[ConnectingVehicle] = None,
-    ):
-        """
-        Initialize a new :class:`Station`
-
-        :param station_id: The ID of the station
-        :type station_id: Any
-        :param name: The name of the station
-        :type name: str
-        :param arrival: The arrival time at this station
-        :type arrival: ScheduledEvent[datetime.datetime]
-        :param departure: The departure time from this station
-        :type departure: ScheduledEvent[datetime.datetime]
-        :param position: The geographic position of the station
-        :type position: Position
-        :param distance: The distance from the start to this station
-        :type distance: float
-        :param connections: The connecting services departing from this station
-        :type connections: Iterable[ConnectingVehicle]
-        """
-        self._id = station_id
-        self._name = name
-        self._arrival = arrival
-        self._departure = departure
-        self._position = position
-        self._distance = distance
-        self._connections = connections
+    id: ID
+    """The ID of the station"""
+    name: str
+    """The name of the station"""
+    arrival: ScheduledEvent[datetime] | None
+    """The arrival time at this station"""
+    departure: ScheduledEvent[datetime] | None
+    """The departure time from this station"""
+    position: Position | None
+    """The geographic position of the station"""
+    distance: float | None
+    """The distance from the start to this station"""
+    _connections: Iterable[ConnectingVehicle]
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self.name}>"
@@ -231,81 +177,13 @@ class Station(object):
         return self.name
 
     @property
-    def id(self) -> ID:
-        """
-        The unique ID of the station
-
-        :return: The ID of the station
-        :rtype: Any
-        """
-        return self._id
-
-    @property
-    def name(self) -> str:
-        """
-        The name of the station
-
-        :return: The name of the station
-        :rtype: str
-        """
-        return self._name
-
-    @property
-    def arrival(self) -> ScheduledEvent[datetime]:
-        """
-        The arrival time at this station
-
-        :return: The datetime object of the arrival time encased in a ScheduledEvent
-        :rtype: ScheduledEvent[datetime.datetime]
-        """
-        return self._arrival
-
-    @property
-    def departure(self) -> ScheduledEvent[datetime]:
-        """
-        The departure time at this station
-
-        :return: The datetime object of the departure time encased in a ScheduledEvent
-        :rtype: ScheduledEvent[datetime.datetime]
-        """
-        return self._departure
-
-    @property
     def connections(self) -> list[ConnectingVehicle]:
-        """
-        The connecting services departing from this station
-
-        :return: A list of ConnectingVehicle objects
-        :rtype: list[ConnectingVehicle]
-        """
-        # run generator or return cached list
+        """The connecting services departing from this station."""
         if not isinstance(self._connections, list):
             self._connections = list(self._connections)
         return self._connections
 
-    @property
-    def distance(self) -> float:
-        """
-        The distance from the start to this station in meters
-
-        :return: The distance
-        :rtype: float
-        """
-        return self._distance
-
-    @property
-    def position(self) -> Position:
-        """
-        The geographic position of the station
-
-        :return: The coordinates of the station
-        :rtype: Position
-        """
-        return self._position
-
-    def calculate_distance(
-            self, other: Station | Position | int | float
-    ) -> float | None:
+    def calculate_distance(self, other: Station | Position | int | float) -> float | None:
         """
         Calculate the distance in meters between this station and something else.
 
