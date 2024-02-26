@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,16 +7,19 @@ name = "onboardapis"
 description = "A pure Python wrapper for the on-board APIs of many different transportation providers"
 version = "2.0.0"
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.7"
-keywords = ["api", "train"]
+requires-python = ">=3.8"
+keywords = ["api", "train", "public-transport"]
 license = { text = "MIT" }
-authors = [{ name = "Felix Zenk", email = "felix.zenk@web.de" }]
+authors = [
+    { name = "Felix Zenk", email = "felix.zenk@web.de" },
+]
 
 dependencies = [
-    "geopy >= 2.3.0",
-    "restfly >= 1.4.7",
-    "requests >= 2.31.0",
-    "beautifulsoup4 >= 4.12.2",
+    "geopy>=2.3.0",
+    # "gql[all]>=3.5.0",
+    "restfly>=1.4.7",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.2",
     "typing-extensions>=4.9.0",
 ]
 
@@ -43,3 +46,6 @@ Issues = "https://github.com/felix-zenk/onboardapis/issues"
 
 [tool.setuptools.packages.find]
 include = ["onboardapis*"]
+
+[tool.setuptools.package-data]
+onboardapis = ["py.typed"]
