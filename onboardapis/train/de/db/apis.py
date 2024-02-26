@@ -16,7 +16,7 @@ from ....data import (
     ScheduledEvent,
     Position,
 )
-from ... import Train, TrainStation, IncompleteTrainMixin
+from ... import Train, TrainStation
 from .mappings import id_name_map
 from .connectors import (
     ICEPortalConnector,
@@ -239,7 +239,7 @@ class ICEPortal(Train):
         return None if default(remaining_seconds) is None else timedelta(seconds=int(remaining_seconds))
 
 
-class ZugPortal(IncompleteTrainMixin, Train):
+class ZugPortal(Train):
     """
     Wrapper for interacting with the DB Zug Portal API
     """
