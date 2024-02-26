@@ -22,8 +22,8 @@ jobs:
       - name: Build docs
         run: |
           pip install .
-          pip install pdoc3
-          pdoc -o docs/ --html onboardapis
+          pip install pdoc
+          pdoc onboardapis -o docs --math --logo-link "https://felix-zenk.github.io/onboardapis/docs"
           mv docs/onboardapis docs/docs
       - name: Fix permissions
         run: |
