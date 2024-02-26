@@ -1,13 +1,10 @@
-from typing import TypedDict
+import logging
 
 from bs4 import BeautifulSoup
 
-from ....data import RESTDataConnector, store
+from ....data import RESTDataConnector, InternetAccessInterface, SynchronousRESTDataConnector
 
-MetronomCaptivePortalInfo = TypedDict('MetronomCaptivePortalInfo', {
-    'has_internet_access': bool,
-})
-"""A dict containing information about the state of the captive portal"""
+logger = logging.getLogger(__name__)
 
 
 class MetronomCaptivePortalConnector(RESTDataConnector):
@@ -17,39 +14,45 @@ class MetronomCaptivePortalConnector(RESTDataConnector):
 
     API_URL = 'http://wifi.metronom.de'
 
-    @store('captive_portal')
-    def captive_portal(self) -> MetronomCaptivePortalInfo:
-        soup = BeautifulSoup(self.get('de').text, 'html.parser')
-        user_online = soup.find(class_='user-online', recursive=True)
-        return MetronomCaptivePortalInfo(
-            has_internet_access=user_online is not None,
-        )
-
     def refresh(self) -> None:
-        self.captive_portal()
+        pass
 
-    def login(self) -> None:
+
+class MetronomInternetAccessInterface(SynchronousRESTDataConnector, InternetAccessInterface):
+    API_URL = 'http://wifi.metronom.de'
+
+    def enable(self):
         soup = BeautifulSoup(self.get('de').text, 'html.parser')
         user_offline = soup.find(class_='user-offline', recursive=True)
         if user_offline is None:
             return
 
         csrf_token = soup.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
-        self.post('de', data={
+        response = self.post('de', json={
             'CSRFToken': csrf_token,
             'login': True,
         })
-        self.captive_portal()
+        response.raise_for_status()
+        if BeautifulSoup(response.text, 'html.parser').find(class_='user-online', recursive=True) is None:
+            raise ConnectionError('Login failed!')
 
-    def logout(self) -> None:
+    def disable(self):
         soup = BeautifulSoup(self.get('de').text, 'html.parser')
         user_online = soup.find(class_='user-online', recursive=True)
         if user_online is None:
             return
 
         csrf_token = user_online.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
-        self.post('de', data={
-            'CSRFToken': csrf_token,
+        response = self.post('de', json={
             'logout': True,
+            'CSRFToken': csrf_token,
         })
-        self.captive_portal()
+        response.raise_for_status()
+        if BeautifulSoup(response.text, 'html.parser').find(class_='user-offline', recursive=True) is None:
+            raise ConnectionError('Logout failed!')
+
+    @property
+    def is_enabled(self) -> bool:
+        return BeautifulSoup(
+            self.get('de').text, 'html.parser'
+        ).find(class_='user-online', recursive=True) is not None
