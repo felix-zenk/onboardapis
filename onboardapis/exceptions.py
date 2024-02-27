@@ -42,7 +42,7 @@ class DataInvalidError(APIConnectionError):
         super(DataInvalidError, self).__init__(message, *args)
 
 
-class NotImplementedInAPIError(NotImplementedError):
+class NotImplementedInAPIError(OnboardException, NotImplementedError):
     """
     Exception that is raised whenever a functionality is requested that is not implemented in the providers API.
     """
