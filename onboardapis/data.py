@@ -10,13 +10,11 @@ import importlib.metadata
 import logging
 import threading
 import time
-from collections import UserDict
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
-from types import MethodType
-from typing import Any, TypeVar, Generic, Callable, Optional
+from typing import TypeVar, Generic, ClassVar
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -26,25 +24,16 @@ from .units import coordinates_decimal_to_dms
 from .exceptions import APIConnectionError
 
 
-def _get_package_version() -> str:
-    """Return the version of the onboardapis package."""
-    try:
-        return importlib.metadata.version('onboardapis')
-    except importlib.metadata.PackageNotFoundError:
-        return 'unknown'
-
-
-def default(arg: Any | None, __default: Any | None = None, *, bool: bool = True) -> Any | None:  # noqa
+def default(arg, __default=None, *, bool=True):  # noqa
     """
     Return ``data`` if there is actually some content in data, else return ``default``.
 
     Useful when data such as "" or b'' should also be treated as empty.
 
-    :param Any arg: The data to test
-    :param Any __default: The default value to return if no data is present (None)
-    :param bool bool: Return the default if `arg` evaluates to False
+    :param arg: The data to test
+    :param __default: The default value to return if no data is present (None)
+    :param bool: Return the default if `arg` evaluates to False
     :return: The data if present, else the default
-    :rtype: Optional[Any]
     """
     if bool:
         return arg if arg else __default
@@ -65,14 +54,12 @@ class ScheduledEvent(Generic[T]):
 
     __slots__ = ("scheduled", "actual")
 
-    def __init__(self, scheduled: T, actual: T | None = None):
+    def __init__(self, scheduled, actual=None):
         """
         Initialize a new :class:`ScheduledEvent`
 
         :param scheduled: The value that should happen
-        :type scheduled: T
         :param actual: The value that actually happens, will be the scheduled value if passed as None
-        :type actual: Optional[T]
         """
         self.scheduled = scheduled
         """
@@ -105,12 +92,12 @@ class Position(object):
     """The latitude in decimal degrees"""
     longitude: float
     """The longitude in decimal degrees"""
-    altitude: Optional[float] = None
+    altitude = None
     """The altitude in meters"""
-    heading: Optional[float] = None
+    heading = None
     """The compass heading in degrees"""
 
-    def __str__(self) -> str:
+    def __str__(self):
         (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec,) = coordinates_decimal_to_dms(
             (self.latitude, self.longitude)
         )
@@ -125,7 +112,7 @@ class Position(object):
     def __getitem__(self, item):
         return ([self.latitude, self.longitude])[item]
 
-    def calculate_distance(self, other: Position) -> float:
+    def calculate_distance(self, other):
         """
         Calculate the distance (in meters) between this position and another position.
 
@@ -134,35 +121,22 @@ class Position(object):
         """
         return geodesic(self.to_point(), other.to_point()).meters
 
-    def to_point(self, altitude: bool = False) -> Point:
+    def to_point(self, altitude=False):
         return Point(self.latitude, self.longitude, altitude=self.altitude if altitude else None)
-
-
-class DataStorage(UserDict):
-    """
-    A storage class that can be used to store data and retrieve it later.
-    """
 
 
 class DataConnector(metaclass=ABCMeta):
     """
     A class for retrieving data from an API
     """
+    API_URL: ClassVar[str]
+    """The base URL for the API."""
 
-    API_URL: str
-    """
-    The base URL under which the API can be accessed
-    """
+    def __init__(self):
+        """Initialize a new :class:`DataConnector`."""
+        self._data = dict()
 
-    _data: DataStorage
-
-    def __init__(self) -> None:
-        """
-        Initialize a new :class:`DataConnector`
-        """
-        self._data = DataStorage()
-
-    def load(self, key: str, __default: Any = None) -> Any:
+    def load(self, key, __default=None):
         """
         Load data from the cache
 
@@ -172,7 +146,7 @@ class DataConnector(metaclass=ABCMeta):
         """
         return self._data.get(key, __default)
 
-    def store(self, key: str, value: Any) -> None:
+    def store(self, key, value):
         """
         Store data in the cache
 
@@ -190,9 +164,6 @@ class DataConnector(metaclass=ABCMeta):
 
 
 class ThreadedDataConnector(DataConnector, threading.Thread):
-    _connected: bool
-    _running: bool
-
     def __init__(self):
         DataConnector.__init__(self)
         threading.Thread.__init__(
@@ -205,13 +176,13 @@ class ThreadedDataConnector(DataConnector, threading.Thread):
         self._connected = False
 
     @property
-    def connected(self) -> bool:
+    def connected(self):
         """
         Check whether the connector is connected to the server
         """
         return self._connected and self._running
 
-    def _run(self) -> None:
+    def _run(self):
         """
         The main loop that will run in a separate thread
 
@@ -241,7 +212,7 @@ class ThreadedDataConnector(DataConnector, threading.Thread):
 
             counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
 
-    def stop(self) -> None:
+    def stop(self):
         """
         Stop requesting data and shut down the separate thread
         """
@@ -249,7 +220,7 @@ class ThreadedDataConnector(DataConnector, threading.Thread):
         if self.is_alive():
             self.join()
 
-    def reset(self) -> None:
+    def reset(self):
         """
         Reset the thread and the cache so that they can be reused with ``start()``
         """
@@ -259,39 +230,42 @@ class ThreadedDataConnector(DataConnector, threading.Thread):
         self._connected = False
 
     @abstractmethod
-    def refresh(self) -> None:
+    def refresh(self):
         """
         Method that collects data from the server and stores it in the cache
 
         :return: Nothing
         """
-        pass
+        raise NotImplementedError
 
 
-class RESTDataConnector(APISession, ThreadedDataConnector, metaclass=ABCMeta):
-    """A RESTful :class:`DataConnector` that uses the :class:`APISession` to fetch data."""
-
-    def __init__(self, **kwargs):
-        kwargs['url'] = kwargs.pop('url', self.API_URL)
-        APISession.__init__(self, **kwargs)
-        ThreadedDataConnector.__init__(self)
-
-    def _build_session(self, **kwargs) -> None:
-        APISession._build_session(self, **kwargs)
-        self._session.headers.update({"User-Agent": f"Python/onboardapis ({_get_package_version()})"})
-
-
-class SynchronousRESTDataConnector(APISession, DataConnector):
-    """A blocking version of the RESTDataConnector that does not use a separate thread to refresh the data."""
+class BlockingRESTDataConnector(APISession, DataConnector):
+    """A RESTful :class:`DataConnector` that uses the :class:`APISession` to fetch."""
 
     def __init__(self, **kwargs):
         kwargs['url'] = kwargs.pop('url', self.API_URL)
         APISession.__init__(self, **kwargs)
         DataConnector.__init__(self)
 
-    def _build_session(self, **kwargs) -> None:
+    def _build_session(self, **kwargs):
+        def _get_package_version():
+            """Return the version of the onboardapis package."""
+            try:
+                return importlib.metadata.version('onboardapis')
+            except importlib.metadata.PackageNotFoundError:
+                return 'unknown'
+
         APISession._build_session(self, **kwargs)
         self._session.headers.update({"User-Agent": f"Python/onboardapis ({_get_package_version()})"})
+
+
+class ThreadedRESTDataConnector(ThreadedDataConnector, BlockingRESTDataConnector, metaclass=ABCMeta):
+    """A RESTful :class:`DataConnector` that uses the :class:`APISession` to fetch data."""
+
+    def __init__(self, **kwargs):
+        kwargs['url'] = kwargs.pop('url', self.API_URL)
+        APISession.__init__(self, **kwargs)
+        ThreadedDataConnector.__init__(self)
 
 
 class GraphQLDataConnector(DataConnector, metaclass=ABCMeta):
@@ -313,22 +287,19 @@ class DummyDataConnector(DataConnector):
 
     API_URL = "127.0.0.1"
 
-    def load(self, key: str, __default: Any = None) -> Any:
+    def load(self, key, __default=None):
         return 'Dummy value'
 
 
-T_return = TypeVar('T_return')
-
-
-def store(name: str | MethodType = None) -> Callable[[MethodType], Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]] | Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
+def store(name=None):
     """
     Decorator / decorator factory to apply to a :class:`DataConnector` method
     to immediately store the return value of the decorated method
     as the key ``name`` or the method name if left out.
     """
-    def decorator(method: Callable[[object, tuple, dict], T_return]) -> Callable[[DataConnector, tuple[Any, ...], dict[str, Any]], T_return]:
+    def decorator(method):
         @wraps(method)
-        def wrapper(self: DataConnector, *args, **kwargs) -> T_return:
+        def wrapper(self, *args, **kwargs):
             if isinstance(self, DataConnector):
                 self[name or method.__name__] = method(self, *args, **kwargs)
                 return self[name or method.__name__]
@@ -353,11 +324,11 @@ class InternetAccessInterface(metaclass=ABCMeta):
     Interface adding functions for connecting and disconnecting to the internet
     as well as viewing the current status.
     """
-    _is_enabled: bool = False
+    _is_enabled = False
     """Cached information on connection status"""
 
     @abstractmethod
-    def enable(self) -> None:
+    def enable(self):
         """Enable the internet access for this device.
 
         Request internet access for this device by automatically accepting the terms of service
@@ -369,7 +340,7 @@ class InternetAccessInterface(metaclass=ABCMeta):
         self._is_enabled = True
 
     @abstractmethod
-    def disable(self) -> None:
+    def disable(self):
         """Disable the internet access for this device.
 
         Disable the internet access for this device by signing out of the captive portal.
@@ -383,7 +354,7 @@ class InternetAccessInterface(metaclass=ABCMeta):
         self._is_enabled = False
 
     @property
-    def is_enabled(self) -> bool:
+    def is_enabled(self):
         """Return whether the internet access is enabled for this device."""
         return self._is_enabled
 
@@ -393,5 +364,5 @@ class InternetMetricsInterface(metaclass=ABCMeta):
     Interface for information on limited internet access.
     """
     @abstractmethod
-    def limit(self) -> float | None:
+    def limit(self):
         """Return the total internet access quota in MB or `None` if there is none."""
