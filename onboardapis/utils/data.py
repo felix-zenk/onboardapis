@@ -1,6 +1,7 @@
 """
 This module contains everything that has to do with data and data management
 """
+from __future__ import annotations
 
 import abc
 import json
@@ -14,8 +15,10 @@ from typing import Any, Optional, TypeVar, Generic, ItemsView, Union, Sequence
 from requests import Response, RequestException
 
 from .conversions import coordinates_decimal_to_dms
-from ..exceptions import DataInvalidError, APIConnectionError, InitialConnectionError
+from ..exceptions import APIConnectionError, InitialConnectionError
 from .. import __version__
+
+logger = logging.getLogger(__name__)
 
 
 def some_or_default(data: Optional[Any], default: Optional[Any] = None) -> Optional[Any]:
@@ -274,7 +277,7 @@ class DataConnector(metaclass=abc.ABCMeta):
             response = self._session.get(f"https://{base_url}{endpoint}", *args, **kwargs)
             # Report possible errors / changes in the API
             if response.status_code != 200:
-                logging.warning(f"Request to https://{base_url}{endpoint} returned status code {response.status_code}")
+                logger.warning(f"Request to https://{base_url}{endpoint} returned status code {response.status_code}")
             self._retries = 0
             return response
         except RequestException as e:
@@ -283,7 +286,7 @@ class DataConnector(metaclass=abc.ABCMeta):
                 raise APIConnectionError() from e
             # Retry the request if it failed
             self._retries += 1
-            logging.debug(f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)")
+            logger.debug(f"Request to https://{base_url}{endpoint} failed! Retry: ({self._retries}/2)")
             return self._get(endpoint, *args, base_url=base_url, **kwargs)
 
     def load(self, key: str, __default: Any = None) -> Any:
@@ -449,7 +452,7 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
 
     __slots__ = []
 
-    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> dict:
+    def _get(self, endpoint: str, *args: Any, base_url: str = None, **kwargs: Any) -> dict | None:
         headers = kwargs.get("headers", {})
         headers.update({
             "accept": "application/json",
@@ -458,8 +461,8 @@ class JSONDataConnector(DataConnector, metaclass=abc.ABCMeta):
         try:
             return super(JSONDataConnector, self)._get(endpoint, *args, base_url=base_url, **kwargs).json()
         except json.JSONDecodeError as e:
-            logging.debug(f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}")
-            raise DataInvalidError() from e
+            logger.warning(f"Failed to parse json ({e.__class__.__name__}): {'; '.join(e.args)}")
+            return None
 
     def export(self, path: Union[str, PathLike], keys: Sequence = None) -> None:
         """
