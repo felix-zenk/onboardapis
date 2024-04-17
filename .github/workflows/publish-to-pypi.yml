@@ -13,7 +13,7 @@ jobs:
       - name: Check SemVer tag
         run: |
           TAG_NAME=$(git tag --points-at ${{ github.sha }})
-          if [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(?:(?:[_.-])?(?:a|b|rc|alpha|beta|c|pre|preview)\d+)?(?:\.post\d+)?(?:\.dev\d+)?$ ]]; then
+          if [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(?:\.*)?$ ]]; then
             echo "Valid SemVer tag: $TAG_NAME"
           else
             echo "Invalid SemVer tag: $TAG_NAME"
