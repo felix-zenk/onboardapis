@@ -217,6 +217,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
             "NO_INFO",
         )
 
+    @property
     def internet_status_change(self) -> timedelta | None:
         """Returns the timedelta until ``internet_status`` changes to ``next_internet_status``."""
         remaining_seconds = (
