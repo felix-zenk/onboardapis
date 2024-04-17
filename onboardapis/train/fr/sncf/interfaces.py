@@ -1,18 +1,17 @@
+from __future__ import annotations
+
+import logging
+
 from datetime import datetime, timedelta
 from typing import Generator
 
-from ...._types import ID
 from ... import ConnectingTrain
-from ....data import (
-    RESTDataConnector,
-    ScheduledEvent,
-    store,
-)
+from ....data import ThreadedRestAPI, ScheduledEvent, store, ID
 
-# socket.io at /socket.io/
+logger = logging.getLogger(__name__)
 
 
-class InouiConnector(RESTDataConnector):
+class InouiConnector(ThreadedRestAPI):
     API_URL = "https://wifi.sncf/router/api"
 
     @store('gps')
@@ -30,19 +29,19 @@ class InouiConnector(RESTDataConnector):
         self.gps()
         self.details()
 
-        # self._data["attendance"] = self.get("bar/attendance").json()
-        # self._data["auto"] = self.get("connection/activate/auto").json()
-        # self._data["catalog"] = self.get("food/catalog").json()
-        # self._data["coverage"] = self.get("train/coverage").json()
-        # self._data["graph"] = self.get("train/graph").json()
-        # self._data["modules"] = self.get("configuration/modules").json()
-        # self._data["poi"] = self.get("poi").json()
-        # self._data["registry"] = self.get("connection/registry").json()
-        # self._data["room"] = self.get("chat/room").json()
-        # self._data["statistics"] = self.get("connection/statistics").json()
-        # self._data["status"] = self.get("connection/status").json()
-        # self._data["videos"] = self.get("media/videos").json()
-        # self._data["wordings"] = self.get("media/wordings", params=dict(language="de")).json()
+        # self._api["attendance"] = self.get("bar/attendance").json()
+        # self._api["auto"] = self.get("connection/activate/auto").json()
+        # self._api["catalog"] = self.get("food/catalog").json()
+        # self._api["coverage"] = self.get("train/coverage").json()
+        # self._api["graph"] = self.get("train/graph").json()
+        # self._api["modules"] = self.get("configuration/modules").json()
+        # self._api["poi"] = self.get("poi").json()
+        # self._api["registry"] = self.get("connection/registry").json()
+        # self._api["room"] = self.get("chat/room").json()
+        # self._api["statistics"] = self.get("connection/statistics").json()
+        # self._api["status"] = self.get("connection/status").json()
+        # self._api["videos"] = self.get("media/videos").json()
+        # self._api["wordings"] = self.get("media/wordings", params=dict(language="de")).json()
 
     def connections(self, station_id: ID) -> Generator[ConnectingTrain, None, None]:
         for connection in self.trainboard(station_id).get("train", []):

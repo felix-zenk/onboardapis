@@ -1,31 +1,32 @@
 from __future__ import annotations
 
 import logging
+
 from datetime import datetime
 from enum import Enum
 from functools import lru_cache
 from http import HTTPStatus
-from typing import Generator, Iterable
+from typing import Generator
 
 from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
 
-from ...._types import ID
 from ....data import (
-    RESTDataConnector,
+    ID,
+    BlockingRestAPI,
     ScheduledEvent,
     default,
     store,
-    SynchronousRESTDataConnector,
-    InternetAccessInterface, InternetMetricsInterface,
+    InternetAccessInterface,
+    InternetMetricsInterface,
 )
 from ... import ConnectingTrain
 
 logger = logging.getLogger(__name__)
 
 
-class ICEPortalConnector(RESTDataConnector):
+class ICEPortalAPI(BlockingRestAPI):
     API_URL = "https://iceportal.de"
 
     @store('bap')
@@ -98,21 +99,19 @@ class ICEPortalConnector(RESTDataConnector):
         return
 
 
-class ICEInternetAccessInterface(SynchronousRESTDataConnector, InternetAccessInterface, InternetMetricsInterface):
+class ICEInternetAccessInterface(BlockingRestAPI, InternetAccessInterface, InternetMetricsInterface):
     API_URL = 'https://login.wifionice.de'
 
     def enable(self):
         """WIP: DOES NOT WORK YET!"""
         soup = BeautifulSoup(self.get('de').text, 'html.parser')
 
-        # Check if the user is offline
-        user_offline = soup.find(id='accept', recursive=True)
-        if user_offline is None:
+        # Check if the user is already online
+        if soup.find(id='accept') is None:
             return
 
         # User is offline
-        # csrf_token = soup.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
-        # No need to look for the CSRF token, as it is stored as the cookie `csrf`
+        logger.info('Cookie: %s', self._session.cookies['csrf'])
         response = self.post('de', json={
             'CSRFToken': self._session.cookies['csrf'],
             'login': True,
@@ -120,21 +119,18 @@ class ICEInternetAccessInterface(SynchronousRESTDataConnector, InternetAccessInt
         response.raise_for_status()
 
         # Check if login was successful
-        if not (response.is_redirect and response.url.startswith(ICEPortalConnector.API_URL)):
+        if not (response.is_redirect and response.url.startswith(ICEPortalAPI.API_URL)):
             raise ConnectionError('Login failed!')
 
     def disable(self):
         """WIP: DOES NOT WORK YET!"""
         soup = BeautifulSoup(self.get('de').text, 'html.parser')
 
-        # Check if user is online
-        user_online = soup.find(class_='online-text', recursive=True)
-        if user_online is None:
+        # Check if user is already offline
+        if soup.find(id='accept') is not None:
             return
 
         # User is online
-        # csrf_token = user_online.find('input', {'name': 'CSRFToken'}, recursive=True)['value']
-        # No need to look for the CSRF token, as it is stored as the cookie `csrf`
         response = self.post('de', json={
             'CSRFToken': self._session.cookies['csrf'],
             'logout': True,
@@ -149,7 +145,7 @@ class ICEInternetAccessInterface(SynchronousRESTDataConnector, InternetAccessInt
     def is_enabled(self) -> bool:
         return BeautifulSoup(
             self.get('de').text, 'html.parser'
-        ).find(class_='online-text', recursive=True) is not None
+        ).find(id='accept') is None
 
     def limit(self) -> float | None:
         usage_info = self.get('usage_info')
@@ -169,19 +165,19 @@ class ModeOfTransport(Enum):
     HIGH_SPEED_TRAIN = 'HIGH_SPEED_TRAIN'
 
     @property
-    def local_trains(self) -> list[ModeOfTransport]:
-        return [self.CITY_TRAIN, self.TRAM, self.SUBWAY]
+    def local_trains(self) -> tuple[ModeOfTransport, ...]:
+        return self.CITY_TRAIN, self.TRAM, self.SUBWAY
 
     @property
-    def long_distance_trains(self) -> list[ModeOfTransport]:
-        return [self.HIGH_SPEED_TRAIN, self.REGIONAL_TRAIN, self.INTER_REGIONAL_TRAIN]
+    def long_distance_trains(self) -> tuple[ModeOfTransport, ...]:
+        return self.HIGH_SPEED_TRAIN, self.REGIONAL_TRAIN, self.INTER_REGIONAL_TRAIN
 
     @property
-    def trains(self) -> list[ModeOfTransport]:
+    def trains(self) -> tuple[ModeOfTransport, ...]:
         return self.local_trains + self.long_distance_trains
 
 
-class ZugPortalConnector(RESTDataConnector):
+class ZugPortalAPI(BlockingRestAPI):
     API_URL = "https://zugportal.de"
 
     @store('journey')
@@ -208,7 +204,7 @@ class ZugPortalConnector(RESTDataConnector):
             longitude=stop.get('station', {}).get('position', {}).get('longitude')
         )).meters
 
-    def connections(self, station_id: ID) -> Iterable[ConnectingTrain]:
+    def connections(self, station_id: ID) -> Generator[ConnectingTrain, None, None]:
         departure_board = self.get(
             f'@prd/zupo-travel-information/api/public/ri/board/departure/{station_id}',
             params=dict(

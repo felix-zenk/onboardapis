@@ -1,7 +1,13 @@
-from ....data import RESTDataConnector, store
+from __future__ import annotations
+
+import logging
+
+from ....data import ThreadedRestAPI, store
+
+logger = logging.getLogger(__name__)
 
 
-class PortaleRegionaleConnector(RESTDataConnector):
+class PortaleRegionaleConnector(ThreadedRestAPI):
     API_URL = 'https://www.portaleregionale.it/PortaleRegionale'
 
     @store('infovaggio')

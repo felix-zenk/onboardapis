@@ -1,7 +1,13 @@
-from ....data import RESTDataConnector, store
+from __future__ import annotations
+
+import logging
+
+from ....data import ThreadedRestAPI, store
+
+logger = logging.getLogger(__name__)
 
 
-class FlixTainmentConnector(RESTDataConnector):
+class FlixTainmentAPI(ThreadedRestAPI):
     API_URL = "https://media.flixtrain.com"
 
     @store('position')

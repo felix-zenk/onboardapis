@@ -1,13 +1,16 @@
+from __future__ import annotations
+
+import logging
 import time
+
 from functools import lru_cache
 from typing import TypedDict
 
 from typing_extensions import deprecated
 
-from ....data import (
-    RESTDataConnector,
-    store,
-)
+from ....data import ThreadedRestAPI, store
+
+logger = logging.getLogger(__name__)
 
 Endpoints = TypedDict("Endpoints", {
     'api/train_info': int,
@@ -17,7 +20,7 @@ Endpoints = TypedDict("Endpoints", {
 """A dict containing information about the endpoints of the Railnet API"""
 
 
-class RailnetRegioConnector(RESTDataConnector):
+class RailnetRegioAPI(ThreadedRestAPI):
     API_URL = "https://railnet.oebb.at"
 
     @store('train_info')
