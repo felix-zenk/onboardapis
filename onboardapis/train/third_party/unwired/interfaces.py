@@ -187,7 +187,6 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
                 headers={'User-Agent': 'Python/onboardapis (%s)' % get_package_version()}
             )
             self._user_session_id, *_ = parse_qs(urlparse(response.url).query)['user_session_id']
-            self.refresh()
         except (ConnectionError, KeyError) as e:
             raise InitialConnectionError from e
 
