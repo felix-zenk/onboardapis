@@ -3,7 +3,7 @@ name: "GitHub release"
 on:
   push:
     tags:
-      - '*.*.*' # Push events to matching semantic version tags 1.0.0, etc.
+      - '*.*.*'
 
 jobs:
   semver-check:
@@ -35,9 +35,9 @@ jobs:
         run: |
           python -m pip install -U pip
           python -m pip install build
-      - name: Build a binary wheel
-        run: python -m build --outdir dist/ .
-      - name: Upload release and assets
+      - name: Build
+        run: python -m build .
+      - name: Create release and upload assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
@@ -46,3 +46,8 @@ jobs:
           prerelease: false
           files: |
             dist/*.whl
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: startsWith(github.ref, 'refs/tags')
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
