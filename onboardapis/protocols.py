@@ -7,12 +7,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ._types import ID, StationType
+from .data import ID, StationType, Position, InternetAccessInterface
 
 
 class SupportsPosition(Protocol):
     @property
-    def position(self) -> float: ...
+    def position(self) -> Position: ...
 
 
 class SupportsSpeed(Protocol):
@@ -21,6 +21,8 @@ class SupportsSpeed(Protocol):
 
 
 class SupportsStations(Protocol):
+    def calculate_distance(self, station: StationType): ...
+
     @property
     def stations_dict(self) -> dict[ID, StationType]: ...
 
@@ -38,3 +40,11 @@ class SupportsStations(Protocol):
 
     @property
     def delay(self) -> float: ...
+
+    @property
+    def distance(self) -> float: ...
+
+
+class SupportsInternetAccess(Protocol):
+    @property
+    def internet_access(self) -> InternetAccessInterface: ...

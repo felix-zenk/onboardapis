@@ -10,8 +10,7 @@ from datetime import timedelta
 from typing import Generic
 
 from .exceptions import DataInvalidError
-from .data import Position, InternetAccessInterface
-from ._types import ID, StationType
+from .data import Position, InternetAccessInterface, ID, StationType, API
 from . import Station
 
 
@@ -52,7 +51,7 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
     def calculate_distance(self, station: Station) -> float:
         """Calculate the distance in meters between the train and a station.
 
-        Use the trains `position` or `distance` to calculate the distance to `station`.
+        Use the trains ``position`` or ``distance`` to calculate the distance to ``station``.
 
         Args:
             station: The station to calculate the distance to
@@ -139,9 +138,15 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
             self.current_station.arrival.actual - self.current_station.arrival.scheduled
         ).total_seconds())
 
+    @property
+    def distance(self) -> float:
+        """
+        The distance from the start in meters
 
-class GeoDataMixin(PositionMixin, StationsMixin[StationType], metaclass=ABCMeta):
-    pass
+        :return: The distance
+        :rtype: float
+        """
+        return self.calculate_distance(self.origin)
 
 
 class InternetAccessMixin(metaclass=ABCMeta):
