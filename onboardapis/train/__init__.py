@@ -9,24 +9,36 @@ For Europe, the operator ID is the [VKM register code](https://www.era.europa.eu
 """
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+import logging
+
+from abc import ABCMeta
+from dataclasses import dataclass
 
 from .. import Vehicle, Station, ConnectingVehicle
 from ..data import ScheduledEvent
 
+logger = logging.getLogger(__name__)
+
 
 __all__ = [
-    'TrainStation',
-    'Train',
-    'ConnectingTrain',
+    "at",
+    "de",
+    "fr",
+    "it",
+    "third_party",
+    "TrainStation",
+    "Train",
+    "ConnectingTrain",
 ]
 
 
+@dataclass
 class TrainStation(Station):
     """
     An `onboardapis.Station` with the additional information of a platform
     """
     platform: ScheduledEvent[str] | None
+    """The platform where the train arrives."""
 
 
 class Train(Vehicle, metaclass=ABCMeta):
@@ -38,39 +50,17 @@ class Train(Vehicle, metaclass=ABCMeta):
         return f"<{self.__class__.__name__} {self.id}>"
 
     @property
-    @abstractmethod
     def type(self) -> str:
-        """
-        The abbreviated train type
-
-        :return: The train type
-        :rtype: str
-        """
-        pass
+        """The abbreviated train type."""
+        return 'undefined'
 
     @property
-    @abstractmethod
-    def number(self) -> str:
-        """
-        The line number of this train
-
-        :return: The line number
-        :rtype: str
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def distance(self) -> float:
-        """
-        The distance from the start in meters
-
-        :return: The distance
-        :rtype: float
-        """
-        pass
+    def line_number(self) -> str:
+        """The line number of this train."""
+        return 'undefined'
 
 
+@dataclass
 class ConnectingTrain(ConnectingVehicle):
     """
     A connecting train is a train that is not part of the main trip but of a connecting service

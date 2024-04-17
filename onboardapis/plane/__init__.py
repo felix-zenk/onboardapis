@@ -3,12 +3,10 @@ Package for planes
 
 ## Operator ID
 
-The operator ID for planes is the [3 letter ICAO airline designator](https://en.wikipedia.org/wiki/List_of_airline_codes#Codes).
+The operator ID for planes is the
+[3 letter ICAO airline designator](https://en.wikipedia.org/wiki/List_of_airline_codes#Codes).
 """
 from __future__ import annotations
-from pkgutil import extend_path
-
-__path__ = extend_path(__path__, __name__)
 
 from abc import ABCMeta
 
@@ -16,7 +14,7 @@ from .. import Vehicle
 from ..mixins import PositionMixin
 
 __all__ = [
-    'Plane',
+    "Plane",
 ]
 
 

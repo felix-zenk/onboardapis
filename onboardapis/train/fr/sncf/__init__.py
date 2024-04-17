@@ -1,11 +1,10 @@
 """
-Implementation for the french train operator SNCF.
-
-TODO Not tested yet.
+Implementation for the French train operator SNCF.
 """
+from __future__ import annotations
 
 from .apis import PortalINOUI
 
 __all__ = [
-    'PortalINOUI'
+    "PortalINOUI",
 ]

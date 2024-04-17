@@ -1,6 +1,8 @@
 """
-Implementation of the german operator FLX (Flixtrain GmbH).
+Implementation of the German operator FLX (Flixtrain GmbH).
 """
+from __future__ import annotations
+
 from .apis import FlixTainment
 
 __all__ = [
