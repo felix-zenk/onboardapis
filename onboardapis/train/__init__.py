@@ -17,6 +17,11 @@ from dataclasses import dataclass
 from .. import Vehicle, Station, ConnectingVehicle
 from ..data import ScheduledEvent
 
+# noinspection PyUnresolvedReferences
+from typing import Iterable  # for associations while generating docs
+# noinspection PyUnresolvedReferences
+from ..data import ID, Position  # for associations while generating docs
+
 logger = logging.getLogger(__name__)
 
 
