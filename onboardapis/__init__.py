@@ -57,6 +57,9 @@ class Vehicle(metaclass=ABCMeta):
         Raises:
           InitialConnectionError: If the connection to the API could not be established.
         """
+        if not hasattr(self, '_api'):
+            return  # Abstract class without API implementation
+
         if isinstance(self._api, ThreadedAPI):
             self._api.start()
             while not self._api.connected:
