@@ -10,6 +10,11 @@ from ....data import BlockingRestAPI, InternetAccessInterface
 logger = logging.getLogger(__name__)
 
 
+class MetronomAPI(BlockingRestAPI):
+    # noinspection HttpUrlsUsage
+    API_URL = 'http://wifi.metronom.de'
+
+
 class MetronomInternetAccessInterface(BlockingRestAPI, InternetAccessInterface):
     # noinspection HttpUrlsUsage
     API_URL = 'http://wifi.metronom.de'
