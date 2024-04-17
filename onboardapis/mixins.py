@@ -10,7 +10,7 @@ from datetime import timedelta
 from typing import Generic
 
 from .exceptions import DataInvalidError
-from .data import Position, InternetAccessInterface, ID, StationType, API
+from .data import Position, InternetAccessInterface, ID, StationType
 from . import Station
 
 
