@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from .apis import GenericUnwiredTrain
 from .interfaces import GenericUnwiredAPI
+from .mixins import UnwiredJourneyMixin, UnwiredMapMixin
 
 __all__ = [
     "GenericUnwiredTrain",
