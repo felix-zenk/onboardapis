@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import logging
+
 from datetime import datetime, timedelta
 from typing import Dict, Any
 
@@ -6,15 +10,17 @@ from ....data import (
     ScheduledEvent,
 )
 from ... import Train, TrainStation
-from .connectors import InouiConnector
+from .interfaces import InouiConnector
+
+logger = logging.getLogger(__name__)
 
 
 class PortalINOUI(Train):
-    _data: InouiConnector
+    _api: InouiConnector
 
     def __init__(self):
         self._data = InouiConnector()
-        super().__init__()
+        Train.__init__(self)
 
     @property
     def id(self) -> str:
@@ -27,14 +33,14 @@ class PortalINOUI(Train):
         )  # todo carrier != type?
 
     @property
-    def number(self) -> str:
+    def line_number(self) -> str:
         return self._data["details"].get("number")
 
     @property
     def stations_dict(self) -> Dict[Any, TrainStation]:
         return {
             stop.get("code"): TrainStation(
-                station_id=stop.get("code"),
+                id=stop.get("code"),
                 name=stop.get("label"),
                 platform=None,
                 arrival=ScheduledEvent(
@@ -42,17 +48,21 @@ class PortalINOUI(Train):
                     actual=datetime.fromisoformat(stop.get("realDate")),
                 ),
                 departure=ScheduledEvent(
-                    scheduled=datetime.fromisoformat(stop.get("theoricDate"))
-                              + timedelta(minutes=int(stop.get("duration", 0))),
-                    actual=datetime.fromisoformat(stop.get("realDate"))
-                           + timedelta(minutes=int(stop.get("duration", 0))),
+                    scheduled=(
+                        datetime.fromisoformat(stop.get("theoricDate"))
+                        + timedelta(minutes=int(stop.get("duration", 0)))
+                    ),
+                    actual=(
+                        datetime.fromisoformat(stop.get("realDate"))
+                        + timedelta(minutes=int(stop.get("duration", 0)))
+                    ),
                 ),
                 position=Position(
                     latitude=int(stop.get("coordinates", {}).get("latitude", 0)),
                     longitude=int(stop.get("coordinates", {}).get("longitude", 0)),
                 ),
                 distance=float(stop.get("progress", {}).get("remainingDistance", 0)),
-                connections=self._data.connections(station_id=stop.get("code")),
+                _connections=self._data.connections(station_id=stop.get("code")),
             )
             for stop in self._data["details"].get("stops", [])
         }
@@ -85,6 +95,6 @@ class PortalINOUI(Train):
         return Position(
             latitude=float(gps.get("latitude", 0)),
             longitude=float(gps.get("longitude", 0)),
-            altitude=float(gps.get("altitude", 0)),
+            altitude=float(gps.get("with_altitude", 0)),
             heading=float(gps.get("heading", 0)),
         )

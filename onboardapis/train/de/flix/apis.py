@@ -1,20 +1,25 @@
+from __future__ import annotations
+
+import logging
+
 from ....units import ms
 from ....data import Position
-from ... import Train, IncompleteTrainMixin
-from .connectors import FlixTainmentConnector
+from ....mixins import PositionMixin, SpeedMixin
+from ... import Train
+from .interfaces import FlixTainmentAPI
+
+logger = logging.getLogger(__name__)
 
 
-class FlixTainment(IncompleteTrainMixin, Train):
-    """
-    Wrapper for interacting with the Flixtrain FLIXTainment API
-    (few methods are available, because the API is very sparse)
-    """
+class FlixTainment(Train, SpeedMixin, PositionMixin):
+    """Wrapper for interacting with the Flixtrain FLIXTainment API
+    (few methods are available, because the API is very sparse)."""
 
-    _data: FlixTainmentConnector
+    _api: FlixTainmentAPI
 
     def __init__(self):
-        self._data = FlixTainmentConnector()
-        super().__init__()
+        self._data = FlixTainmentAPI()
+        Train.__init__(self)
 
     @property
     def position(self) -> Position:
@@ -27,4 +32,6 @@ class FlixTainment(IncompleteTrainMixin, Train):
     def speed(self) -> float:
         return ms(kmh=float(self._data["position"].get("speed", 0.0)))
 
-    # No more information available
+    @property
+    def type(self) -> str:
+        return 'FLX'

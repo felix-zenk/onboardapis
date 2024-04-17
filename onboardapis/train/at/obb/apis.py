@@ -1,21 +1,25 @@
 from __future__ import annotations
 
+import logging
+
 from ....units import ms
 from ....data import Position
-from ... import Train, IncompleteTrainMixin
-from .connectors import RailnetRegioConnector
+from ... import Train
+from .interfaces import RailnetRegioAPI
+
+logger = logging.getLogger(__name__)
 
 
-class RailnetRegio(IncompleteTrainMixin, Train):
+class RailnetRegio(Train):
     """
     Wrapper for interacting with the ÖBB RailnetRegio API
     """
 
-    _data: RailnetRegioConnector
+    _api: RailnetRegioAPI
 
     def __init__(self):
-        self._data = RailnetRegioConnector()
-        super().__init__()
+        self._data = RailnetRegioAPI()
+        Train.__init__(self)
 
     @property
     def speed(self) -> float:
