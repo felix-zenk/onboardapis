@@ -1,10 +1,8 @@
 name: "Publish to PyPI"
 
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - '*.*.*' # Push events to matching semantic version tags 1.0.0, etc.
+  release:
+    types: [published]
 
 jobs:
   semver-check:
@@ -28,10 +26,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@4.1.2
-      - name: Set up Python 3.10
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.10"
+          python-version: "3.12"
       - name: Install build requirements
         run: >-
           python -m
