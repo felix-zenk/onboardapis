@@ -2,9 +2,8 @@ name: "Build package"
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - '*.*.*' # Push events to matching semantic version tags 1.0.0, etc.
+    branches:
+      - main
 
 jobs:
   build:
