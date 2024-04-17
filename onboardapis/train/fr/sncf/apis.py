@@ -19,22 +19,22 @@ class PortalINOUI(Train):
     _api: InouiConnector
 
     def __init__(self):
-        self._data = InouiConnector()
+        self._api = InouiConnector()
         Train.__init__(self)
 
     @property
     def id(self) -> str:
-        return self._data["details"].get("trainId")
+        return self._api["details"].get("trainId")
 
     @property
     def type(self) -> str:
-        return self._data["details"].get(
+        return self._api["details"].get(
             "carrier"
         )  # todo carrier != type?
 
     @property
     def line_number(self) -> str:
-        return self._data["details"].get("number")
+        return self._api["details"].get("number")
 
     @property
     def stations_dict(self) -> Dict[Any, TrainStation]:
@@ -62,9 +62,9 @@ class PortalINOUI(Train):
                     longitude=int(stop.get("coordinates", {}).get("longitude", 0)),
                 ),
                 distance=float(stop.get("progress", {}).get("remainingDistance", 0)),
-                _connections=self._data.connections(station_id=stop.get("code")),
+                _connections=self._api.connections(station_id=stop.get("code")),
             )
-            for stop in self._data["details"].get("stops", [])
+            for stop in self._api["details"].get("stops", [])
         }
 
     @property
@@ -72,26 +72,26 @@ class PortalINOUI(Train):
         current_station_id, *_ = (
             stop.get("code")
             for stop
-            in self._data["details"].get("stops", [])
+            in self._api["details"].get("stops", [])
             if 0 < int(stop.get("progress", {}).get('progressPercentage', 0)) < 100
         )
         return self.stations_dict.get(current_station_id)
 
     @property
     def speed(self) -> float:
-        return float(self._data["gps"].get("speed"))
+        return float(self._api["gps"].get("speed"))
 
     @property
     def distance(self) -> float:
         return sum(
             float(stop.get('progress', {}).get('traveledDistance', 0))
             for stop
-            in self._data['details'].get('stops', [])
+            in self._api['details'].get('stops', [])
         )
 
     @property
     def position(self) -> Position:
-        gps = self._data["gps"]
+        gps = self._api["gps"]
         return Position(
             latitude=float(gps.get("latitude", 0)),
             longitude=float(gps.get("longitude", 0)),

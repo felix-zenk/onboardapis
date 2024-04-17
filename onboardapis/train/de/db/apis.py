@@ -235,20 +235,20 @@ class ZugPortal(Train, StationsMixin[TrainStation]):
     _api: ZugPortalAPI
 
     def __init__(self):
-        self._data = ZugPortalAPI()
+        self._api = ZugPortalAPI()
         Train.__init__(self)
 
     @property
     def id(self) -> ID:
-        return self._data['journey'].get('no')
+        return self._api['journey'].get('no')
 
     @property
     def type(self) -> str:
-        return self._data['journey'].get('category')
+        return self._api['journey'].get('category')
 
     @property
     def line_number(self) -> str:
-        return self._data['journey'].get('name').lstrip(self.type).strip()
+        return self._api['journey'].get('name').lstrip(self.type).strip()
 
     @property
     def stations_dict(self) -> dict[ID, TrainStation]:
@@ -272,10 +272,10 @@ class ZugPortal(Train, StationsMixin[TrainStation]):
                     latitude=stop.get('station', {}).get('position', {}).get('latitude'),
                     longitude=stop.get('station', {}).get('position', {}).get('longitude')
                 ),
-                distance=self._data.distance(index),
-                _connections=self._data.connections(stop.get('station', {}).get('evaNo')),
+                distance=self._api.distance(index),
+                _connections=self._api.connections(stop.get('station', {}).get('evaNo')),
             )
-            for index, stop in enumerate(self._data['journey'].get('stops', []))
+            for index, stop in enumerate(self._api['journey'].get('stops', []))
         }
 
     @property

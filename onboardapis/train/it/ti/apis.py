@@ -24,12 +24,12 @@ class PortaleRegionale(Train):
     """A dict that contains the known stations (origin, destination and passed stations)"""
 
     def __init__(self):
-        self._data = PortaleRegionaleConnector()
+        self._api = PortaleRegionaleConnector()
         self._stations = dict()
         Train.__init__(self)
 
     def now(self) -> datetime:
-        return datetime.fromisoformat(self._data['infovaggio']['datetime'])
+        return datetime.fromisoformat(self._api['infovaggio']['datetime'])
 
     @property
     def id(self) -> ID:
@@ -37,23 +37,23 @@ class PortaleRegionale(Train):
 
     @property
     def line_number(self) -> str:
-        return self._data['infovaggio']['infos']['trackNumber']
+        return self._api['infovaggio']['infos']['trackNumber']
 
     def delay(self) -> timedelta:
-        delay_minutes = self._data['infovaggio']['infos'].get('delay', '')
+        delay_minutes = self._api['infovaggio']['infos'].get('delay', '')
         return timedelta() if delay_minutes in ('0', '') else timedelta(minutes=int(delay_minutes))
 
     @property
     def speed(self) -> float:
-        if self._data['infovaggio'].get('isGpsValid', 'false').lower() == 'true':
-            return ms(kmh=(float(self._data['infovaggio']['infos']['speed'])))
+        if self._api['infovaggio'].get('isGpsValid', 'false').lower() == 'true':
+            return ms(kmh=(float(self._api['infovaggio']['infos']['speed'])))
         raise DataInvalidError('GPS data invalid.')
 
     @property
     def stations_dict(self) -> dict[ID, TrainStation]:
-        first = self._data['infovaggio']['infos']['stazionePartenza']
-        current = self._data['infovaggio']['nextStation']
-        last = self._data['infovaggio']['infos']['stazioneArrivo']
+        first = self._api['infovaggio']['infos']['stazionePartenza']
+        current = self._api['infovaggio']['nextStation']
+        last = self._api['infovaggio']['infos']['stazioneArrivo']
 
         if len(self._stations) == 0:
             self._stations = {
@@ -91,4 +91,4 @@ class PortaleRegionale(Train):
 
     @property
     def current_station(self) -> TrainStation:
-        return self.stations_dict[self._data['infovaggio']['nextStation']]
+        return self.stations_dict[self._api['infovaggio']['nextStation']]

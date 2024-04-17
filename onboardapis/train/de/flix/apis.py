@@ -18,19 +18,19 @@ class FlixTainment(Train, SpeedMixin, PositionMixin):
     _api: FlixTainmentAPI
 
     def __init__(self):
-        self._data = FlixTainmentAPI()
+        self._api = FlixTainmentAPI()
         Train.__init__(self)
 
     @property
     def position(self) -> Position:
         return Position(
-            latitude=self._data["position"].get("latitude", None),
-            longitude=self._data["position"].get("longitude", None),
+            latitude=self._api["position"].get("latitude", None),
+            longitude=self._api["position"].get("longitude", None),
         )
 
     @property
     def speed(self) -> float:
-        return ms(kmh=float(self._data["position"].get("speed", 0.0)))
+        return ms(kmh=float(self._api["position"].get("speed", 0.0)))
 
     @property
     def type(self) -> str:

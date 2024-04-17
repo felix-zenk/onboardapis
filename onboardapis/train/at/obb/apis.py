@@ -18,19 +18,19 @@ class RailnetRegio(Train):
     _api: RailnetRegioAPI
 
     def __init__(self):
-        self._data = RailnetRegioAPI()
+        self._api = RailnetRegioAPI()
         Train.__init__(self)
 
     @property
     def speed(self) -> float:
-        return ms(kmh=self._data['gps']['JSON']['speed'])
+        return ms(kmh=self._api['gps']['JSON']['speed'])
 
     @property
     def position(self) -> Position:
         return Position(
-            latitude=self._data['gps']['JSON']['lat'],
-            longitude=self._data['gps']['JSON']['lon'],
+            latitude=self._api['gps']['JSON']['lat'],
+            longitude=self._api['gps']['JSON']['lon'],
             # these are only present in newer trains
-            altitude=self._data['gps']['JSON'].get('alt', None),
-            heading=self._data['gps']['JSON'].get('bearing', None),
+            altitude=self._api['gps']['JSON'].get('alt', None),
+            heading=self._api['gps']['JSON'].get('bearing', None),
         )
