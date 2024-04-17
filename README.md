@@ -4,7 +4,7 @@ onboardapis
 [![Python versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
 [![PyPI version](https://badge.fury.io/py/onboardapis.svg)](https://pypi.org/project/onboardapis)
 [![Build package](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml)
-[![Documentation status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/docs.yml?label=docs)](https://felix-zenk.github.io/onboardapis/docs/)
+[![Deploy documentation](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml)
 [![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
 > **Warning**: Version `2.0.0` introduces breaking changes! Existing code will definitely not work anymore.
