@@ -121,9 +121,9 @@ and the respective train's documentation.
 ---
 
 ## Documentation
-[![Documentation status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/docs.yml?label=docs)](https://felix-zenk.github.io/onboardapis/docs/)
+[![GitHub-Pages](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml/badge.svg)](https://felix-zenk.github.io/onboardapis/)
 
-#### Access the documentation on [GitHub-Pages](https://felix-zenk.github.io/onboardapis/docs/).
+#### Access the documentation on [GitHub-Pages](https://felix-zenk.github.io/onboardapis/).
 
 
 ## Supported APIs
