@@ -31,7 +31,6 @@ $ python -m pip install onboardapis
 ```
 
 ![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)
-[![Documentation (v1.3.2)](https://img.shields.io/badge/Docs_v1.3.2-_?color=3581b6)](https://onboardapis.readthedocs.io/en/stable/)
 
 ---
 
@@ -70,15 +69,14 @@ To begin with development you will need to know a few things first:
 * What country is the operator from
 
 With this information you can get the needed module from the package 
-``onboardapis.<vehicle-type>.<country-code>.<operator-code>`` 
-and import the API class from it.
-Read more on finding the API you are looking for in [Finding your API](#find-your-api)
+``onboardapis.<type>.<country>.<operator>`` and import the API class from it.
+For more specific information on finding the API you are looking for,
+see [Finding your API](#find-your-api).
 
-Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany.
-
-```python
-from onboardapis.train.de.db import ICEPortal
-```
+> **Example**: Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany:
+> ```python
+> from onboardapis.train.de.db import ICEPortal
+> ```
 
 Every vehicle has an ``init``-method that needs to be called to initialize the connection to the API.
 When using a vehicle as a context manager the ``init``-method will automatically be called.
@@ -107,8 +105,9 @@ print(
 )
 ```
 
-And there you go!
-You can read more information about available attributes in the ``onboardapis.train.Train`` and ``onboardapis.mixins`` documentation.
+And there you go!  
+You can read more information about available attributes in the ``onboardapis.train.Train`` and ``onboardapis.mixins`` documentation
+and the respective train's documentation.
 
 > **Note**: As you may have noticed by now, the package always returns `datetime` or `timedelta` objects for time based values
 > and other values like distances, velocity, etc. in SI units,
@@ -129,21 +128,21 @@ You can read more information about available attributes in the ``onboardapis.tr
 
 ## Supported APIs
 
-| API                   | [API scope](#api-scope) | Type  | Country      | Operator                                                                       |
-|-----------------------|-------------------------|-------|--------------|--------------------------------------------------------------------------------|
-| RailnetRegio          | geo                     | train | at (austria) | obb (Österreichische Bundesbahnen)                                             |
-| ICEPortal             | full                    | train | de (germany) | db (Deutsche Bahn)                                                             |
-| FlixTainment          | geo                     | train | de (germany) | flix (FlixTrain)                                                               |
-| MetronomCaptivePortal | basic                   | train | de (germany) | me (metronom Eisenbahngesellschaft) / bth (Alstom Transportation Germany GmbH) |
+| API                   | [API scope](#api-scope) | Type  | Country      | Operator                                                                           |
+|-----------------------|-------------------------|-------|--------------|------------------------------------------------------------------------------------|
+| RailnetRegio          | geo                     | train | at (Austria) | obb (Österreichische Bundesbahnen)                                                 |
+| ICEPortal             | full                    | train | de (Germany) | db (Deutsche Bahn / DB AG)                                                         |
+| FlixTainment          | geo                     | train | de (Germany) | flix (Flix Train GmbH)                                                             |
+| MetronomCaptivePortal | basic                   | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) / bth (ALSTOM Transportation Germany GmbH) |
 
-## APIs in testing phase
+## Experimental APIs
 
-| API              | [API scope](#api-scope) | Type  | Country      | Operator                                             |
-|------------------|-------------------------|-------|--------------|------------------------------------------------------|
-| PortalINOUI      | full                    | train | fr (france)  | sncf (Société nationale des chemins de fer français) |
-| ZugPortal        | full                    | train | de (germany) | db (Deutsche Bahn)                                   |
-| PortaleRegionale | journey-simple          | train | it (italy)   | ti (Trenitalia)                                      |
-| SBahnHannover    | journey-simple          | train | de (germany) | tdh (Transdev Hannover GmbH)                         |
+| API              | [API scope](#api-scope) | Type  | Country      | Operator                     |
+|------------------|-------------------------|-------|--------------|------------------------------|
+| PortalINOUI      | full                    | train | fr (France)  | sncf (SNCF Voyageurs)        |
+| ZugPortal        | full                    | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
+| PortaleRegionale | journey-simple          | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
+| SBahnHannover    | journey-simple          | train | de (Germany) | tdh (Transdev Hannover GmbH) |
 
 ## APIs in development
 
@@ -154,23 +153,28 @@ You can read more information about available attributes in the ``onboardapis.tr
 ## Find your API
 
 ##### 1. Determine vehicle type: ``train``, ``plane``, ``bus``, ``ship``, ``other``.
-##### 2. [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes)
+##### 2. Find the [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) of the operators country
 ##### 3. Operator code
+
+The operator code is vehicle type specific. The following IDs are used:
 
 | Vehicle type | Region | Register                                                    |
 |--------------|--------|-------------------------------------------------------------|
 | plane        | global | [ICAO](https://en.wikipedia.org/wiki/List_of_airline_codes) |
 | train        | europe | [VKM](https://www.era.europa.eu/domains/registers/vkm_en)   |
 
+---
+
 Combine these three values to `onboardapis.<type>.<country>.<operator>`.
 This is the module that contains the API.
 
 > **Hint**: You can also get the module path by looking at [Supported APIs](#supported-apis)
-> and taking the three values from there.
+> / [Experimental APIs](#experimental-apis) and taking the three values from there.
 
 ## API scope
 
-The API scope defines what information can be accessed through the API and is a general indicator of the API's quality.
+The API scope defines what information can be accessed through the API
+and is a general indicator of the API's capabilities.  
 The currently possible API scopes are:
 - ``basic``: Only basic information is available such as connection status to the API.
 - ``vehicle``: The API supplies information about the vehicle such as the train ID, line number, etc.
