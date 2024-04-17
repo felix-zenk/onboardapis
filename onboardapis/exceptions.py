@@ -21,7 +21,7 @@ class InitialConnectionError(APIConnectionError):
 
     __slots__ = ()
 
-    def __init__(self, message: str = "Unable to connect to the API, are you connected to the on-board WI-FI?", *args):
+    def __init__(self, message: str = "Unable to connect to the API, are you connected to the on-board Wi-Fi?", *args):
         super(InitialConnectionError, self).__init__(message, *args)
 
 

@@ -111,7 +111,7 @@ class ScheduledEvent(Generic[T]):
 class Position(object):
     """
     A position requires at least a latitude and longitude,
-    but can also provide data on with_altitude and the current compass heading.
+    but can also provide data on altitude and the current compass heading.
     """
 
     latitude: float
@@ -119,7 +119,7 @@ class Position(object):
     longitude: float
     """The longitude in decimal degrees"""
     altitude: float = None
-    """The with_altitude in meters"""
+    """The altitude in meters"""
     heading: float = None
     """The compass heading in degrees"""
 
@@ -174,7 +174,7 @@ class API(metaclass=ABCMeta):
         """
         return self._data.get(key, __default)
 
-    def store(self, key, value) -> None:
+    def store(self, key: str, value: Any) -> None:
         """Store data in the cache.
 
         Args:
@@ -219,7 +219,7 @@ def store(name=None):
 
 
 class ThreadedAPI(API, Thread):
-    """A ``API`` that refreshes the data in a new thread."""
+    """An ``API`` that refreshes the data in a new thread."""
 
     _running: bool
     _connected: bool
@@ -314,7 +314,7 @@ class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
 
 
 class BlockingGraphQlAPI(Client, API):
-    """A GraphQl ``API`` that uses a ``gql.client.Client`` to fetch data."""
+    """A GraphQL ``API`` that uses a ``gql.client.Client`` to fetch data."""
 
     def __init__(self, **kwargs) -> None:
         """Initialize a new ``BlockingGraphQlAPI``.
@@ -353,11 +353,11 @@ class InternetAccessInterface(metaclass=ABCMeta):
     """Interface adding functions for connecting and disconnecting to the internet
     as well as viewing the current status."""
 
-    _is_enabled = False
+    _is_enabled: bool = False
     """Cached information on connection status"""
 
     @abstractmethod
-    def enable(self):
+    def enable(self) -> None:
         """Enable the internet access for this device.
 
         Request internet access for this device by automatically accepting the terms of service
@@ -369,7 +369,7 @@ class InternetAccessInterface(metaclass=ABCMeta):
         self._is_enabled = True
 
     @abstractmethod
-    def disable(self):
+    def disable(self) -> None:
         """Disable the internet access for this device.
 
         Disable the internet access for this device by signing out of the captive portal.
@@ -383,7 +383,7 @@ class InternetAccessInterface(metaclass=ABCMeta):
         self._is_enabled = False
 
     @property
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         """Return whether the internet access is enabled for this device."""
         return self._is_enabled
 
@@ -392,5 +392,5 @@ class InternetMetricsInterface(metaclass=ABCMeta):
     """Interface for information on limited internet access."""
 
     @abstractmethod
-    def limit(self):
+    def limit(self) -> int | None:
         """Return the total internet access quota in MB or `None` if there is none."""

@@ -95,6 +95,6 @@ class PortalINOUI(Train):
         return Position(
             latitude=float(gps.get("latitude", 0)),
             longitude=float(gps.get("longitude", 0)),
-            altitude=float(gps.get("with_altitude", 0)),
+            altitude=float(gps.get("altitude", 0)),
             heading=float(gps.get("heading", 0)),
         )
