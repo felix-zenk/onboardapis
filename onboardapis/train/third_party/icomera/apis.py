@@ -15,6 +15,5 @@ class GenericIcomeraTrain(Train, InternetAccessMixin, metaclass=ABCMeta):
     _api: GenericIcomeraAPI
 
     def __init__(self):
-        self._api = GenericIcomeraAPI()
         Train.__init__(self)
         InternetAccessMixin.__init__(self)
