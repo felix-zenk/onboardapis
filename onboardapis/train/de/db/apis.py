@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE", "HIGH"]
 
 
-class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin):
+class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], InternetAccessMixin):
     """
     Wrapper for interacting with the DB ICE Portal API
     """
@@ -227,7 +227,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin, InternetAccessM
         return None if default(remaining_seconds) is None else timedelta(seconds=int(remaining_seconds))
 
 
-class ZugPortal(Train, StationsMixin):
+class ZugPortal(Train, StationsMixin[TrainStation]):
     """
     Wrapper for interacting with the DB Zug Portal API
     """

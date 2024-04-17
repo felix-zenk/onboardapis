@@ -8,4 +8,4 @@ logger = logging.getLogger(__name__)
 
 
 class SBahnHannover(GenericUnwiredTrain, UnwiredJourneyMixin):
-    pass
+    """Implementation for the S-Bahn Hannover."""
