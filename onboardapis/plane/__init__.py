@@ -11,14 +11,13 @@ from __future__ import annotations
 from abc import ABCMeta
 
 from .. import Vehicle
-from ..mixins import PositionMixin
 
 __all__ = [
     "Plane",
 ]
 
 
-class Plane(Vehicle, PositionMixin, metaclass=ABCMeta):
+class Plane(Vehicle, metaclass=ABCMeta):
     """
     Base class for planes
     """
