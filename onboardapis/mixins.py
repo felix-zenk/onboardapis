@@ -35,10 +35,10 @@ class SpeedMixin(metaclass=ABCMeta):
     @property
     @abstractmethod
     def speed(self) -> float:
-        """The current speed of the vehicle.
+        r"""The current speed of the vehicle.
 
         Returns:
-            The current speed in \\frac{meters}{second}
+            The current speed in $\frac{meters}{second}$
         """
         raise NotImplementedError
 
