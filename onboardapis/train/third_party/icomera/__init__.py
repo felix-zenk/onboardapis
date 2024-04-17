@@ -1,5 +1,11 @@
 """
-Implementation for the Icomera AB Passenger Wi-Fi.
+Implementation for Icomera AB.
+
+Contains the following APIs:
+
+- ``GenericIcomeraTrain``
+
+---
 """
 from __future__ import annotations
 

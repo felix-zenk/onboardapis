@@ -1,5 +1,11 @@
 """
-Implementation for the Unwired Networks GraphQL API
+Implementations for Unwired Networks GmbH.
+
+Contains the following APIs:
+
+- ``GenericUnwiredTrain``
+
+---
 """
 from __future__ import annotations
 

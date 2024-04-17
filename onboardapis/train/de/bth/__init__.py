@@ -1,5 +1,11 @@
 """
-This package contains APIs from trains of the Alstom Transportation Germany GmbH.
+Implementations for the ALSTOM Transportation Germany GmbH.
+
+Contains the following APIs:
+
+- ``MetronomCaptivePortal``
+
+---
 """
 from __future__ import annotations
 

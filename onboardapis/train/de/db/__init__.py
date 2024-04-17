@@ -1,5 +1,12 @@
 """
-Implementation for the German operator DB (Deutsche Bahn).
+Implementation for the German operator Deutsche Bahn / DB AG.
+
+Contains the following APIs:
+
+- ``ICEPortal``
+- ``ZugPortal``
+
+---
 """
 from __future__ import annotations
 

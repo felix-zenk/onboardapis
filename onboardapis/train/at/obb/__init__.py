@@ -1,5 +1,11 @@
 """
-Implementation of the Austrian operator ÖBB (Österreichische Bundesbahnen).
+Implementation of the Austrian operator Österreichische Bundesbahnen.
+
+Contains the following APIs:
+
+- ``RailnetRegio``
+
+---
 """
 from __future__ import annotations
 

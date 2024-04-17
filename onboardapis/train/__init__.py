@@ -6,6 +6,17 @@ Package for trains
 The operator ID for trains is different depending on the region.
 
 For Europe, the operator ID is the [VKM register code](https://www.era.europa.eu/domains/registers/vkm_en).
+
+---
+
+Contains the following countries:
+
+- ``onboardapis.train.at`` - Austria
+- ``onboardapis.train.de`` - Germany
+- ``onboardapis.train.fr`` - France
+- ``onboardapis.train.it`` - Italy
+
+---
 """
 from __future__ import annotations
 
@@ -21,6 +32,8 @@ from ..data import ScheduledEvent
 from typing import Iterable  # for associations while generating docs
 # noinspection PyUnresolvedReferences
 from ..data import ID, Position  # for associations while generating docs
+# noinspection PyUnresolvedReferences
+from datetime import datetime  # for associations while generating docs
 
 logger = logging.getLogger(__name__)
 
