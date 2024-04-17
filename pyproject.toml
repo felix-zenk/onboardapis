@@ -13,16 +13,14 @@ license = { text = "MIT" }
 authors = [
     { name = "Felix Zenk", email = "felix.zenk@web.de" },
 ]
-
 dependencies = [
     "geopy>=2.3.0",
-    # "gql[all]>=3.5.0",
+    "gql[all]>=3.5.0",
     "restfly>=1.4.7",
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.2",
     "typing-extensions>=4.9.0",
 ]
-
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -36,6 +34,11 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=7.0.0",
 ]
 
 [project.urls]
