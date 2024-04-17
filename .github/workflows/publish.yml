@@ -1,4 +1,4 @@
-name: "GitHub release"
+name: "Publish package"
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   semver-check:
+    name: SemVer check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,7 +22,7 @@ jobs:
             exit 1
           fi
   release:
-    name: Create GitHub Release
+    name: Publish distribution
     runs-on: ubuntu-latest
     needs: [ semver-check ]
     steps:
