@@ -3,7 +3,7 @@ onboardapis
 
 [![Python versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
 [![PyPI version](https://badge.fury.io/py/onboardapis.svg)](https://pypi.org/project/onboardapis)
-![Build status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/build.yml?branch=main)
+[![Build package](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml)
 [![Documentation status](https://img.shields.io/github/actions/workflow/status/felix-zenk/onboardapis/docs.yml?label=docs)](https://felix-zenk.github.io/onboardapis/docs/)
 [![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
