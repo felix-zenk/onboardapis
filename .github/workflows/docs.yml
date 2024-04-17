@@ -23,7 +23,7 @@ jobs:
         run: |
           pip install .
           pip install pdoc
-          pdoc onboardapis -o docs --math --logo-link "https://felix-zenk.github.io/onboardapis/docs"
+          pdoc ./onboardapis -o docs --math --logo-link "https://felix-zenk.github.io/onboardapis/docs"
       - name: Fix permissions
         run: |
           chmod -c -R +rX "docs/" | while read line; do
