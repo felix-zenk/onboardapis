@@ -1,4 +1,4 @@
-name: Website
+name: "Deploy Documentation"
 
 # build the documentation whenever there are new commits on main
 on:
@@ -24,7 +24,6 @@ jobs:
           pip install .
           pip install pdoc
           pdoc onboardapis -o docs --math --logo-link "https://felix-zenk.github.io/onboardapis/docs"
-          mv docs/onboardapis docs/docs
       - name: Fix permissions
         run: |
           chmod -c -R +rX "docs/" | while read line; do
