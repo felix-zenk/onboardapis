@@ -322,16 +322,16 @@ class BlockingGraphQlAPI(Client, API):
         Args:
             kwargs: The kwargs to pass to the underlying ``gql.client.Client``.
         """
-        kwargs |= dict(
-            transport=RequestsHTTPTransport(
+        kwargs.update({
+            'transport': kwargs.pop('transport', RequestsHTTPTransport(
                 url=self.API_URL,
                 headers={
                     'Content-Type': 'application/json',
                     'User-Agent': 'Python/onboardapis (%s)' % get_package_version(),
                 },
-            ),
-            fetch_schema_from_transport=True,
-        )
+            )),
+            'fetch_schema_from_transport': kwargs.pop('fetch_schema_from_transport', True),
+        })
         Client.__init__(self, **kwargs)
         API.__init__(self)
 
@@ -339,7 +339,7 @@ class BlockingGraphQlAPI(Client, API):
 class ThreadedGraphQlAPI(BlockingGraphQlAPI, ThreadedAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingGraphQlAPI``."""
 
-    def __init__(self, kwargs: Any = None) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``ThreadedGraphQlAPI``.
 
         Args:
