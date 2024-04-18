@@ -10,10 +10,13 @@ Contains the following APIs:
 from __future__ import annotations
 
 from .apis import GenericUnwiredTrain
-from .interfaces import GenericUnwiredAPI
+from .interfaces import GenericUnwiredAPI, GenericUnwiredInternetAccessInterface
 from .mixins import UnwiredJourneyMixin, UnwiredMapMixin
 
 __all__ = [
     "GenericUnwiredTrain",
     "GenericUnwiredAPI",
+    "GenericUnwiredInternetAccessInterface",
+    "UnwiredJourneyMixin",
+    "UnwiredMapMixin",
 ]

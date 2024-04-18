@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 from gql import gql
 
 from ....exceptions import InitialConnectionError
-from ....data import ThreadedGraphQlAPI, get_package_version
+from ....data import ThreadedGraphQlAPI, get_package_version, InternetAccessInterface
 
 logger = logging.getLogger(__name__)
 
@@ -202,3 +202,11 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
 
         journey = json.loads(response['feed_widget']['widget']['json'])
         self._data['journey'] = journey['course']
+
+
+class GenericUnwiredInternetAccessInterface(InternetAccessInterface):
+    def enable(self) -> None:  # TODO: implement
+        pass
+
+    def disable(self) -> None:  # TODO: implement
+        pass

@@ -3,19 +3,17 @@ from __future__ import annotations
 import logging
 import re
 
-from abc import ABCMeta
-from datetime import datetime, timedelta
-
 from ....mixins import InternetAccessMixin
 from ....data import ID
 from ... import Train
-from .interfaces import GenericUnwiredAPI
+from .interfaces import GenericUnwiredAPI, GenericUnwiredInternetAccessInterface
 
 logger = logging.getLogger(__name__)
 
 
 class GenericUnwiredTrain(Train, InternetAccessMixin):
     _api: GenericUnwiredAPI
+    _internet_access: GenericUnwiredInternetAccessInterface
 
     def __init__(self):
         Train.__init__(self)
