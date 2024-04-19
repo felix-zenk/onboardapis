@@ -201,7 +201,10 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
         )
 
         journey = json.loads(response['feed_widget']['widget']['json'])
-        self._data['journey'] = journey['course']
+        self._data['journey'] = (
+            {} if 'content' in journey.keys()  # No journey info found for your location!
+            else journey['course']
+        )
 
 
 class GenericUnwiredInternetAccessInterface(InternetAccessInterface):
