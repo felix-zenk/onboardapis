@@ -4,15 +4,15 @@ Implementation for the German operator Deutsche Bahn / DB AG.
 Contains the following APIs:
 
 - ``ICEPortal``
-- ``ZugPortal``
+- ``RegioGuide``
 
 ---
 """
 from __future__ import annotations
 
-from .apis import ICEPortal, ZugPortal
+from .apis import ICEPortal, RegioGuide
 
 __all__ = [
     "ICEPortal",
-    "ZugPortal"
+    "RegioGuide"
 ]

@@ -14,19 +14,19 @@ from geopy.distance import distance
 
 from ....data import (
     ID,
-    BlockingRestAPI,
+    ThreadedRestAPI,
     ScheduledEvent,
     default,
     store,
     InternetAccessInterface,
-    InternetMetricsInterface,
+    InternetMetricsInterface, BlockingRestAPI,
 )
 from ... import ConnectingTrain
 
 logger = logging.getLogger(__name__)
 
 
-class ICEPortalAPI(BlockingRestAPI):
+class ICEPortalAPI(ThreadedRestAPI):
     API_URL = "https://iceportal.de"
 
     @store('bap')
@@ -99,21 +99,22 @@ class ICEPortalAPI(BlockingRestAPI):
         return
 
 
-class ICEInternetAccessInterface(BlockingRestAPI, InternetAccessInterface, InternetMetricsInterface):
+class ICEInternetAccessInterface(InternetAccessInterface, InternetMetricsInterface):
     API_URL = 'https://login.wifionice.de'
 
     def enable(self):
         """WIP: DOES NOT WORK YET!"""
-        soup = BeautifulSoup(self.get('de').text, 'html.parser')
+        response = self._api.get('de')
+        soup = BeautifulSoup(response.text, 'html.parser')
 
         # Check if the user is already online
         if soup.find(id='accept') is None:
             return
 
         # User is offline
-        logger.info('Cookie: %s', self._session.cookies['csrf'])
-        response = self.post('de', json={
-            'CSRFToken': self._session.cookies['csrf'],
+        logger.info('Cookie: %s', response.cookies['csrf'])
+        response = self._api.post('de', json={
+            'CSRFToken': response.cookies['csrf'],
             'login': True,
         })
         response.raise_for_status()
@@ -124,15 +125,16 @@ class ICEInternetAccessInterface(BlockingRestAPI, InternetAccessInterface, Inter
 
     def disable(self):
         """WIP: DOES NOT WORK YET!"""
-        soup = BeautifulSoup(self.get('de').text, 'html.parser')
+        response = self._api.get('de')
+        soup = BeautifulSoup(response.text, 'html.parser')
 
         # Check if user is already offline
         if soup.find(id='accept') is not None:
             return
 
         # User is online
-        response = self.post('de', json={
-            'CSRFToken': self._session.cookies['csrf'],
+        response = self._api.post('de', json={
+            'CSRFToken': response.cookies['csrf'],
             'logout': True,
         })
         response.raise_for_status()
@@ -144,11 +146,11 @@ class ICEInternetAccessInterface(BlockingRestAPI, InternetAccessInterface, Inter
     @property
     def is_enabled(self) -> bool:
         return BeautifulSoup(
-            self.get('de').text, 'html.parser'
+            self._api.get('de').text, 'html.parser'
         ).find(id='accept') is None
 
     def limit(self) -> float | None:
-        usage_info = self.get('usage_info')
+        usage_info = self._api.get('usage_info')
         if usage_info.status_code == HTTPStatus.NOT_IMPLEMENTED:
             return None
         return usage_info.json()['limit']  # TODO min api version = 14?
@@ -177,8 +179,8 @@ class ModeOfTransport(Enum):
         return self.local_trains + self.long_distance_trains
 
 
-class ZugPortalAPI(BlockingRestAPI):
-    API_URL = "https://zugportal.de"
+class RegioGuideAPI(BlockingRestAPI):
+    API_URL = "https://regio-guide.de"
 
     @store('journey')
     def journey(self):
@@ -229,3 +231,7 @@ class ZugPortalAPI(BlockingRestAPI):
             for item
             in departure_board.get('items', [])
         )
+
+
+ZugPortalAPI = RegioGuideAPI
+"""Renamed by DB. Use RegioGuideAPI instead."""

@@ -6,13 +6,15 @@ import re
 from typing import Literal
 from datetime import datetime, timedelta
 
+from typing_extensions import deprecated
+
 from ....exceptions import DataInvalidError
 from ....data import ID, default, ScheduledEvent, Position
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
 from ....units import ms
 from ... import Train, TrainStation
 from .mappings import id_name_map
-from .interfaces import ICEPortalAPI, ZugPortalAPI
+from .interfaces import ICEPortalAPI, RegioGuideAPI
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +22,7 @@ InternetStatus = Literal["NO_INFO", "NO_INTERNET", "UNSTABLE", "WEAK", "MIDDLE",
 
 
 class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], InternetAccessMixin):
-    """
-    Wrapper for interacting with the DB ICE Portal API
-    """
+    """Wrapper for interacting with the DB ICE Portal API."""
 
     _api: ICEPortalAPI
 
@@ -228,15 +228,13 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         return None if default(remaining_seconds) is None else timedelta(seconds=int(remaining_seconds))
 
 
-class ZugPortal(Train, StationsMixin[TrainStation]):
-    """
-    Wrapper for interacting with the DB Zug Portal API
-    """
+class RegioGuide(Train, StationsMixin[TrainStation]):
+    """Wrapper for interacting with the DB Regio-Guide API, formerly Zug Portal."""
 
-    _api: ZugPortalAPI
+    _api: RegioGuideAPI
 
     def __init__(self):
-        self._api = ZugPortalAPI()
+        self._api = RegioGuideAPI()
         Train.__init__(self)
 
     @property
@@ -282,7 +280,11 @@ class ZugPortal(Train, StationsMixin[TrainStation]):
     @property
     def current_station(self) -> TrainStation:
         station, *_ = (*filter(
-            lambda s: self.now() < default(s.arrival.actual, s.departure.actual),
+            lambda s: self.now < default(s.arrival.actual, s.departure.actual),
             self.stations
         ), None)
         return self.destination if station is None else station
+
+
+ZugPortal = deprecated('Renamed by DB. Use RegioGuide instead.')(RegioGuide)
+"""Renamed by DB. Use RegioGuide instead."""
