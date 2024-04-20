@@ -56,7 +56,7 @@ class UnwiredJourneyMixin(Train, StationsMixin[TrainStation], metaclass=ABCMeta)
     @property
     def current_station(self) -> TrainStation:
         station, *_ = filter(
-            lambda s: self.now() < s.arrival.actual,
+            lambda s: self.now < s.arrival.actual,
             filter(
                 lambda s: s.arrival.actual is not None,
                 self.stations
