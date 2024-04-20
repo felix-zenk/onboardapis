@@ -62,7 +62,7 @@ class Vehicle(metaclass=ABCMeta):
 
         if isinstance(self._api, ThreadedAPI):
             self._api.start()
-            while not self._api.connected:
+            while not self._api.is_connected:
                 sleep(.1)
             return
 
@@ -77,6 +77,7 @@ class Vehicle(metaclass=ABCMeta):
         """
         pass
 
+    @property
     def now(self) -> datetime:
         """
         Get the current time as seen by the vehicle

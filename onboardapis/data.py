@@ -138,14 +138,16 @@ class Position(object):
     def __getitem__(self, item):
         return (self.latitude, self.longitude)[item]
 
-    def calculate_distance(self, other):
+    def calculate_distance(self, other: Position | Point) -> float:
         """
         Calculate the distance (in meters) between this position and another position.
 
         :param other: The other position
         :return: The distance in meters
         """
-        return geodesic(self.to_point(), other.to_point()).meters
+        if not isinstance(other, (Position, Point)):
+            raise ValueError
+        return geodesic(self.to_point(), other.to_point() if isinstance(other, Position) else other).meters
 
     def to_point(self, with_altitude: bool = False) -> Point:
         """Convert to a ``geopy.point.Point``."""
@@ -162,17 +164,17 @@ class API(metaclass=ABCMeta):
         """Initialize a new ``API``."""
         self._data = dict()
 
-    def load(self, key: str, __default: Any = None) -> Any:
+    def load(self, key: str, default: Any = None) -> Any:  # noqa: F402
         """Load data from the cache.
 
         Args:
             key: The key to load.
-            __default: The default value to return if the key is not present.
+            default: The default value to return if the key is not present.
 
         Returns:
             The data if present, else the default.
         """
-        return self._data.get(key, __default)
+        return self._data.get(key, default)
 
     def store(self, key: str, value: Any) -> None:
         """Store data in the cache.
@@ -221,8 +223,8 @@ def store(name=None):
 class ThreadedAPI(API, Thread):
     """An ``API`` that refreshes the data in a new thread."""
 
-    _running: bool
-    _connected: bool
+    _is_running: bool
+    _is_connected: bool
 
     def __init__(self) -> None:
         """Initialize a new ``ThreadedAPI``."""
@@ -233,21 +235,21 @@ class ThreadedAPI(API, Thread):
             name=f"API-Thread for '{self.API_URL}'",
             daemon=True,
         )
-        self._running = False
-        self._connected = False
+        self._is_running = False
+        self._is_connected = False
 
     @property
-    def connected(self) -> bool:
+    def is_connected(self) -> bool:
         """Check whether the connector is connected to the server"""
-        return self._connected and self._running
+        return self._is_connected and self._is_running
 
     def _run(self) -> None:
         """The main loop that will run in a separate thread."""
         # thread join checks per second
         tps = 20
         counter = 0
-        self._running = True
-        while self._running:
+        self._is_running = True
+        while self._is_running:
             # If the counter is not 0, just wait and check for a thread join
             if counter != 0:
                 time.sleep(1 / tps)
@@ -259,7 +261,7 @@ class ThreadedAPI(API, Thread):
 
             try:
                 self.refresh()
-                self._connected = True
+                self._is_connected = True
             except APIConnectionError as e:
                 logger.error(f"{e}")
                 continue
@@ -268,7 +270,7 @@ class ThreadedAPI(API, Thread):
 
     def stop(self) -> None:
         """Stop requesting data and shut down the separate thread."""
-        self._running = False
+        self._is_running = False
         if self.is_alive():
             self.join()
 
@@ -277,7 +279,7 @@ class ThreadedAPI(API, Thread):
         self.stop()
         Thread.__init__(self)
         API.__init__(self)
-        self._connected = False
+        self._is_connected = False
 
     @abstractmethod
     def refresh(self) -> None:
@@ -306,7 +308,7 @@ class BlockingRestAPI(APISession, API):
 class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingRestAPI``."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``ThreadedRestAPI``."""
         kwargs['url'] = kwargs.pop('url', self.API_URL)
         APISession.__init__(self, **kwargs)
@@ -316,7 +318,7 @@ class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
 class BlockingGraphQlAPI(Client, API):
     """A GraphQL ``API`` that uses a ``gql.client.Client`` to fetch data."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``BlockingGraphQlAPI``.
 
         Args:
