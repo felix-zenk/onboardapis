@@ -13,6 +13,6 @@ class SBahnHannover(GenericUnwiredTrain, UnwiredJourneyMixin):
 
     def __init__(self) -> None:
         self._api = GenericUnwiredAPI()
-        self._internet_access = GenericUnwiredInternetAccessInterface()
+        self._internet_access = GenericUnwiredInternetAccessInterface(self._api)
         GenericUnwiredTrain.__init__(self)
         UnwiredJourneyMixin.__init__(self)
