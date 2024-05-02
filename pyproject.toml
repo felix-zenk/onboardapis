@@ -8,7 +8,11 @@ description = "A pure Python wrapper for the on-board APIs of many different tra
 version = "2.0.0rc2"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.8"
-keywords = ["api", "train", "public-transport"]
+keywords = [
+    "public-transport",
+    "train",
+    "api",
+]
 license = { text = "MIT" }
 authors = [
     { name = "Felix Zenk", email = "felix.zenk@web.de" },
@@ -50,7 +54,7 @@ Repository = "https://github.com/felix-zenk/onboardapis"
 Issues = "https://github.com/felix-zenk/onboardapis/issues"
 
 [tool.setuptools.packages.find]
-include = ["onboardapis*"]
+include = ["onboardapis", "onboardapis.*"]
 
 [tool.setuptools.package-data]
 onboardapis = ["py.typed"]
