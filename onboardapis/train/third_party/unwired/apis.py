@@ -16,6 +16,10 @@ class GenericUnwiredTrain(Train, InternetAccessMixin):
     _internet_access: GenericUnwiredInternetAccessInterface
 
     def __init__(self):
+        if not hasattr(self, '_api'):
+            self._api = GenericUnwiredAPI()
+        if not hasattr(self, '_internet_access'):
+            self._internet_access = GenericUnwiredInternetAccessInterface(self._api)
         Train.__init__(self)
         InternetAccessMixin.__init__(self)
 
