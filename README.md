@@ -3,9 +3,9 @@ onboardapis
 
 [![Python versions](https://img.shields.io/pypi/pyversions/onboardapis)](https://pypi.org/project/onboardapis)
 [![PyPI version](https://badge.fury.io/py/onboardapis.svg)](https://pypi.org/project/onboardapis)
+[![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)  
 [![Build package](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml)
 [![Deploy documentation](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml)
-[![License](https://img.shields.io/github/license/felix-zenk/onboardapis)](https://github.com/felix-zenk/onboardapis/blob/main/LICENSE)
 
 > **Warning**: Version `2.0.0` introduces breaking changes! Existing code will definitely not work anymore.
 
@@ -32,6 +32,16 @@ $ python -m pip install onboardapis
 
 ![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)
 
+or the latest prerelease version of onboardapis
+from [PyPI](https://pypi.org/project/onboardapis)
+using [pip](https://pip.pypa.io/en/stable/installation/):
+
+```shell
+$ python -m pip install --pre onboardapis
+```
+
+![Version](https://img.shields.io/badge/v2.0.0rc2-%20?color=1081c2)
+
 ---
 
 Install the latest development version of onboardapis
@@ -41,22 +51,6 @@ using [pip](https://pip.pypa.io/en/stable/installation/):
 ```shell
 $ python -m pip install git+https://github.com/felix-zenk/onboardapis.git
 ```
-
-![Version](https://img.shields.io/badge/v2.0.0-%20?color=1081c2)
-
----
-
-Clone the repository
-from [GitHub](https://github.com/felix-zenk/onboardapis)
-and install the package in development mode:
-
-```shell
-$ git clone https://github.com/felix-zenk/onboardapis.git
-$ cd onboardapis
-$ python -m pip install -e .
-```
-
-![Version](https://img.shields.io/badge/v2.0.0-%20?color=1081c2)
 
 ---
 
