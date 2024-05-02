@@ -13,6 +13,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
+from json import JSONDecodeError
 from typing import TypeVar, Generic, ClassVar, Any
 from threading import Thread
 
@@ -23,7 +24,7 @@ from gql.transport.requests import RequestsHTTPTransport
 from restfly import APISession
 
 from .units import coordinates_decimal_to_dms
-from .exceptions import APIConnectionError
+from .exceptions import APIConnectionError, InitialConnectionError
 
 __all__ = [
     "ID",
@@ -39,8 +40,6 @@ __all__ = [
     "ThreadedRestAPI",
     "BlockingGraphQlAPI",
     "ThreadedGraphQlAPI",
-    "InternetAccessInterface",
-    "InternetMetricsInterface",
 ]
 
 logger = logging.getLogger(__name__)
@@ -52,7 +51,10 @@ ID = TypeVar("ID", str, int)
 """A TypeVar indicating the return type of Vehicle.id"""
 
 StationType = TypeVar("StationType", bound="Station")
-"""A TypeVar indicating the return type of the StationsMixin properties"""
+"""A TypeVar indicating the Station type"""
+
+ApiType = TypeVar("ApiType", bound="API")
+"""A TypeVar indicating the API type"""
 
 
 def get_package_version() -> str:
@@ -262,7 +264,9 @@ class ThreadedAPI(API, Thread):
             try:
                 self.refresh()
                 self._is_connected = True
-            except APIConnectionError as e:
+            except (APIConnectionError, JSONDecodeError) as e:
+                if not self._is_connected:
+                    raise InitialConnectionError from e
                 logger.error(f"{e}")
                 continue
 
@@ -349,50 +353,3 @@ class ThreadedGraphQlAPI(BlockingGraphQlAPI, ThreadedAPI, metaclass=ABCMeta):
         """
         BlockingGraphQlAPI.__init__(self, **kwargs)
         ThreadedAPI.__init__(self)
-
-
-class InternetAccessInterface(metaclass=ABCMeta):
-    """Interface adding functions for connecting and disconnecting to the internet
-    as well as viewing the current status."""
-
-    _is_enabled: bool = False
-    """Cached information on connection status"""
-
-    @abstractmethod
-    def enable(self) -> None:
-        """Enable the internet access for this device.
-
-        Request internet access for this device by automatically accepting the terms of service
-        and signing in to the captive portal.
-
-        Raises:
-            ConnectionError: If the internet access is temporarily not available.
-        """
-        self._is_enabled = True
-
-    @abstractmethod
-    def disable(self) -> None:
-        """Disable the internet access for this device.
-
-        Disable the internet access for this device by signing out of the captive portal.
-
-        Raises:
-            ConnectionError: If the internet access is temporarily not available.
-        """
-        if not self.is_enabled:
-            return
-
-        self._is_enabled = False
-
-    @property
-    def is_enabled(self) -> bool:
-        """Return whether the internet access is enabled for this device."""
-        return self._is_enabled
-
-
-class InternetMetricsInterface(metaclass=ABCMeta):
-    """Interface for information on limited internet access."""
-
-    @abstractmethod
-    def limit(self) -> int | None:
-        """Return the total internet access quota in MB or `None` if there is none."""

@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from .data import ID, StationType, Position, InternetAccessInterface
+from .data import ID, StationType, Position
+from .mixins import InternetAccessInterface
 
 
 class SupportsPosition(Protocol):

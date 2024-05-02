@@ -10,8 +10,7 @@ from datetime import timedelta
 from typing import Generic
 
 from .exceptions import DataInvalidError
-from .data import Position, InternetAccessInterface, ID, StationType
-from . import Station
+from .data import Position, ID, StationType, API
 
 
 class PositionMixin(metaclass=ABCMeta):
@@ -48,7 +47,7 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
     Functionality for a vehicle that provides information on the journey.
     """
 
-    def calculate_distance(self, station: Station) -> float:
+    def calculate_distance(self, station: StationType) -> float:
         """Calculate the distance in meters between the train and a station.
 
         Use the trains ``position`` or ``distance`` to calculate the distance to ``station``.
@@ -150,9 +149,63 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
 
 
 class InternetAccessMixin(metaclass=ABCMeta):
+    """Adds the internet_access property to a class
+    that defines an :class:`InternetAccessInterface` as ``_internet_access``."""
     _internet_access: InternetAccessInterface
 
     @property
     def internet_access(self) -> InternetAccessInterface:
-        """An interface to enable or disable the internet access for this device."""
+        """An interface to manage the internet access for this device."""
         return self._internet_access
+
+
+class InternetAccessInterface(metaclass=ABCMeta):
+    """Interface adding functions for connecting and disconnecting to the internet
+    as well as viewing the current status."""
+
+    _is_enabled: bool = False
+    """Cached information on connection status"""
+    _api: API
+
+    def __init__(self, api: API) -> None:
+        self._api = api
+
+    @abstractmethod
+    def enable(self) -> None:
+        """Enable the internet access for this device.
+
+        Request internet access for this device by automatically accepting the terms of service
+        and signing in to the captive portal.
+
+        Raises:
+            ConnectionError: If the internet access is temporarily not available.
+        """
+        self._is_enabled = True
+
+    @abstractmethod
+    def disable(self) -> None:
+        """Disable the internet access for this device.
+
+        Disable the internet access for this device by signing out of the captive portal.
+
+        Raises:
+            ConnectionError: If the internet access is temporarily not available.
+        """
+        if not self.is_enabled:
+            return
+
+        self._is_enabled = False
+
+    @property
+    def is_enabled(self) -> bool:
+        """Return whether the internet access is enabled for this device."""
+        return self._is_enabled
+
+
+class InternetMetricsInterface(metaclass=ABCMeta):
+    """Interface for information on limited internet access."""
+
+    @abstractmethod
+    def limit(self) -> int | None:
+        """Return the total internet access quota in MB or `None` if there is none."""
+

@@ -5,7 +5,8 @@ import logging
 from bs4 import BeautifulSoup
 
 from ....exceptions import APIConnectionError
-from ....data import BlockingRestAPI, InternetAccessInterface
+from ....data import BlockingRestAPI
+from ....mixins import InternetAccessInterface
 
 logger = logging.getLogger(__name__)
 

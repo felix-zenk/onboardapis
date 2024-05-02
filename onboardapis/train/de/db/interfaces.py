@@ -18,9 +18,9 @@ from ....data import (
     ScheduledEvent,
     default,
     store,
-    InternetAccessInterface,
-    InternetMetricsInterface, BlockingRestAPI,
+    BlockingRestAPI,
 )
+from ....mixins import InternetAccessInterface, InternetMetricsInterface
 from ... import ConnectingTrain
 
 logger = logging.getLogger(__name__)
@@ -99,8 +99,8 @@ class ICEPortalAPI(ThreadedRestAPI):
         return
 
 
-class ICEInternetAccessInterface(InternetAccessInterface, InternetMetricsInterface):
-    API_URL = 'https://login.wifionice.de'
+class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterface):
+    _api: ICEPortalAPI
 
     def enable(self):
         """WIP: DOES NOT WORK YET!"""

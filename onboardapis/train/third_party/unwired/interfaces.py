@@ -10,7 +10,8 @@ from urllib.parse import parse_qs, urlparse
 from gql import gql
 
 from ....exceptions import InitialConnectionError
-from ....data import ThreadedGraphQlAPI, get_package_version, InternetAccessInterface
+from ....data import ThreadedGraphQlAPI, get_package_version
+from ....mixins import InternetAccessInterface
 
 logger = logging.getLogger(__name__)
 
