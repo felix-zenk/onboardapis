@@ -14,7 +14,7 @@ from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessM
 from ....units import ms
 from ... import Train, TrainStation
 from .mappings import id_name_map
-from .interfaces import ICEPortalAPI, RegioGuideAPI
+from .interfaces import ICEPortalAPI, RegioGuideAPI, ICEPortalInternetInterface
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,11 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
     """Wrapper for interacting with the DB ICE Portal API."""
 
     _api: ICEPortalAPI
+    _internet_access: ICEPortalInternetInterface
 
     def __init__(self):
         self._api = ICEPortalAPI()
+        self._internet_access = ICEPortalInternetInterface(self._api)
         Train.__init__(self)
 
     def now(self) -> datetime:
@@ -104,7 +106,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         # Get the station from the stations dict
         try:
             return self.stations_dict[station_id]
-        except AttributeError as e:
+        except KeyError as e:
             raise DataInvalidError("No current station found") from e
 
     @property
