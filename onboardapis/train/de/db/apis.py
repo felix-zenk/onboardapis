@@ -103,6 +103,14 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
             self._api["trip"].get("trip", {}).get("stopInfo", {})
         )
         station_id = default(stop_info.get("actualNext"))
+        if station_id is None:  # None if the arrival time of the last station has passed
+            stop, *_ = *filter(
+                lambda s: not s.get("info", {}).get("passed", True),
+                self._api["trip"].get("trip", {}).get("stops", [])
+            ), None
+            if stop is None:  # None if all stations have been passed
+                return self.destination
+            station_id = stop.get("station", {}).get("evaNr")
         # Get the station from the stations dict
         try:
             return self.stations_dict[station_id]
