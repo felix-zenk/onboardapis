@@ -30,17 +30,17 @@ using [pip](https://pip.pypa.io/en/stable/installation/):
 $ python -m pip install onboardapis
 ```
 
-![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)
+[![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)](https://pypi.org/project/onboardapis)
 
 or the latest prerelease version of onboardapis
-from [PyPI](https://pypi.org/project/onboardapis)
+from [PyPI](https://pypi.org/project/onboardapis/2.0.0rc3/)
 using [pip](https://pip.pypa.io/en/stable/installation/):
 
 ```shell
 $ python -m pip install --pre onboardapis
 ```
 
-![Version](https://img.shields.io/badge/v2.0.0rc2-%20?color=1081c2)
+[![Version](https://img.shields.io/badge/v2.0.0rc3-%20?color=1081c2)](https://pypi.org/project/onboardapis/2.0.0rc3/)
 
 ---
 
@@ -122,21 +122,27 @@ and the respective train's documentation.
 
 ## Supported APIs
 
-| API                   | [API scope](#api-scope) | Type  | Country      | Operator                                                                           |
-|-----------------------|-------------------------|-------|--------------|------------------------------------------------------------------------------------|
-| RailnetRegio          | geo                     | train | at (Austria) | obb (Österreichische Bundesbahnen)                                                 |
-| ICEPortal             | full                    | train | de (Germany) | db (Deutsche Bahn / DB AG)                                                         |
-| FlixTainment          | geo                     | train | de (Germany) | flix (Flix Train GmbH)                                                             |
-| MetronomCaptivePortal | basic                   | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) / bth (ALSTOM Transportation Germany GmbH) |
+| API                   | [API scope](#api-scope)   | Type  | Country      | Operator                                |
+|-----------------------|---------------------------|-------|--------------|-----------------------------------------|
+| RailnetRegio          | geo                       | train | at (Austria) | obb (Österreichische Bundesbahnen)      |
+| ICEPortal             | full, *internet-access*\* | train | de (Germany) | db (Deutsche Bahn / DB AG)              |
+| FlixTainment          | geo                       | train | de (Germany) | flix (Flix Train GmbH)                  |
+| MetronomCaptivePortal | *internet-access*\*       | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) |
+
+> **Notes**:
+> - \* Managing internet access is not yet supported.
 
 ## Experimental APIs
 
-| API              | [API scope](#api-scope) | Type  | Country      | Operator                     |
-|------------------|-------------------------|-------|--------------|------------------------------|
-| PortalINOUI      | full                    | train | fr (France)  | sncf (SNCF Voyageurs)        |
-| ZugPortal        | full                    | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
-| PortaleRegionale | journey-simple          | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
-| SBahnHannover    | journey-simple          | train | de (Germany) | tdh (Transdev Hannover GmbH) |
+| API              | [API scope](#api-scope)             | Type  | Country      | Operator                     |
+|------------------|-------------------------------------|-------|--------------|------------------------------|
+| PortalINOUI      | full                                | train | fr (France)  | sncf (SNCF Voyageurs)        |
+| ZugPortal        | full                                | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
+| PortaleRegionale | journey-simple                      | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
+| SBahnHannover    | journey-simple, *internet-access*\* | train | de (Germany) | tdh (Transdev Hannover GmbH) |
+
+> **Notes**:
+> - \* Managing internet access is not yet supported.
 
 ## APIs in development
 
@@ -176,3 +182,4 @@ The currently possible API scopes are:
 - ``journey-simple``: The API supplies simple journey information including the current station and the destination station.
 - ``journey``: The API supplies detailed journey information including all the stations and possibly connecting services.
 - ``full``: All of the above.
+- ``internet-access``: The API provides internet access to the user.
