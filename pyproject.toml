@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "onboardapis"
 description = "A pure Python wrapper for the on-board APIs of many different transportation providers."
-version = "2.0.0rc2"
+version = "2.0.0rc3"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.8"
 keywords = [
@@ -23,7 +23,8 @@ dependencies = [
     "restfly>=1.4.7",
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.2",
-    "typing-extensions>=4.9.0",
+    "typing-extensions>=4.9.0;python_version<'3.8'",
+    "importlib-metadata;python_version<'3.8'"
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -43,8 +44,13 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "flake8>=7.0.0",
+    "Flake8-pyproject>=1.2.3",
     "pdoc>=14.4.0",
     "build>=1.2.1",
+    "pytest>=8.2.0",
+    "pytest-cov>=5.0.0",
+    "testcontainers>=3.7.1",
+    "wiremock[testing]>=2.6.1",
 ]
 
 [project.urls]
@@ -58,3 +64,9 @@ include = ["onboardapis", "onboardapis.*"]
 
 [tool.setuptools.package-data]
 onboardapis = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.flake8]
+max-line-length = 120

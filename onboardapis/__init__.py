@@ -34,6 +34,15 @@ __all__ = [
 ]
 
 
+def _package_version() -> str:
+    import sys
+    if (3, 8) <= sys.version_info:
+        from importlib.metadata import version
+    else:
+        from importlib_metadata import version
+    return version('onboardapis')
+
+
 class Vehicle(metaclass=ABCMeta):
     """
     Base class for all vehicles
