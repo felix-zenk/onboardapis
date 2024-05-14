@@ -10,9 +10,10 @@ Contains the following APIs:
 """
 from __future__ import annotations
 
-from .apis import ICEPortal, RegioGuide
+from .apis import ICEPortal, RegioGuide, ZugPortal
 
 __all__ = [
     "ICEPortal",
-    "RegioGuide"
+    "RegioGuide",
+    "ZugPortal",
 ]

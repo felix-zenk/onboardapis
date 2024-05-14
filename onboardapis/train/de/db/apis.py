@@ -297,9 +297,11 @@ class RegioGuide(Train, StationsMixin[TrainStation]):
         return self.destination if station is None else station
 
 
-ZugPortal = deprecated(
+@deprecated(
+    deprecated_in='2.0.0rc3',
     removed_in='2.0.0',
     current_version=_package_version(),
     details='Renamed by DB. Use RegioGuide instead.'
-)(RegioGuide)
-"""Renamed by DB. Use RegioGuide instead."""
+)
+class ZugPortal(RegioGuide):
+    """Renamed by DB. Use RegioGuide instead."""
