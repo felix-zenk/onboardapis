@@ -35,11 +35,7 @@ __all__ = [
 
 
 def _package_version() -> str:
-    import sys
-    if (3, 8) <= sys.version_info:
-        from importlib.metadata import version
-    else:
-        from importlib_metadata import version
+    from importlib.metadata import version
     return version('onboardapis')
 
 
