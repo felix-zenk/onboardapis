@@ -23,6 +23,7 @@ dependencies = [
     "restfly>=1.4.7",
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.2",
+    "deprecation>=2.1.0",
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
