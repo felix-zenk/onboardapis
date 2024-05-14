@@ -182,6 +182,8 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
 
     def __init__(self):
         ThreadedGraphQlAPI.__init__(self)
+
+    def init(self):
         try:
             response = requests.get(
                 'https://unwired.info/?source=wasabi',

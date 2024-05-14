@@ -60,6 +60,8 @@ class Vehicle(metaclass=ABCMeta):
         if not hasattr(self, '_api'):
             return  # Abstract class without API implementation
 
+        self._api.init()
+
         if isinstance(self._api, ThreadedAPI):
             self._api.start()
             while not self._api.is_connected:
