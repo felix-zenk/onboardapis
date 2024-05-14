@@ -72,7 +72,7 @@ class Train(Vehicle, metaclass=ABCMeta):
     """
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self.id}>"
+        return f"<{self.__class__.__name__}>"
 
     @property
     def type(self) -> str:
