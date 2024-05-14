@@ -24,12 +24,13 @@ import logging
 
 from abc import ABCMeta
 from dataclasses import dataclass
+from typing import cast
 
 from .. import Vehicle, Station, ConnectingVehicle
 from ..data import ScheduledEvent
 
 # noinspection PyUnresolvedReferences
-from typing import Iterable, cast  # for associations while generating docs
+from typing import Iterable  # for associations while generating docs
 # noinspection PyUnresolvedReferences
 from ..data import ID, Position  # for associations while generating docs
 # noinspection PyUnresolvedReferences
