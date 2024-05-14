@@ -29,7 +29,7 @@ from .. import Vehicle, Station, ConnectingVehicle
 from ..data import ScheduledEvent
 
 # noinspection PyUnresolvedReferences
-from typing import Iterable  # for associations while generating docs
+from typing import Iterable, cast  # for associations while generating docs
 # noinspection PyUnresolvedReferences
 from ..data import ID, Position  # for associations while generating docs
 # noinspection PyUnresolvedReferences
@@ -55,8 +55,14 @@ class TrainStation(Station):
     """
     An `onboardapis.Station` with the additional information of a platform
     """
+    _connections: Iterable[ConnectingTrain]
+
     platform: ScheduledEvent[str] | None
     """The platform where the train arrives."""
+
+    @property
+    def connections(self) -> list[ConnectingTrain]:
+        return cast(list[ConnectingTrain], super().connections)  # maybe force type instead of casting?
 
 
 class Train(Vehicle, metaclass=ABCMeta):

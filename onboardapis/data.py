@@ -68,7 +68,7 @@ def get_package_version() -> str:
 def default(arg: Any, default: Any = None, *, boolean: bool = True) -> Any:  # noqa: F402
     """Return ``arg`` if it evaluates to ``True``, else return ``default``.
 
-    Set ``boolean`` to ``False`` to only test for ``arg=None``.
+    Set ``boolean`` to ``False`` to only test for ``arg is None``.
 
     Args:
         arg: The data to test.
@@ -192,6 +192,10 @@ class API(metaclass=ABCMeta):
 
     def __setitem__(self, key, value):
         self._data[key] = value
+
+    def init(self) -> None:
+        """Initialize the API connection."""
+        pass
 
 
 def store(name=None):
