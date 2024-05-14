@@ -209,7 +209,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         return default(self._api["status"].get("wagonClass"))
 
     @property
-    def current_internet_status(self) -> InternetStatus:
+    def internet_status(self) -> InternetStatus:
         """Returns the current internet connection status of the train."""
         return default(
             self._api["status"]
@@ -230,7 +230,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
 
     @property
     def internet_status_change(self) -> timedelta | None:
-        """Returns the timedelta until ``internet_status`` changes to ``next_internet_status``."""
+        """Returns the time until ``internet_status`` changes to ``next_internet_status``."""
         remaining_seconds = (
             self._api["status"]
             .get("connectivity", {})
