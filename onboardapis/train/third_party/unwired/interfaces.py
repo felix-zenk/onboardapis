@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import logging
-import requests
 
 from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
+import requests
+
 from gql import gql
+from requests.exceptions import ConnectionError
 
 from ....exceptions import InitialConnectionError
 from ....data import ThreadedGraphQlAPI, get_package_version
