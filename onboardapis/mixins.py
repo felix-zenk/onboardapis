@@ -138,6 +138,14 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
         ).total_seconds())
 
     @property
+    def is_delayed(self) -> bool:
+        """Whether the train is delayed.
+
+        Convenience function that tests if `delay > timedelta(0)`.
+        """
+        return self.delay > timedelta()
+
+    @property
     def distance(self) -> float:
         """
         The distance from the start in meters
