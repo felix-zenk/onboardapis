@@ -10,9 +10,10 @@ Contains the following APIs:
 from __future__ import annotations
 
 from .apis import GenericIcomeraTrain
-from .interfaces import GenericIcomeraAPI
+from .interfaces import GenericIcomeraAPI, GenericIcomeraInternetAccessInterface
 
 __all__ = [
     "GenericIcomeraTrain",
     "GenericIcomeraAPI",
+    "GenericIcomeraInternetAccessInterface",
 ]

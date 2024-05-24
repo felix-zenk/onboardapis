@@ -9,7 +9,7 @@ from .interfaces import MetronomAPI, MetronomInternetAccessInterface
 logger = logging.getLogger(__name__)
 
 
-class MetronomCaptivePortal(GenericIcomeraTrain, InternetAccessMixin):
+class MetronomCaptivePortal(GenericIcomeraTrain):
     _api: MetronomAPI
     _internet_access: MetronomInternetAccessInterface
 
@@ -17,7 +17,6 @@ class MetronomCaptivePortal(GenericIcomeraTrain, InternetAccessMixin):
         self._api = MetronomAPI()
         self._internet_access = MetronomInternetAccessInterface(self._api)
         GenericIcomeraTrain.__init__(self)
-        InternetAccessMixin.__init__(self)
 
     @property
     def type(self) -> str:
