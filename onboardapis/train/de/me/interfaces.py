@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from bs4 import BeautifulSoup
 
 from ....exceptions import APIConnectionError
-from ....data import BlockingRestAPI
+from ....data import BlockingRestAPI, API
 from ....mixins import InternetAccessInterface
 
 logger = logging.getLogger(__name__)
@@ -16,19 +17,23 @@ class MetronomAPI(BlockingRestAPI):
     API_URL = 'http://wifi.metronom.de'
 
 
-class MetronomInternetAccessInterface(BlockingRestAPI, InternetAccessInterface):
+class MetronomInternetAccessInterface(InternetAccessInterface):
+    _api: BlockingRestAPI
+
     # noinspection HttpUrlsUsage
     API_URL = 'http://wifi.metronom.de'
 
+    def __init__(self, api: BlockingRestAPI) -> None:
+        InternetAccessInterface.__init__(self, api)
+
     def enable(self):
-        response = self.get('de')
+        response = self._api.get('de')
         soup = BeautifulSoup(response.text, 'html.parser')
         if soup.find(class_='user-offline') is None:
             return  # Already online
 
-        # csrf_token = soup.find('input', {'name': 'CSRFToken'})['value']
         csrf_token = response.cookies['csrf']
-        response = self.post('de', data={
+        response = self._api.post('de/', data={
             'login': True,
             'CSRFToken': csrf_token,
         })
@@ -37,14 +42,13 @@ class MetronomInternetAccessInterface(BlockingRestAPI, InternetAccessInterface):
             raise APIConnectionError('Login failed!')
 
     def disable(self):
-        response = self.get('de')
+        response = self._api.get('de')
         soup = BeautifulSoup(response.text, 'html.parser')
         if soup.find(class_='user-online') is None:
             return  # Already offline
 
-        # csrf_token = soup.find('input', {'name': 'CSRFToken'})['value']
         csrf_token = response.cookies['csrf']
-        response = self.post('de', data={
+        response = self._api.post('de/', data={
             'logout': True,
             'CSRFToken': csrf_token,
         })
@@ -55,5 +59,5 @@ class MetronomInternetAccessInterface(BlockingRestAPI, InternetAccessInterface):
     @property
     def is_enabled(self) -> bool:
         return BeautifulSoup(
-            self.get('de').text, 'html.parser'
-        ).find(class_='user-offline') is None
+            self._api.get('de').text, 'html.parser'
+        ).find(class_='user-online') is not None

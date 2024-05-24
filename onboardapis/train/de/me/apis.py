@@ -15,7 +15,7 @@ class MetronomCaptivePortal(GenericIcomeraTrain, InternetAccessMixin):
 
     def __init__(self) -> None:
         self._api = MetronomAPI()
-        self._internet_access = MetronomInternetAccessInterface()
+        self._internet_access = MetronomInternetAccessInterface(self._api)
         GenericIcomeraTrain.__init__(self)
         InternetAccessMixin.__init__(self)
 
