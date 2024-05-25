@@ -24,7 +24,7 @@ class GenericIcomeraInternetAccessInterface(InternetAccessInterface):
     def __init__(self, api: BlockingRestAPI) -> None:
         InternetAccessInterface.__init__(self, api)
 
-    def enable(self):
+    def enable(self) -> None:
         response = self._api.get('de')
         if BeautifulSoup(response.text, 'html.parser').find(class_='user-offline') is None:
             return  # Already online
@@ -37,7 +37,7 @@ class GenericIcomeraInternetAccessInterface(InternetAccessInterface):
         if BeautifulSoup(response.text, 'html.parser').find(class_='user-online') is None:
             raise APIConnectionError('Login failed!')
 
-    def disable(self):
+    def disable(self) -> None:
         response = self._api.get('de')
         if BeautifulSoup(response.text, 'html.parser').find(class_='user-online') is None:
             return  # Already offline
