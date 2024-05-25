@@ -14,7 +14,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from json import JSONDecodeError
-from typing import TypeVar, Generic, ClassVar, Any
+from typing import TypeVar, Generic, ClassVar, Callable
 from threading import Thread
 
 from geopy.point import Point
@@ -53,9 +53,6 @@ ID = TypeVar("ID", str, int)
 StationType = TypeVar("StationType", bound="Station")
 """A TypeVar indicating the Station type"""
 
-ApiType = TypeVar("ApiType", bound="API")
-"""A TypeVar indicating the API type"""
-
 
 def get_package_version() -> str:
     """Return the version of the ``onboardapis`` package."""
@@ -65,7 +62,7 @@ def get_package_version() -> str:
         return 'unknown'
 
 
-def default(arg: Any, default: Any = None, *, boolean: bool = True) -> Any:  # noqa: F402
+def default(arg: any, default: any = None, *, boolean: bool = True) -> any:  # noqa: F402
     """Return ``arg`` if it evaluates to ``True``, else return ``default``.
 
     Set ``boolean`` to ``False`` to only test for ``arg is None``.
@@ -105,8 +102,8 @@ class ScheduledEvent(Generic[T]):
         self.scheduled = scheduled
         self.actual = actual or scheduled
 
-    def __str__(self):
-        return str(self.scheduled) if self.actual is None else str(self.actual)
+    def __str__(self) -> str:
+        return str(default(self.actual, self.scheduled))
 
 
 @dataclass
@@ -125,7 +122,7 @@ class Position(object):
     heading: float = None
     """The compass heading in degrees"""
 
-    def __str__(self):
+    def __str__(self) -> str:
         (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec,) = coordinates_decimal_to_dms(
             (self.latitude, self.longitude)
         )
@@ -137,7 +134,7 @@ class Position(object):
         )
         return coordinates
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> float:
         return (self.latitude, self.longitude)[item]
 
     def calculate_distance(self, other: Position | Point) -> float:
@@ -162,11 +159,13 @@ class API(metaclass=ABCMeta):
     API_URL: ClassVar[str]
     """The base URL for the API."""
 
-    def __init__(self):
+    _data: dict[str, any]
+
+    def __init__(self) -> None:
         """Initialize a new ``API``."""
         self._data = dict()
 
-    def load(self, key: str, default: Any = None) -> Any:  # noqa: F402
+    def load(self, key: str, default: any = None) -> any:  # noqa: F402
         """Load data from the cache.
 
         Args:
@@ -178,7 +177,7 @@ class API(metaclass=ABCMeta):
         """
         return self._data.get(key, default)
 
-    def store(self, key: str, value: Any) -> None:
+    def store(self, key: str, value: any) -> None:
         """Store data in the cache.
 
         Args:
@@ -187,10 +186,10 @@ class API(metaclass=ABCMeta):
         """
         self._data[key] = value
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> any:
         return self._data[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: any) -> None:
         self._data[key] = value
 
     def init(self) -> None:
@@ -198,15 +197,15 @@ class API(metaclass=ABCMeta):
         pass
 
 
-def store(name=None):
+def store(name: str | Callable[..., T] = None) -> Callable[..., T]:
     """
     Decorator / decorator factory to apply to an ``API`` method
     to immediately store the return value of the decorated method
     as the key ``name`` or the method name if left out.
     """
-    def decorator(method):
+    def decorator(method: Callable[..., T]) -> Callable[..., T]:
         @wraps(method)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: API, args: tuple[any, ...], kwargs: dict[str, any]) -> T:
             if isinstance(self, API):
                 self[name or method.__name__] = method(self, *args, **kwargs)
                 return self[name or method.__name__]
@@ -285,9 +284,7 @@ class ThreadedAPI(API, Thread):
     def reset(self) -> None:
         """Reset the thread and the cache so that they can be reused with ``start()``."""
         self.stop()
-        Thread.__init__(self)
-        API.__init__(self)
-        self._is_connected = False
+        self.__init__()
 
     @abstractmethod
     def refresh(self) -> None:
@@ -298,7 +295,7 @@ class ThreadedAPI(API, Thread):
 class BlockingRestAPI(APISession, API):
     """A RESTful ``API`` that uses an ``restfly.session.APISession`` to fetch data."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: any) -> None:
         """Initialize a new ``BlockingRestAPI``.
 
         Args:
@@ -308,7 +305,7 @@ class BlockingRestAPI(APISession, API):
         APISession.__init__(self, **kwargs)
         API.__init__(self)
 
-    def _build_session(self, **kwargs: Any) -> None:
+    def _build_session(self, **kwargs: any) -> None:
         APISession._build_session(self, **kwargs)
         self._session.headers.update({"User-Agent": "Python/onboardapis (%s)" % get_package_version()})
 
@@ -316,17 +313,17 @@ class BlockingRestAPI(APISession, API):
 class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingRestAPI``."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: any) -> None:
         """Initialize a new ``ThreadedRestAPI``."""
         kwargs['url'] = kwargs.pop('url', self.API_URL)
-        APISession.__init__(self, **kwargs)
         ThreadedAPI.__init__(self)
+        BlockingRestAPI.__init__(self, **kwargs)
 
 
 class BlockingGraphQlAPI(Client, API):
     """A GraphQL ``API`` that uses a ``gql.client.Client`` to fetch data."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: any) -> None:
         """Initialize a new ``BlockingGraphQlAPI``.
 
         Args:
@@ -346,14 +343,14 @@ class BlockingGraphQlAPI(Client, API):
         API.__init__(self)
 
 
-class ThreadedGraphQlAPI(BlockingGraphQlAPI, ThreadedAPI, metaclass=ABCMeta):
+class ThreadedGraphQlAPI(ThreadedAPI, BlockingGraphQlAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingGraphQlAPI``."""
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: any) -> None:
         """Initialize a new ``ThreadedGraphQlAPI``.
 
         Args:
             kwargs: The kwargs to pass to the underlying ``gql.client.Client``.
         """
-        BlockingGraphQlAPI.__init__(self, **kwargs)
         ThreadedAPI.__init__(self)
+        BlockingGraphQlAPI.__init__(self, **kwargs)
