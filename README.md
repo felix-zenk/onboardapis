@@ -120,27 +120,31 @@ and the respective train's documentation.
 
 ## Supported APIs
 
-| API                   | [API scope](#api-scope)   | Type  | Country      | Operator                                |
-|-----------------------|---------------------------|-------|--------------|-----------------------------------------|
-| RailnetRegio          | geo                       | train | at (Austria) | obb (Österreichische Bundesbahnen)      |
-| ICEPortal             | full, *internet-access*\* | train | de (Germany) | db (Deutsche Bahn / DB AG)              |
-| FlixTainment          | geo                       | train | de (Germany) | flix (Flix Train GmbH)                  |
-| MetronomCaptivePortal | *internet-access*\*       | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) |
+Mostly stable APIs.
+
+| API                   | [API scope](#api-scope)                    | Type  | Country      | Operator                                |
+|-----------------------|--------------------------------------------|-------|--------------|-----------------------------------------|
+| RailnetRegio          | basic, geo                                 | train | at (Austria) | obb (Österreichische Bundesbahnen)      |
+| ICEPortal             | *internet-access*\*, vehicle, geo, journey | train | de (Germany) | db (Deutsche Bahn / DB AG)              |
+| FlixTainment          | basic, geo                                 | train | de (Germany) | flix (Flix Train GmbH)                  |
+| MetronomCaptivePortal | internet-access                            | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) |
 
 > **Notes**:
-> - \* Managing internet access is not yet supported.
+> - \* Not supported yet.
 
 ## Experimental APIs
 
-| API              | [API scope](#api-scope)             | Type  | Country      | Operator                     |
-|------------------|-------------------------------------|-------|--------------|------------------------------|
-| PortalINOUI      | full                                | train | fr (France)  | sncf (SNCF Voyageurs)        |
-| ZugPortal        | full                                | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
-| PortaleRegionale | journey-simple                      | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
-| SBahnHannover    | journey-simple, *internet-access*\* | train | de (Germany) | tdh (Transdev Hannover GmbH) |
+APIs that are considered experimental and may change in the future.
+
+| API                    | [API scope](#api-scope)            | Type  | Country      | Operator                     |
+|------------------------|------------------------------------|-------|--------------|------------------------------|
+| PortalINOUI            | basic, vehicle, geo, journey       | train | fr (France)  | sncf (SNCF Voyageurs)        |
+| RegioGuide / ZugPortal | basic, vehicle, geo, journey       | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
+| PortaleRegionale       | basic, basic-journey               | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
+| SBahnHannover          | *internet-access*\*, basic-journey | train | de (Germany) | tdh (Transdev Hannover GmbH) |
 
 > **Notes**:
-> - \* Managing internet access is not yet supported.
+> - \* Not supported yet.
 
 ## APIs in development
 
@@ -172,12 +176,10 @@ This is the module that contains the API.
 ## API scope
 
 The API scope defines what information can be accessed through the API
-and is a general indicator of the API's capabilities.  
+and is a general indicator of the API's capabilities. 
+Scopes can be combined.  
 The currently possible API scopes are:
-- ``basic``: Only basic information is available such as connection status to the API.
+- ``basic`` / ``internet-access``: basic information is available such as connection status to the API. / The internet access can be enabled and disabled.
 - ``vehicle``: The API supplies information about the vehicle such as the train ID, line number, etc.
 - ``geo``: The API supplies information about the current location, speed, etc. of the vehicle.
-- ``journey-simple``: The API supplies simple journey information including the current station and the destination station.
-- ``journey``: The API supplies detailed journey information including all the stations and possibly connecting services.
-- ``full``: All of the above.
-- ``internet-access``: The API provides internet access to the user.
+- ``basic-journey`` / ``journey``: The API supplies basic journey information including the current station and the destination station. / The API supplies detailed journey information including all the stations and possibly connecting services.
