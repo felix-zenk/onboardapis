@@ -8,14 +8,13 @@ from datetime import datetime, timedelta
 
 from deprecation import deprecated
 
-from .... import _package_version
 from ....exceptions import DataInvalidError
-from ....data import ID, default, ScheduledEvent, Position
+from ....data import ID, default, ScheduledEvent, Position, get_package_version
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
 from ....units import meters_per_second
 from ... import Train, TrainStation
 from .mappings import id_name_map
-from .interfaces import ICEPortalAPI, RegioGuideAPI, ICEPortalInternetInterface
+from .interfaces import ICEPortalAPI, RegioGuideAPI, ICEPortalInternetInterface, ICEPortalInternetAccessAPI
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
 
     def __init__(self):
         self._api = ICEPortalAPI()
-        self._internet_access = ICEPortalInternetInterface(self._api)
+        self._internet_access = ICEPortalInternetInterface(ICEPortalInternetAccessAPI())
         Train.__init__(self)
 
     def now(self) -> datetime:
@@ -300,7 +299,7 @@ class RegioGuide(Train, StationsMixin[TrainStation]):
 @deprecated(
     deprecated_in='2.0.0rc3',
     removed_in='2.0.0',
-    current_version=_package_version(),
+    current_version=get_package_version(),
     details='Renamed by DB. Use RegioGuide instead.'
 )
 class ZugPortal(RegioGuide):

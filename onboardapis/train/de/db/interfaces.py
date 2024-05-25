@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
 
+from ...third_party.icomera import GenericIcomeraInternetAccessInterface
 from ....data import (
     ID,
     ThreadedRestAPI,
@@ -20,7 +21,7 @@ from ....data import (
     store,
     BlockingRestAPI,
 )
-from ....mixins import InternetAccessInterface, InternetMetricsInterface
+from ....mixins import InternetMetricsInterface
 from ... import ConnectingTrain
 
 logger = logging.getLogger(__name__)
@@ -31,18 +32,18 @@ class ICEPortalAPI(ThreadedRestAPI):
 
     @store('bap')
     @lru_cache
-    def bap_service_status(self):
+    def bap_service_status(self) -> dict[str, any]:
         return self.get("bap/api/bap-service-status").json()
 
     @store('trip')
-    def trip_info(self):
+    def trip_info(self) -> dict[str, any]:
         return self.get("api1/rs/tripInfo/trip").json()
 
     @store('status')
-    def status(self):
+    def status(self) -> dict[str, any]:
         return self.get("api1/rs/status").json()
 
-    def refresh(self):
+    def refresh(self) -> None:
         self.status()
         self.trip_info()
         self.bap_service_status()
@@ -99,10 +100,14 @@ class ICEPortalAPI(ThreadedRestAPI):
         return
 
 
-class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterface):
-    _api: ICEPortalAPI
+class ICEPortalInternetAccessAPI(BlockingRestAPI):
+    API_URL = 'https://login.wifionice.de'
 
-    def enable(self):
+
+class ICEPortalInternetInterface(GenericIcomeraInternetAccessInterface, InternetMetricsInterface):
+    _api: ICEPortalInternetAccessAPI
+
+    def enable(self) -> None:  # TODO needed?
         """WIP: DOES NOT WORK YET!"""
         response = self._api.get('de')
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -112,10 +117,9 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
             return
 
         # User is offline
-        logger.info('Cookie: %s', response.cookies['csrf'])
-        response = self._api.post('de', json={
-            'CSRFToken': response.cookies['csrf'],
+        response = self._api.post('de/', json={
             'login': True,
+            'CSRFToken': response.cookies['csrf'],
         })
         response.raise_for_status()
 
@@ -123,7 +127,7 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
         if not (response.is_redirect and response.url.startswith(ICEPortalAPI.API_URL)):
             raise ConnectionError('Login failed!')
 
-    def disable(self):
+    def disable(self):  # TODO needed?
         """WIP: DOES NOT WORK YET!"""
         response = self._api.get('de')
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -133,9 +137,9 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
             return
 
         # User is online
-        response = self._api.post('de', json={
-            'CSRFToken': response.cookies['csrf'],
+        response = self._api.post('de/', json={
             'logout': True,
+            'CSRFToken': response.cookies['csrf'],
         })
         response.raise_for_status()
 
@@ -144,7 +148,7 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
             raise ConnectionError('Logout failed!')
 
     @property
-    def is_enabled(self) -> bool:
+    def is_enabled(self) -> bool:  # TODO needed?
         return BeautifulSoup(
             self._api.get('de').text, 'html.parser'
         ).find(id='accept') is None
@@ -156,7 +160,7 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
         return usage_info.json()['limit']  # TODO min api version = 14?
 
 
-class ModeOfTransport(Enum):
+class ModeOfTransport(str, Enum):
     UNKNOWN = 'UNKNOWN'
     BUS = 'BUS'
     TRAM = 'TRAM'
