@@ -40,7 +40,7 @@ using [pip](https://pip.pypa.io/en/stable/installation/):
 $ python -m pip install --pre onboardapis
 ```
 
-[![Version](https://img.shields.io/badge/v2.0.0rc3-%20?color=1081c2)](https://pypi.org/project/onboardapis/2.0.0rc3/)
+[![Version](https://img.shields.io/badge/v2.0.0rc4-%20?color=1081c2)](https://pypi.org/project/onboardapis/2.0.0rc4/)
 
 ---
 
