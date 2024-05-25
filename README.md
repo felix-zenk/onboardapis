@@ -77,8 +77,7 @@ When using a vehicle as a context manager the ``init``-method will automatically
 
 ```python
 from onboardapis.train.de.db import ICEPortal
-from onboardapis.units import kilometers, kmh
-
+from onboardapis.units import kilometers, kilometers_per_hour
 
 # init is automatically called
 with ICEPortal() as train:
@@ -87,14 +86,13 @@ with ICEPortal() as train:
         f"{kilometers(meters=train.calculate_distance(train.current_station)):.1f} km"
     )
 
-
 # init has to be explicitly called
 train = ICEPortal()
 train.init()  # Explicit call to init method to initialize API connection
 
 print(
     f"Travelling at {train.speed} m/s",
-    f"({kmh(ms=train.speed):.2f} km/h)",
+    f"({kilometers_per_hour(meters_per_second=train.speed):.2f} km/h)",
     f"with a delay of {train.delay.total_seconds():.0f} seconds"
 )
 ```

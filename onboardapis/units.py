@@ -22,8 +22,10 @@ __all__ = [
     'hours',
     'coordinates_decimal_to_dms',
     'coordinates_dms_to_decimal',
-    'kmh',
-    'ms',
+    'kilometers_per_hour',
+    'kilometers_per_hour',
+    'meters_per_second',
+    'meters_per_second',
 ]
 
 
@@ -45,10 +47,9 @@ def coordinates_decimal_to_dms(
     lon_deg = int(abs(lon))
     lon_min = int((abs(lon) - lon_deg) * 60)
     lon_sec = ((abs(lon) - lon_deg) * 60 - lon_min) * 60
-    return (-lat_deg if lat < 0 else lat_deg, lat_min, lat_sec), (
-        -lon_deg if lon < 0 else lon_deg,
-        lon_min,
-        lon_sec,
+    return (
+        (-lat_deg if lat < 0 else lat_deg, lat_min, lat_sec),
+        (-lon_deg if lon < 0 else lon_deg, lon_min, lon_sec)
     )
 
 
@@ -67,9 +68,6 @@ def coordinates_dms_to_decimal(
     lat = lat_deg + lat_min / 60 + lat_sec / 3600
     lon = lon_deg + lon_min / 60 + lon_sec / 3600
     return lat, lon
-
-
-# Convert between different units
 
 
 def seconds(hours: float = 0, minutes: float = 0) -> float:  # noqa: F402
@@ -102,17 +100,21 @@ def hours(minutes: float = 0, seconds: float = 0) -> float:  # noqa: F402
     return ret
 
 
-def kmh(ms: float = None) -> float:  # noqa: F402
+def kilometers_per_hour(meters_per_second: float = None) -> float:  # noqa: F402
     """Convert to kilometers per hour"""
     ret = 0
-    if ms:
-        ret += kilometers(meters=ms) / hours(seconds=1)
+    if meters_per_second:
+        ret += kilometers(meters=meters_per_second) / hours(seconds=1)
     return ret
 
 
-def ms(kmh: float = None) -> float:  # noqa: F402
+def meters_per_second(kilometers_per_hour: float = None) -> float:  # noqa: F402
     """Convert to meters per second"""
     ret = 0
-    if kmh:
-        ret += meters(kilometers=kmh) / seconds(hours=1)
+    if kilometers_per_hour:
+        ret += meters(kilometers=kilometers_per_hour) / seconds(hours=1)
     return ret
+
+
+kmh = kilometers_per_hour
+ms = meters_per_second

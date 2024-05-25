@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from ....units import ms
+from ....units import meters_per_second
 from ....data import Position
 from ... import Train
 from .interfaces import RailnetRegioAPI
@@ -23,7 +23,7 @@ class RailnetRegio(Train):
 
     @property
     def speed(self) -> float:
-        return ms(kmh=self._api['gps']['JSON']['speed'])
+        return meters_per_second(kilometers_per_hour=self._api['gps']['JSON']['speed'])
 
     @property
     def position(self) -> Position:

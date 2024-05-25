@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from ....data import ID
 from ....exceptions import DataInvalidError
-from ....units import ms
+from ....units import meters_per_second
 from ... import Train, TrainStation
 from .interfaces import PortaleRegionaleConnector
 
@@ -46,7 +46,7 @@ class PortaleRegionale(Train):
     @property
     def speed(self) -> float:
         if self._api['infovaggio'].get('isGpsValid', 'false').lower() == 'true':
-            return ms(kmh=(float(self._api['infovaggio']['infos']['speed'])))
+            return meters_per_second(kilometers_per_hour=(float(self._api['infovaggio']['infos']['speed'])))
         raise DataInvalidError('GPS data invalid.')
 
     @property

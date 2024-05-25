@@ -12,7 +12,7 @@ from .... import _package_version
 from ....exceptions import DataInvalidError
 from ....data import ID, default, ScheduledEvent, Position
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
-from ....units import ms
+from ....units import meters_per_second
 from ... import Train, TrainStation
 from .mappings import id_name_map
 from .interfaces import ICEPortalAPI, RegioGuideAPI, ICEPortalInternetInterface
@@ -120,7 +120,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
 
     @property
     def speed(self) -> float:
-        return ms(kmh=self._api["status"].get("speed", 0))
+        return meters_per_second(kilometers_per_hour=self._api["status"].get("speed", 0))
 
     @property
     def distance(self) -> float:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from ....units import ms
+from ....units import meters_per_second
 from ....data import Position
 from ....mixins import PositionMixin, SpeedMixin
 from ... import Train
@@ -30,7 +30,7 @@ class FlixTainment(Train, SpeedMixin, PositionMixin):
 
     @property
     def speed(self) -> float:
-        return ms(kmh=float(self._api["position"].get("speed", 0.0)))
+        return meters_per_second(kilometers_per_hour=float(self._api["position"].get("speed", 0.0)))
 
     @property
     def type(self) -> str:
