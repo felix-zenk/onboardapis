@@ -271,7 +271,7 @@ class ThreadedAPI(API, Thread):
             except (APIConnectionError, JSONDecodeError) as e:
                 if not self._is_connected:
                     raise InitialConnectionError from e
-                logger.error(f"{e}")
+                logger.exception(str(e))
                 continue
 
             counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
