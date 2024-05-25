@@ -34,11 +34,6 @@ __all__ = [
 ]
 
 
-def _package_version() -> str:
-    from importlib.metadata import version
-    return version('onboardapis')
-
-
 class Vehicle(metaclass=ABCMeta):
     """
     Base class for all vehicles
