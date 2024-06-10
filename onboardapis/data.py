@@ -205,7 +205,7 @@ def store(name: str | Callable[..., T] = None) -> Callable[..., T]:
     """
     def decorator(method: Callable[..., T]) -> Callable[..., T]:
         @wraps(method)
-        def wrapper(self: API, args: tuple[any, ...], kwargs: dict[str, any]) -> T:
+        def wrapper(self: API, *args: any, **kwargs: any) -> T:
             if isinstance(self, API):
                 self[name or method.__name__] = method(self, *args, **kwargs)
                 return self[name or method.__name__]
