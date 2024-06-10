@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 
 from ...third_party.icomera import GenericIcomeraTrain
-from ....mixins import InternetAccessMixin
 from .interfaces import MetronomAPI, MetronomInternetAccessInterface
 
 logger = logging.getLogger(__name__)
