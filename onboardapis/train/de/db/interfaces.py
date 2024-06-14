@@ -8,20 +8,18 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import Generator
 
-from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
 
-from ...third_party.icomera import GenericIcomeraInternetAccessInterface
 from ....data import (
     ID,
     ThreadedRestAPI,
     ScheduledEvent,
     default,
     store,
-    BlockingRestAPI,
+    BlockingRestAPI, get_package_version,
 )
-from ....mixins import InternetMetricsInterface
+from ....mixins import InternetAccessInterface, InternetMetricsInterface
 from ... import ConnectingTrain
 
 logger = logging.getLogger(__name__)
@@ -103,55 +101,41 @@ class ICEPortalAPI(ThreadedRestAPI):
 class ICEPortalInternetAccessAPI(BlockingRestAPI):
     API_URL = 'https://login.wifionice.de'
 
+    def _build_session(self, **kwargs: any) -> None:
+        super()._build_session(**kwargs)
+        self._session.headers['X-Requested-With'] = 'Python/onboardapis (%s)' % get_package_version(),
 
-class ICEPortalInternetInterface(GenericIcomeraInternetAccessInterface, InternetMetricsInterface):
+
+class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterface):
     _api: ICEPortalInternetAccessAPI
 
-    def enable(self) -> None:  # TODO needed?
+    def enable(self) -> None:
         """WIP: DOES NOT WORK YET!"""
-        response = self._api.get('de')
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Check if the user is already online
-        if soup.find(id='accept') is None:
+        response = self._api.post('cna/logon', json={}, headers={
+            'X-Csrf-Token': 'csrf',
+        })
+        if response.status_code != HTTPStatus.NOT_FOUND:
+            response.raise_for_status()
             return
 
-        # User is offline
-        response = self._api.post('de/', json={
-            'login': True,
-            'CSRFToken': response.cookies['csrf'],
-        })
+        # TODO: Response
+        logger.error('API difference!')
         response.raise_for_status()
 
-        # Check if login was successful
-        if not (response.is_redirect and response.url.startswith(ICEPortalAPI.API_URL)):
-            raise ConnectionError('Login failed!')
-
-    def disable(self):  # TODO needed?
+    def disable(self):
         """WIP: DOES NOT WORK YET!"""
-        response = self._api.get('de')
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Check if user is already offline
-        if soup.find(id='accept') is not None:
+        response = self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})
+        if response.status_code != HTTPStatus.NOT_FOUND:
+            response.raise_for_status()
             return
 
-        # User is online
-        response = self._api.post('de/', json={
-            'logout': True,
-            'CSRFToken': response.cookies['csrf'],
-        })
+        # TODO: response
+        logger.error('API difference!')
         response.raise_for_status()
-
-        # Check if logout was successful
-        if BeautifulSoup(response.text, 'html.parser').find(id='accept', recursive=True) is None:
-            raise ConnectionError('Logout failed!')
 
     @property
-    def is_enabled(self) -> bool:  # TODO needed?
-        return BeautifulSoup(
-            self._api.get('de').text, 'html.parser'
-        ).find(id='accept') is None
+    def is_enabled(self) -> bool:
+        return self._api.get('cna/wifi/user_info').json()['result']['authenticated'] == '1'
 
     def limit(self) -> float | None:
         usage_info = self._api.get('usage_info')
