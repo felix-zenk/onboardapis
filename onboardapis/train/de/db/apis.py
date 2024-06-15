@@ -14,7 +14,14 @@ from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessM
 from ....units import meters_per_second
 from ... import Train, TrainStation
 from .mappings import id_name_map
-from .interfaces import ICEPortalAPI, RegioGuideAPI, ICEPortalInternetInterface, ICEPortalInternetAccessAPI
+from .interfaces import (
+    ICEPortalAPI,
+    ICEPortalInternetInterface,
+    ICEPortalInternetAccessAPI,
+    RegioGuideAPI,
+    RegioGuideInternetAccessInterface,
+    RegioGuideInternetAccessAPI,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -238,14 +245,20 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         return None if default(remaining_seconds) is None else timedelta(seconds=int(remaining_seconds))
 
 
-class RegioGuide(Train, StationsMixin[TrainStation]):
+class RegioGuide(Train, StationsMixin[TrainStation], InternetAccessMixin):
     """Wrapper for interacting with the DB Regio-Guide API, formerly Zug Portal."""
 
     _api: RegioGuideAPI
+    _internet_access: RegioGuideInternetAccessInterface
 
     def __init__(self):
         self._api = RegioGuideAPI()
+        self._internet_access = RegioGuideInternetAccessInterface(RegioGuideInternetAccessAPI())
         Train.__init__(self)
+
+    @property
+    def now(self) -> datetime:
+        return datetime.fromisoformat(self._api['journey'].get('date'))
 
     @property
     def id(self) -> ID:
@@ -270,12 +283,12 @@ class RegioGuide(Train, StationsMixin[TrainStation]):
                     actual=stop.get('track', {}).get('prediction')
                 ),
                 arrival=None if stop.get('arrivalTime') is None else ScheduledEvent(
-                    scheduled=datetime.fromtimestamp(stop.get('arrivalTime', {}).get('targetTimeInMs', 0)),
-                    actual=datetime.fromtimestamp(stop.get('arrivalTime', {}).get('predictedTimeInMs', 0))
+                    scheduled=datetime.fromisoformat(stop.get('arrivalTime', {})['target']),
+                    actual=datetime.fromisoformat(stop.get('arrivalTime', {})['predicted'])
                 ),
                 departure=None if stop.get('departureTime') is None else ScheduledEvent(
-                    scheduled=datetime.fromtimestamp(stop.get('departureTime', {}).get('targetTimeInMs', 0)),
-                    actual=datetime.fromtimestamp(stop.get('departureTime', {}).get('predictedTimeInMs', 0))
+                    scheduled=datetime.fromisoformat(stop.get('departureTime', {})['target']),
+                    actual=datetime.fromisoformat(stop.get('departureTime', {})['predicted'])
                 ),
                 position=Position(
                     latitude=stop.get('station', {}).get('position', {}).get('latitude'),
@@ -289,10 +302,9 @@ class RegioGuide(Train, StationsMixin[TrainStation]):
 
     @property
     def current_station(self) -> TrainStation:
-        station, *_ = (*filter(
-            lambda s: self.now < default(s.arrival.actual, s.departure.actual),
-            self.stations
-        ), None)
+        station, *_ = *filter(
+            lambda s: self.now < s.arrival.actual, filter(lambda s: s.arrival is not None, self.stations)
+        ), None
         return self.destination if station is None else station
 
 
