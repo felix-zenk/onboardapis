@@ -7,9 +7,12 @@ from enum import Enum
 from functools import lru_cache
 from http import HTTPStatus
 from typing import Generator
+from urllib.parse import urlparse, parse_qs, parse_qsl
 
+from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
+from restfly.errors import NotFoundError
 
 from ....data import (
     ID,
@@ -47,7 +50,7 @@ class ICEPortalAPI(ThreadedRestAPI):
         self.bap_service_status()
 
     def get_connections(
-        self, station_id: str
+            self, station_id: str
     ) -> Generator[ConnectingTrain, None, None]:
         """
         Get all connections for a station
@@ -101,9 +104,12 @@ class ICEPortalAPI(ThreadedRestAPI):
 class ICEPortalInternetAccessAPI(BlockingRestAPI):
     API_URL = 'https://login.wifionice.de'
 
+    def __init__(self, **kwargs: any):
+        super().__init__(error_func=lambda *a, **k: None, **kwargs)
+
     def _build_session(self, **kwargs: any) -> None:
         super()._build_session(**kwargs)
-        self._session.headers['X-Requested-With'] = 'Python/onboardapis (%s)' % get_package_version(),
+        self._session.headers.update({'X-Requested-With': 'Python/onboardapis (%s)' % get_package_version()})
 
 
 class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterface):
@@ -111,31 +117,49 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
 
     def enable(self) -> None:
         """WIP: DOES NOT WORK YET!"""
-        response = self._api.post('cna/logon', json={}, headers={
-            'X-Csrf-Token': 'csrf',
-        })
-        if response.status_code != HTTPStatus.NOT_FOUND:
+        try:
+            response = self._api.post('cna/logon', json={}, headers={
+                'X-Csrf-Token': 'csrf',
+            })
+            response.raise_for_status()
+        except NotFoundError:
+            # old login API
+            response = self._api.get('de')
+            soup = BeautifulSoup(response.text, 'html.parser')
+            if soup.find(id='accept') is None:
+                return
+            response = self._api.post('de/', json={
+                'login': True,
+                'CSRFToken': response.cookies['csrf'],
+            })
             response.raise_for_status()
             return
-
-        # TODO: Response
-        logger.error('API difference!')
-        response.raise_for_status()
 
     def disable(self):
         """WIP: DOES NOT WORK YET!"""
-        response = self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})
-        if response.status_code != HTTPStatus.NOT_FOUND:
+        try:
+            response = self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})  # Not CSRF protected anymore?
             response.raise_for_status()
             return
-
-        # TODO: response
-        logger.error('API difference!')
-        response.raise_for_status()
+        except NotFoundError:
+            response = self._api.get('de/')
+            soup = BeautifulSoup(response.text, 'html.parser')
+            if soup.find(id='accept') is not None:
+                return
+            response = self._api.post('de/', json={
+                'logout': True,
+                'CSRFToken': response.cookies['csrf'],
+            })
+            response.raise_for_status()
 
     @property
     def is_enabled(self) -> bool:
-        return self._api.get('cna/wifi/user_info').json()['result']['authenticated'] == '1'
+        try:
+            return self._api.get('cna/wifi/user_info').json()['result']['authenticated'] == '1'
+        except NotFoundError:
+            return BeautifulSoup(
+                self._api.get('de').text, 'html.parser'
+            ).find(id='accept') is None
 
     def limit(self) -> float | None:
         usage_info = self._api.get('usage_info')
@@ -154,24 +178,31 @@ class ModeOfTransport(str, Enum):
     INTER_REGIONAL_TRAIN = 'INTER_REGIONAL_TRAIN'
     HIGH_SPEED_TRAIN = 'HIGH_SPEED_TRAIN'
 
+    # noinspection PyPropertyDefinition
+    @classmethod
     @property
-    def local_trains(self) -> tuple[ModeOfTransport, ...]:
-        return self.CITY_TRAIN, self.TRAM, self.SUBWAY
+    def local_trains(cls) -> tuple[ModeOfTransport, ...]:
+        return cls.CITY_TRAIN, cls.TRAM, cls.SUBWAY
 
+    # noinspection PyPropertyDefinition
+    @classmethod
     @property
-    def long_distance_trains(self) -> tuple[ModeOfTransport, ...]:
-        return self.HIGH_SPEED_TRAIN, self.REGIONAL_TRAIN, self.INTER_REGIONAL_TRAIN
+    def long_distance_trains(cls) -> tuple[ModeOfTransport, ...]:
+        return cls.HIGH_SPEED_TRAIN, cls.REGIONAL_TRAIN, cls.INTER_REGIONAL_TRAIN
 
+    # noinspection PyPropertyDefinition
+    @classmethod
     @property
-    def trains(self) -> tuple[ModeOfTransport, ...]:
-        return self.local_trains + self.long_distance_trains
+    def trains(cls) -> tuple[ModeOfTransport, ...]:
+        # noinspection PyUnresolvedReferences
+        return cls.local_trains + cls.long_distance_trains
 
 
-class RegioGuideAPI(BlockingRestAPI):
-    API_URL = "https://regio-guide.de"
+class RegioGuideAPI(ThreadedRestAPI):
+    API_URL = "https://zugportal.de"
 
     @store('journey')
-    def journey(self):
+    def journey(self) -> dict:
         return self.get("@prd/zupo-travel-information/api/public/ri/journey").json()
 
     def refresh(self) -> None:
@@ -195,14 +226,8 @@ class RegioGuideAPI(BlockingRestAPI):
         )).meters
 
     def connections(self, station_id: ID) -> Generator[ConnectingTrain, None, None]:
-        departure_board = self.get(
-            f'@prd/zupo-travel-information/api/public/ri/board/departure/{station_id}',
-            params=dict(
-                modeOfTransport=','.join(mode.value for mode in ModeOfTransport.trains),  # type: ignore
-                occupancy=True
-            )
-        )
-        return (
+        # noinspection PyTypeChecker
+        yield from (
             ConnectingTrain(
                 departure=ScheduledEvent(
                     scheduled=datetime.fromisoformat(item['timePredicted']),
@@ -217,9 +242,57 @@ class RegioGuideAPI(BlockingRestAPI):
                 vehicle_type=item['train']['category'],
             )
             for item
-            in departure_board.get('items', [])
+            in self.get(
+                f'@prd/zupo-travel-information/api/public/ri/board/departure/{station_id}',
+                params=dict(
+                    modeOfTransport=','.join(map(lambda m: m.value, ModeOfTransport.trains)),
+                    occupancy=True
+                )
+            ).json().get('items', [])
         )
 
 
 ZugPortalAPI = RegioGuideAPI
 """Renamed by DB. Use RegioGuideAPI instead."""
+
+
+class RegioGuideInternetAccessAPI(BlockingRestAPI):
+    API_URL = 'http://192.168.44.1/'  # Hotsplots, covers every provider of RegioGuide? Same IP every time?
+
+    def __init__(self, **kwargs: any):
+        super().__init__(**kwargs)
+
+
+class RegioGuideInternetAccessInterface(InternetAccessInterface):
+    _api: RegioGuideInternetAccessAPI
+
+    def enable(self) -> None:
+        """WIP: does not work yet"""
+        response = self._api.get('auth/login.php')
+        params = parse_qs(urlparse(response.url).query)
+        self._api.post('auth/login.php', data={
+            "haveTerms": "1",
+            "termsOK": "on",
+            "button": "Jetzt kostenlos surfen",
+            "challenge": params['challenge'][0],
+            "uamip": params['uamip'][0],
+            "uamport": params['uamport'][0],
+            "userurl": params['userurl'][0],
+            "myLogin": "agb",
+            "ll": "de",
+            "nasid": params['nasid'][0],
+            "custom": "1",
+        })
+
+    def disable(self) -> None:
+        """WIP: does not work yet"""
+        response = self._api.get('/logoff')  # Not CSRF protected!
+
+    @property
+    def is_enabled(self) -> bool:
+        """WIP: does not work reliably yet"""
+        response = self._api.get('/auth/login.php')
+        from pathlib import Path
+        Path('latest-web-page.html').write_bytes(response.content)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return soup.select_one('[href*="/logoff"]') is not None
