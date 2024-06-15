@@ -292,7 +292,5 @@ class RegioGuideInternetAccessInterface(InternetAccessInterface):
     def is_enabled(self) -> bool:
         """WIP: does not work reliably yet"""
         response = self._api.get('/auth/login.php')
-        from pathlib import Path
-        Path('latest-web-page.html').write_bytes(response.content)
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup.select_one('[href*="/logoff"]') is not None
