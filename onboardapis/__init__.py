@@ -64,19 +64,24 @@ class Vehicle(metaclass=ABCMeta):
             self._api.init()
             if isinstance(self._api, ThreadedAPI):
                 self._api.start()
-                self._api.ready.wait()
+                if not self._api.ready.wait(timeout=15):
+                    raise RuntimeError
                 return
         except RuntimeError as e:
             raise InitialConnectionError from e
 
     def shutdown(self) -> None:
         """
-        This method will be called when exiting the context manager and can be overwritten by subclasses.
+        This method will be called when exiting the context manager.
 
         :return: Nothing
         :rtype: None
         """
-        pass
+        if not hasattr(self, '_api'):
+            return  # Abstract class without API implementation
+
+        if isinstance(self._api, ThreadedAPI):
+            self._api.stop()
 
     @property
     def now(self) -> datetime:
