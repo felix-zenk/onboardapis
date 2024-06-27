@@ -7,7 +7,7 @@ from enum import Enum
 from functools import lru_cache
 from json import JSONDecodeError
 from typing import Generator
-from urllib.parse import urlparse, parse_qs, parse_qsl
+from urllib.parse import urlparse, parse_qs
 
 from bs4 import BeautifulSoup
 from geopy import Point
@@ -109,7 +109,7 @@ class ICEPortalInternetAccessAPI(BlockingRestAPI):
     API_URL = 'https://login.wifionice.de'
 
     def __init__(self, **kwargs: any):
-        super().__init__(error_func=lambda *a, **k: None, **kwargs)
+        super().__init__(**kwargs)
 
     def _build_session(self, **kwargs: any) -> None:
         super()._build_session(**kwargs)
@@ -120,6 +120,8 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
     _api: ICEPortalInternetAccessAPI
 
     def enable(self) -> None:
+        logger_before = logging.getLogger('restfly.errors.NotFoundError').disabled
+        logging.getLogger('restfly.errors.NotFoundError').disabled = True
         try:
             self._api.post('cna/logon', json={}, headers={
                 'X-Csrf-Token': 'csrf',
@@ -131,9 +133,12 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
                 'login': True,
                 'CSRFToken': response.cookies['csrf'],
             })
-            return
+        finally:
+            logging.getLogger('restfly.errors.NotFoundError').disabled = logger_before
 
     def disable(self):
+        logger_before = logging.getLogger('restfly.errors.NotFoundError').disabled
+        logging.getLogger('restfly.errors.NotFoundError').disabled = True
         try:
             self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})  # Not CSRF protected anymore?
         except NotFoundError:
@@ -142,15 +147,21 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
                 'logout': True,
                 'CSRFToken': response.cookies['csrf'],
             })
+        finally:
+            logging.getLogger('restfly.errors.NotFoundError').disabled = logger_before
 
     @property
     def is_enabled(self) -> bool:
+        logger_before = logging.getLogger('restfly.errors.NotFoundError').disabled
+        logging.getLogger('restfly.errors.NotFoundError').disabled = True
         try:
             return self._api.get('cna/wifi/user_info').json()['result']['authenticated'] == '1'
         except NotFoundError:
             return BeautifulSoup(
                 self._api.get('de').text, 'html.parser'
             ).find(id='accept') is None
+        finally:
+            logging.getLogger('restfly.errors.NotFoundError').disabled = logger_before
 
     @property
     def limit(self) -> float | None:
