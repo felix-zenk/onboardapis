@@ -17,6 +17,8 @@ __all__ = [
     'mi',
     'ft',
     'nm',
+    'kmh',
+    'ms',
     'seconds',
     'minutes',
     'hours',
