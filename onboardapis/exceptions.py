@@ -3,6 +3,8 @@ Exceptions for the onboardapis package.
 """
 from __future__ import annotations
 
+from restfly.errors import APIError
+
 
 class OnboardException(Exception):
     """Base exception class for on-board exceptions."""
@@ -35,11 +37,13 @@ class DataInvalidError(APIConnectionError):
         super(DataInvalidError, self).__init__(message, *args)
 
 
-class APIFeatureMissingError(APIConnectionError):
+class APIFeatureMissingError(APIConnectionError, APIError):
     """Error raised when an API could support a feature,
     but the actual implementation onboard this vehicle does not support this feature."""
 
     __slots__ = ()
 
-    def __init__(self, message: str = "The requested feature is not supported by this API", *args):
-        super(APIConnectionError).__init__()
+    def __init__(self, *args, message: str = "The requested feature is not supported by this API", **kwargs):
+        APIConnectionError.__init__(self, message)
+        APIError.__init__(self, *args, **kwargs)
+        self.set_retryable(value=False)

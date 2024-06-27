@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from enum import Enum
 from functools import lru_cache
-from http import HTTPStatus
+from json import JSONDecodeError
 from typing import Generator
 from urllib.parse import urlparse, parse_qs, parse_qsl
 
@@ -22,6 +22,7 @@ from ....data import (
     store,
     BlockingRestAPI, get_package_version,
 )
+from ....exceptions import APIFeatureMissingError
 from ....mixins import InternetAccessInterface, InternetMetricsInterface
 from ... import ConnectingTrain
 
@@ -34,7 +35,10 @@ class ICEPortalAPI(ThreadedRestAPI):
     @store('bap')
     @lru_cache
     def bap_service_status(self) -> dict[str, any]:
-        return self.get("bap/api/bap-service-status").json()
+        try:
+            return self.get("bap/api/bap-service-status").json()
+        except (JSONDecodeError, APIFeatureMissingError):
+            return {'status': 'false'}
 
     @store('trip')
     def trip_info(self) -> dict[str, any]:
@@ -116,41 +120,28 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
     _api: ICEPortalInternetAccessAPI
 
     def enable(self) -> None:
-        """WIP: DOES NOT WORK YET!"""
         try:
-            response = self._api.post('cna/logon', json={}, headers={
+            self._api.post('cna/logon', json={}, headers={
                 'X-Csrf-Token': 'csrf',
             })
-            response.raise_for_status()
         except NotFoundError:
             # old login API
             response = self._api.get('de')
-            soup = BeautifulSoup(response.text, 'html.parser')
-            if soup.find(id='accept') is None:
-                return
-            response = self._api.post('de/', json={
+            self._api.post('de/', data={
                 'login': True,
                 'CSRFToken': response.cookies['csrf'],
             })
-            response.raise_for_status()
             return
 
     def disable(self):
-        """WIP: DOES NOT WORK YET!"""
         try:
-            response = self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})  # Not CSRF protected anymore?
-            response.raise_for_status()
-            return
+            self._api.post('cna/logoff', json={}, headers={'X-Csrf-Token': 'csrf'})  # Not CSRF protected anymore?
         except NotFoundError:
             response = self._api.get('de/')
-            soup = BeautifulSoup(response.text, 'html.parser')
-            if soup.find(id='accept') is not None:
-                return
-            response = self._api.post('de/', json={
+            self._api.post('de/', data={
                 'logout': True,
                 'CSRFToken': response.cookies['csrf'],
             })
-            response.raise_for_status()
 
     @property
     def is_enabled(self) -> bool:
@@ -161,11 +152,13 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
                 self._api.get('de').text, 'html.parser'
             ).find(id='accept') is None
 
+    @property
     def limit(self) -> float | None:
-        usage_info = self._api.get('usage_info')
-        if usage_info.status_code == HTTPStatus.NOT_IMPLEMENTED:
+        try:
+            usage_info = self._api.get('usage_info/')
+        except APIFeatureMissingError:
             return None
-        return usage_info.json()['limit']  # TODO min api version = 14?
+        return usage_info.json()['limit']
 
 
 class ModeOfTransport(str, Enum):

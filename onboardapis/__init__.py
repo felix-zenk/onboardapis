@@ -10,10 +10,10 @@ import logging
 from abc import ABCMeta
 from dataclasses import dataclass
 from datetime import datetime
-from time import sleep
 from typing import Iterable
 
 from .data import ID, API, ThreadedAPI, ScheduledEvent, Position
+from .exceptions import InitialConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -60,15 +60,14 @@ class Vehicle(metaclass=ABCMeta):
         if not hasattr(self, '_api'):
             return  # Abstract class without API implementation
 
-        self._api.init()
-
-        if isinstance(self._api, ThreadedAPI):
-            self._api.start()
-            while not self._api.is_connected:
-                sleep(.1)
-            return
-
-        return
+        try:
+            self._api.init()
+            if isinstance(self._api, ThreadedAPI):
+                self._api.start()
+                self._api.ready.wait()
+                return
+        except RuntimeError as e:
+            raise InitialConnectionError from e
 
     def shutdown(self) -> None:
         """

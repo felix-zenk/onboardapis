@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from functools import wraps
 from json import JSONDecodeError
 from typing import TypeVar, Generic, ClassVar, Callable
-from threading import Thread
+from threading import Thread, Lock, Event
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -24,7 +24,7 @@ from gql.transport.requests import RequestsHTTPTransport
 from restfly import APISession
 
 from .units import coordinates_decimal_to_dms
-from .exceptions import APIConnectionError, InitialConnectionError
+from .exceptions import APIConnectionError, InitialConnectionError, APIFeatureMissingError
 
 __all__ = [
     "ID",
@@ -229,7 +229,7 @@ class ThreadedAPI(API, Thread):
     """An ``API`` that refreshes the data in a new thread."""
 
     _is_running: bool
-    _is_connected: bool
+    ready: Event
 
     def __init__(self) -> None:
         """Initialize a new ``ThreadedAPI``."""
@@ -241,12 +241,12 @@ class ThreadedAPI(API, Thread):
             daemon=True,
         )
         self._is_running = False
-        self._is_connected = False
+        self.ready = Event()
 
     @property
     def is_connected(self) -> bool:
         """Check whether the connector is connected to the server"""
-        return self._is_connected and self._is_running
+        return self.ready.is_set() and self._is_running
 
     def _run(self) -> None:
         """The main loop that will run in a separate thread."""
@@ -266,11 +266,12 @@ class ThreadedAPI(API, Thread):
 
             try:
                 self.refresh()
-                self._is_connected = True
+                if not self.ready.is_set():
+                    self.ready.set()
             except (APIConnectionError, JSONDecodeError) as e:
-                if not self._is_connected:
+                if not self.ready.is_set():
                     raise InitialConnectionError from e
-                logger.exception(str(e))
+                logger.exception(e)
                 continue
 
             counter = (tps - int(max(0.0, (target - time.time_ns()) / 1e9) * tps)) % tps
@@ -294,6 +295,10 @@ class ThreadedAPI(API, Thread):
 
 class BlockingRestAPI(APISession, API):
     """A RESTful ``API`` that uses an ``restfly.session.APISession`` to fetch data."""
+
+    _error_map = {
+        501: APIFeatureMissingError,
+    }
 
     def __init__(self, **kwargs: any) -> None:
         """Initialize a new ``BlockingRestAPI``.
