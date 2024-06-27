@@ -39,6 +39,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         self._internet_access = ICEPortalInternetInterface(ICEPortalInternetAccessAPI())
         Train.__init__(self)
 
+    @property
     def now(self) -> datetime:
         return datetime.fromtimestamp(int(default(
             self._api["status"].get("serverTime", None), 0,

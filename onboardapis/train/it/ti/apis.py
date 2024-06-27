@@ -28,6 +28,7 @@ class PortaleRegionale(Train):
         self._stations = dict()
         Train.__init__(self)
 
+    @property
     def now(self) -> datetime:
         return datetime.fromisoformat(self._api['infovaggio']['datetime'])
 
