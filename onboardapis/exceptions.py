@@ -33,3 +33,13 @@ class DataInvalidError(APIConnectionError):
 
     def __init__(self, message: str = "The API returned an invalid response", *args):
         super(DataInvalidError, self).__init__(message, *args)
+
+
+class APIFeatureMissingError(APIConnectionError):
+    """Error raised when an API could support a feature,
+    but the actual implementation onboard this vehicle does not support this feature."""
+
+    __slots__ = ()
+
+    def __init__(self, message: str = "The requested feature is not supported by this API", *args):
+        super(APIConnectionError).__init__()
