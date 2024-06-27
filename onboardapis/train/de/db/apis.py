@@ -6,8 +6,6 @@ import re
 from typing import Literal
 from datetime import datetime, timedelta
 
-from deprecation import deprecated
-
 from ....exceptions import DataInvalidError
 from ....data import ID, default, ScheduledEvent, Position, get_package_version
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
@@ -307,13 +305,3 @@ class RegioGuide(Train, StationsMixin[TrainStation], InternetAccessMixin):
             lambda s: self.now < s.arrival.actual, filter(lambda s: s.arrival is not None, self.stations)
         ), None
         return self.destination if station is None else station
-
-
-@deprecated(
-    deprecated_in='2.0.0rc3',
-    removed_in='2.0.0',
-    current_version=get_package_version(),
-    details='Renamed by DB. Use RegioGuide instead.'
-)
-class ZugPortal(RegioGuide):
-    """Renamed by DB. Use RegioGuide instead."""
