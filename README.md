@@ -7,8 +7,6 @@ onboardapis
 [![Build package](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/build.yml)
 [![Deploy documentation](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml/badge.svg)](https://github.com/felix-zenk/onboardapis/actions/workflows/docs.yml)
 
-> **Warning**: Version `2.0.0` introduces breaking changes! Existing code will definitely not work anymore.
-
 ## Description
 
 onboardapis allows you to interact with different on-board APIs.
@@ -31,16 +29,6 @@ $ python -m pip install onboardapis
 ```
 
 [![Version](https://img.shields.io/pypi/v/onboardapis?label=%20)](https://pypi.org/project/onboardapis)
-
-or the latest prerelease version of onboardapis
-from [PyPI](https://pypi.org/project/onboardapis/2.0.0rc3/)
-using [pip](https://pip.pypa.io/en/stable/installation/):
-
-```shell
-$ python -m pip install --pre onboardapis
-```
-
-[![Version](https://img.shields.io/badge/v2.0.0rc4-%20?color=1081c2)](https://pypi.org/project/onboardapis/2.0.0rc4/)
 
 ---
 
