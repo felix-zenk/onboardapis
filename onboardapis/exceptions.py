@@ -43,7 +43,9 @@ class APIFeatureMissingError(APIConnectionError, APIError):
 
     __slots__ = ()
 
-    def __init__(self, *args, message: str = "The requested feature is not supported by this API", **kwargs):
+    def __init__(self, resp, message: str = None, **kwargs):
+        if not message:
+            message = "The requested feature (%s) is not supported by this API" % resp.url
         APIConnectionError.__init__(self, message)
-        APIError.__init__(self, *args, **kwargs)
+        APIError.__init__(self, resp, **kwargs)
         self.set_retryable(value=False)
