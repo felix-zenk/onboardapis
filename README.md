@@ -53,7 +53,7 @@ To begin with development you will need to know a few things first:
 With this information you can get the needed module from the package 
 ``onboardapis.<type>.<country>.<operator>`` and import the API class from it.
 For more specific information on finding the API you are looking for,
-see [Finding your API](#find-your-api).
+see [Finding your API](#finding-your-api).
 
 > **Example**: Let's say you want to use the on-board API called ICE Portal of Deutsche Bahn trains in Germany:
 > ```python
@@ -132,10 +132,10 @@ and the respective train's documentation.
 |------|-------------------------------|-------|---------|----------|
 | ...  |                               |       |         |          |
 
-## Find your API
+## Finding your API
 
 ##### 1. Determine vehicle type: ``train``, ``plane``, ``bus``, ``ship``, ``other``.
-##### 2. Find the [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) of the operators country
+##### 2. Look up the [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) of the operators country
 ##### 3. Operator code
 
 The operator code is vehicle type specific. The following IDs are used:
