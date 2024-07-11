@@ -1,0 +1,348 @@
+names:
+  1: "Gießen"
+  3: "Neu-Isenburg"
+  5: "Offenbach am Main"
+  6: "Itzehoe"
+  7: "Plattling"
+  10: "Gelsenkirchen"
+  11: "Nürnberg"
+  12: "Memmingen"
+  13: "Frankenthal/Pfalz"
+  14: "Friedrichshafen"
+  # 15: "Regensburg"  # Uncertain due to duplicate number  # Possibly retired
+  16: "Pforzheim"
+  # 17: "Neumünster"  # Uncertain due to duplicate number
+  # 18: "Gelnhausen"  # Probably retired -> 166
+  19: "Osnabrück"
+  20: "Lüneburg"
+  # 53: "Neumünster"  # Uncertain due to duplicate number
+  58: "Gütersloh"
+  60: "Mühlheim an der Ruhr"
+  61: "Bebra"
+  63:
+  64:
+  65:
+  68: "Crailsheim"
+  # 69: "Worms"  # Probably retired -> 169
+  70:
+  72: "Aschaffenburg"
+  73: "Basel"  # Possible duplicate number -> 173
+  74: "Zürich"
+  75:
+  76: "Interlaken"
+  77:
+  # 81: "Regensburg"  # Uncertain due to duplicate number  # Possibly retired
+  90:
+  102: "Jever"
+  104: "Fulda"
+  108: "Lichtenfels"
+  # 115: "Regensburg"  # Uncertain due to duplicate number  # Possibly retired
+  152: "Hanau"
+  154: "Flensburg"
+  155: "Rosenheim"
+  156: "Heppenheim/Bergstraße"
+  157: "Landshut"
+  166: "Gelnhausen"
+  169: "Worms"
+  171: "Heusenstamm"
+  # 173: "Basel"  # Probably retired -> 73
+  178: "Bremerhaven"
+  179:
+  180: "Castrop Rauxel"
+  182: "Rüdesheim am Rhein"
+  183: "Timmendorfer Strand"
+  185: "Freilassing"
+  186: "Chur"
+  187: "Mühldorf a. Inn"
+  188: "Hildesheim"
+  189:
+  201: "Rheinsberg"
+  202: "Wuppertal"
+  203: "Cottbus/Chóśebuz"
+  204: "Bielefeld"
+  # 205: "Zwickau" # number changed to 225
+  206: "Magdeburg"
+  207: "Stendal"
+  208: "Bonn"
+  210: "Fontanestadt Neuruppin"
+  211: "Uelzen"
+  212: "Potsdam"
+  213: "Nauen"
+  214: "Hamm (Westf.)"
+  215: "Bitterfeld-Wolfen"
+  216: "Dessau"
+  217: "Bergen auf Rügen"
+  218: "Braunschweig"
+  219: "Hagen"
+  220: "Meiningen"
+  221: "Lübbenau/Spreewald"
+  222: "Eberswalde"
+  224: "Saalfeld (Saale)"
+  225: "Zwickau"  # previously Oldenburg (Oldb)
+  226: "Lutherstadt Wittenberg"
+  227: "Ludwigslust"
+  228: "Altenburg"
+  229: "Templin"
+  230: "Delitzsch"
+  231: "Brandenburg an der Havel"
+  232: "Frankfurt (Oder)"
+  233: "Ulm"
+  234: "Minden"
+  235: "Görlitz"
+  236: "Jüterbog"
+  237: "Neustrelitz"
+  238: "Saarbrücken"
+  239: "Essen"
+  240: "Bochum"
+  241: "Bad Hersfeld "
+  242: "Quedlinburg"
+  243: "Bautzen/Budyšin"
+  244: "Koblenz"
+  302: "Hansestadt Lübeck"  # previously Wiesbaden
+  303: "Dortmund"
+  304: "München"
+  305: "Baden-Baden"
+  308: "Murnau am Staffelsee"
+  309: "Aalen"
+  310: "Wolfsburg"  # possibly "München / Wolfsburg"
+  # 311: "Hansestadt Lübeck" # number changed to 302
+  312: "Montabaur"
+  313: "Treuchtlingen"
+  314: "Bergisch Gladbach"
+  315: "Singen (Hohentwiel)"
+  319: "Duisburg"
+  320: "Weil am Rhein"
+  323: "Schaffhausen"
+  324: "Fürth"
+  327: "Siegen"
+  328: "Aachen"
+  329:
+  330: "Göttingen"
+  331: "Westerland/Sylt"
+  332: "Augsburg"
+  333: "Goslar"
+  334: "Offenburg"
+  335: "Konstanz"
+  336: "Ingolstadt"
+  337: "Stuttgart"
+  352: "Mönchengladbach"
+  354: "Mittenwald"
+  355: "Tuttlingen"
+  356:
+  357: "Esslingen am Neckar"
+  358: "St. Ingbert"
+  360: "Linz am Rhein"
+  361: "Celle"
+  363: "Weilheim i.OB"
+  701:
+  702:
+  703:
+  704:
+  705:
+  707:
+  708:
+  710: "Ansbach"
+  711:
+  712: "Dillingen a.d.Donau"
+  713:
+  717: "Paris"
+  1101: "Neustadt an der Weinstraße"
+  1102: "Neubrandenburg"
+  1103: "Paderborn"
+  1104: "Erfurt"
+  1105: "Dresden"
+  1107: "Pirna"
+  1108: "Berlin"
+  1109: "Güstrow"
+  1111: "Hansestadt Wismar"
+  1112: "Freie und Hansestadt Hamburg"
+  1113: "Hansestadt Stralsund"
+  1117: "Erlangen"
+  1118: "Plauen/Vogtland"
+  1125: "Arnstadt"
+  1126: "Leipzig"
+  1127: "Weimar"
+  1128: "Reutlingen"
+  1129: "Kiel"
+  1130: "Jena"
+  1131: "Trier"
+  1132: "Wittenberge"
+  1151: "Elsterwerda"
+  1152: "Travemünde"
+  1153: "Ilmenau"
+  1154: "Sonneberg"
+  1155: "Mühlhausen/Thüringen"
+  1156: "Waren (Müritz)"
+  1157: "Innsbruck"
+  1158: "Falkenberg/Elster"
+  1159: "Passau"
+  1160: "Markt Holzkirchen"
+  1161: "Andernach"
+  1162: "Vaihingen an der Enz"
+  1164: "Rödental"
+  1165: "Bad Oeynhausen"
+  1166: "Bingen am Rhein"
+  1167: "Traunstein"
+  1168: "Ellwangen"
+  1169: "Tutzing"
+  1170: "Prenzlau"
+  1171: "Oschatz"
+  1172: "Bamberg"
+  1173: "Halle (Saale)"
+  1174: "Hansestadt Warburg"
+  1175: "Villingen-Schwenningen"
+  1176: "Coburg"
+  1177: "Rathenow"
+  1178: "Ostseebad Warnemünde"
+  1180: "Darmstadt"
+  1182: "Mainz"
+  1183: "Oberursel (Taunus)"
+  1184: "Kaiserslautern"
+  1190: "Wien"
+  1191: "Salzburg"
+  1192: "Linz"
+  1501: "Eisenach"
+  1502: "Karlsruhe"
+  1503: "Altenbeken"
+  1504: "Heidelberg"
+  1505: "Marburg/Lahn"
+  1506: "Kassel"
+  1520: "Gotha"
+  1521: "Homburg/Saar"
+  1522: "Torgau"
+  1523: "Hansestadt Greifswald"
+  1524: "Hansestadt Rostock"
+  4602: "Euregio Maas-Rhein"
+  4603: "Mannheim"
+  4610: "Frankfurt am Main"
+  4685: "Schwäbisch Hall"
+  8006:
+  8008:
+  8009:
+  8011:
+  8012:
+  8015:
+  8016:
+  9001:
+  9002:
+  9003:
+  9004:
+  9005:
+  9006: "Martin Luther"
+  9007:
+  9008:
+  9009:
+  9010:
+  9011:
+  9012:
+  9013:
+  9014:
+  9015:
+  9016:
+  9017:
+  9018: "Freistaat Bayern"
+  9019:
+  9020:
+  9021:
+  9022:
+  9023:
+  9024:
+  9025: "Nordrhein-Westfalen"
+  9026: "Zürichsee"
+  9027:
+  9028: "Freistaat Sachsen"
+  9029:
+  9030:
+  9031:
+  9032:
+  9033:
+  9034:
+  9035:
+  9036:
+  9037:
+  9038:
+  9039:
+  9040:
+  9041: "Baden-Württemberg"
+  9042:
+  9043:
+  9044:
+  9045:
+  9046:
+  9047:
+  9048:
+  9049:
+  9050: "Metropole Ruhr"
+  9201:
+  9202: "Schleswig-Holstein"
+  9204:
+  9205:
+  9206:
+  9209:
+  9210:
+  9211:
+  9212:
+  9213:
+  9214:
+  9215:
+  9216:
+  9217:
+  9218:
+  9219:
+  9220:
+  9221:
+  9224:
+  9225:
+  9226:
+  9228:
+  9229:
+  9230:
+  9234:
+  9235:
+  9237: "Spree"
+  9451:
+  9452:
+  9453:
+  9454:
+  9455:
+  9456:
+  9457: "Bundesrepublik Deutschland / Wendlingen-Ulm"
+  9458:
+  9459:
+  9460:
+  9461:
+  9462:
+  9463:
+  9464:
+  9465:
+  9466:
+  9467:
+  9468:
+  9469:
+  9470:
+  9471:
+  9472:
+  9473:
+  9474:
+  9475:
+  9477:
+  9478:
+  9479:
+  9480:
+  9481: "Rheinland-Pfalz"
+  9482:
+  9483:
+  9484:
+  9485:
+  9486:
+  9487:
+  9488:
+  9490:
+  9491:
+  9492:
+  9494:
+  9495:
+  9496:
+  9497:
+  9498:
+  9500:

@@ -11,7 +11,6 @@ from ....data import ID, default, ScheduledEvent, Position, get_package_version
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
 from ....units import meters_per_second
 from ... import Train, TrainStation
-from .mappings import id_name_map
 from .interfaces import (
     ICEPortalAPI,
     ICEPortalInternetInterface,
@@ -155,7 +154,7 @@ class ICEPortal(Train, SpeedMixin, PositionMixin, StationsMixin[TrainStation], I
         if match is None:
             return None
 
-        return id_name_map.get(int(match.group(0)))
+        return self._api.train_names.get(int(match.group(0)))
 
     @property
     def all_delay_reasons(self) -> dict[str, list[str]]:

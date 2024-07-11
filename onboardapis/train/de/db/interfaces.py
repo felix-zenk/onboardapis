@@ -6,8 +6,11 @@ from datetime import datetime
 from enum import Enum
 from functools import lru_cache
 from json import JSONDecodeError
+from pathlib import Path
 from typing import Generator
 from urllib.parse import urlparse, parse_qs
+
+import yaml
 
 from bs4 import BeautifulSoup
 from geopy import Point
@@ -31,6 +34,12 @@ logger = logging.getLogger(__name__)
 
 class ICEPortalAPI(ThreadedRestAPI):
     API_URL = "https://iceportal.de"
+
+    @property
+    @store('train_names')
+    @lru_cache
+    def train_names(self) -> dict[int, str | None]:
+        return yaml.safe_load((Path(__file__).parent / 'mappings.yaml').read_text(encoding='utf-8'))['names']
 
     @store('bap')
     @lru_cache

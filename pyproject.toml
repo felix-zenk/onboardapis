@@ -24,6 +24,7 @@ dependencies = [
     "requests>=2.32.3",
     "beautifulsoup4>=4.12.3",
     "deprecation>=2.1.0",
+    "PyYAML>=6.0.1",
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -60,7 +61,12 @@ Issues = "https://github.com/felix-zenk/onboardapis/issues"
 include = ["onboardapis", "onboardapis.*"]
 
 [tool.setuptools.package-data]
-onboardapis = ["py.typed"]
+onboardapis = [
+    "py.typed"
+]
+"onboardapis.train" = [
+    "de/db/mappings.yaml"
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
