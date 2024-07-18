@@ -4,7 +4,7 @@ import logging
 from abc import ABCMeta
 from datetime import datetime, timedelta
 
-from ....mixins import SpeedMixin, PositionMixin, StationsMixin
+from ....mixins import PositionMixin, StationsMixin
 from ....data import Position, ScheduledEvent, ID
 from ... import Train, TrainStation
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "UnwiredJourneyMixin",
-    "UnwiredMapMixin",
+    "UnwiredPositionMixin",
 ]
 
 
@@ -65,7 +65,7 @@ class UnwiredJourneyMixin(Train, StationsMixin[TrainStation], metaclass=ABCMeta)
         return station
 
 
-class UnwiredMapMixin(SpeedMixin, PositionMixin, metaclass=ABCMeta):
+class UnwiredPositionMixin(Train, PositionMixin, metaclass=ABCMeta):
     @property
     def position(self) -> Position:
-        raise NotImplementedError
+        return Position(latitude=self._api['geo_points']['lat'], longitude=self._api['geo_points']['lon'])
