@@ -328,12 +328,16 @@ class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
 class BlockingGraphQlAPI(Client, API):
     """A GraphQL ``API`` that uses a ``gql.client.Client`` to fetch data."""
 
-    def __init__(self, **kwargs: any) -> None:
+    queries: dict[str, str]
+    """The queries that will be used by this ``BlockingGraphQlAPI``."""
+
+    def __init__(self, queries: dict[str, str], **kwargs: any) -> None:
         """Initialize a new ``BlockingGraphQlAPI``.
 
         Args:
             kwargs: The kwargs to pass to the underlying ``gql.client.Client``.
         """
+        self.queries = queries
         kwargs.update({
             'transport': kwargs.pop('transport', RequestsHTTPTransport(
                 url=self.API_URL,
@@ -351,11 +355,11 @@ class BlockingGraphQlAPI(Client, API):
 class ThreadedGraphQlAPI(ThreadedAPI, BlockingGraphQlAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingGraphQlAPI``."""
 
-    def __init__(self, **kwargs: any) -> None:
+    def __init__(self, queries: dict[str, str], **kwargs: any) -> None:
         """Initialize a new ``ThreadedGraphQlAPI``.
 
         Args:
             kwargs: The kwargs to pass to the underlying ``gql.client.Client``.
         """
         ThreadedAPI.__init__(self)
-        BlockingGraphQlAPI.__init__(self, **kwargs)
+        BlockingGraphQlAPI.__init__(self, queries=queries, **kwargs)
