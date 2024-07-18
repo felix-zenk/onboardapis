@@ -1,0 +1,39 @@
+query feed_widget($user_session_id: ID, $widget_id: ID!, $language: String = "de") {
+    feed_widget(
+        user_session_id: $user_session_id
+        ap_mac: null
+        widget_id: $widget_id
+        language: $language
+    ) {
+        user_session_id
+        error {
+            ...Error
+            __typename
+        }
+        widget {
+            ...Widget
+            __typename
+        }
+        __typename
+    }
+}
+
+fragment Error on Error {
+    error_code
+    error_message
+    __typename
+}
+
+fragment Widget on Widget {
+    widget_id
+    page_id
+    position
+    date_updated
+    ... on MovingMapWidget {
+        is_ready
+        geo_points {
+            lat
+            long
+        }
+    }
+}
