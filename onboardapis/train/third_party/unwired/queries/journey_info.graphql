@@ -1,7 +1,7 @@
-query feed_widget($user_session_id: ID, $ap_mac: String, $widget_id: ID!, $language: String) {
+query feed_widget($user_session_id: ID, $widget_id: ID!, $language: String = "de") {
     feed_widget(
         user_session_id: $user_session_id
-        ap_mac: $ap_mac
+        ap_mac: null
         widget_id: $widget_id
         language: $language
     ) {
@@ -17,139 +17,26 @@ query feed_widget($user_session_id: ID, $ap_mac: String, $widget_id: ID!, $langu
         __typename
     }
 }
+
 fragment Error on Error {
     error_code
     error_message
     __typename
 }
+
 fragment Widget on Widget {
     widget_id
     page_id
     position
     date_updated
-    ... on SimpleTextWidget {
-        is_ready
-        ...SimpleTextWidget
-        __typename
-    }
-    ... on ConnectWidget {
-        button_text
-        connected_text
-        variant
-        confirmation
-        delay
-        require_sms_auth
-        email_mandatory
-        terms_of_service
-        store_terms
-        enable_anchor
-        anchor {
-            ...Anchor
-            __typename
-        }
-        __typename
-    }
     ... on JourneyInfoWidget {
         json
-        enable_anchor
-        anchor {
-            ...Anchor
-            __typename
-        }
-        variant
         is_ready
-        hold_text
-        __typename
-    }
-    ... on StructuredTextWidget {
-        is_ready
-        categories {
-            ...StructuredTextCategory
-            __typename
-        }
-        __typename
-    }
-    ... on SupportFormWidget {
-        custom_options {
-            option_key
-            text
-            email
-            __typename
-        }
-        __typename
-    }
-    ... on Wifi4EUWidget {
-        self_test
-        network_identifier
-        __typename
-    }
-    ... on EmergencyRequestWidget {
-        reasons {
-            reason
-            __typename
-        }
-        disclaimer
-        status
         __typename
     }
     ... on MovingMapWidget {
         is_ready
-        icon
-        geo_points {
-            icon_width
-            icon_url
-            lat
-            long
-            text
-            __typename
-        }
         json
-        __typename
-    }
-    __typename
-}
-fragment Anchor on Anchor {
-    slug
-    label
-    __typename
-}
-fragment SimpleTextWidget on SimpleTextWidget {
-    content
-    enable_anchor
-    anchor {
-        ...Anchor
-        __typename
-    }
-    __typename
-}
-fragment StructuredTextCategory on StructuredTextCategory {
-    label
-    entries {
-        ...StructuredTextEntry
-        __typename
-    }
-    enable_anchor
-    anchor {
-        ...Anchor
-        __typename
-    }
-    __typename
-}
-fragment StructuredTextEntry on StructuredTextEntry {
-    title
-    content
-    POI_match {
-        ...PoiMatch
-        __typename
-    }
-    __typename
-}
-fragment PoiMatch on PoiMatch {
-    stop {
-        name
-        id
-        ds100
-        ibnr
         __typename
     }
     __typename

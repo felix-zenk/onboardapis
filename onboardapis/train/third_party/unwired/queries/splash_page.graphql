@@ -11,188 +11,43 @@ query splashpage($user_session_id: ID!, $language: String!, $initial: Boolean) {
         user_session_id
         connected
         online
-        policy_violation {
-            ...PolicyViolationError
-            __typename
-        }
         splashpage {
             ...Splashpage
-            __typename
         }
         user_session_info {
             ...UserSessionInfo
-            __typename
         }
-        __typename
     }
 }
 
 fragment Splashpage on Splashpage {
-    splashpage_id
-    customer_id
-    title
-    color_primary
-    color_secondary
-    background_image
-    default_lang
-    supported_lang
-    logo_image
-    destination_url
-    matomo_tracking_id
     pages {
         ...Page
-        __typename
     }
-    __typename
 }
 
 fragment Page on Page {
     page_id
-    label
-    route
-    position
     widgets {
         ...Widget
         __typename
     }
-    __typename
 }
 
 fragment Widget on Widget {
     widget_id
-    page_id
-    position
-    date_updated
-    ... on SimpleTextWidget {
-        is_ready
-        ...SimpleTextWidget
-        __typename
-    }
-    ... on ConnectWidget {
-        button_text
-        connected_text
-        variant
-        confirmation
-        delay
-        require_sms_auth
-        email_mandatory
-        terms_of_service
-        store_terms
-        enable_anchor
-        anchor {
-            ...Anchor
-            __typename
-        }
-        __typename
-    }
     ... on JourneyInfoWidget {
         json
-        enable_anchor
-        anchor {
-            ...Anchor
-            __typename
-        }
-        variant
         is_ready
-        hold_text
-        __typename
-    }
-    ... on StructuredTextWidget {
-        is_ready
-        categories {
-            ...StructuredTextCategory
-            __typename
-        }
-        __typename
-    }
-    ... on SupportFormWidget {
-        custom_options {
-            option_key
-            text
-            email
-            __typename
-        }
-        __typename
-    }
-    ... on Wifi4EUWidget {
-        self_test
-        network_identifier
-        __typename
-    }
-    ... on EmergencyRequestWidget {
-        reasons {
-            reason
-            __typename
-        }
-        disclaimer
-        status
         __typename
     }
     ... on MovingMapWidget {
         is_ready
-        icon
         geo_points {
-            icon_width
-            icon_url
             lat
             long
-            text
-            __typename
         }
         json
-        __typename
-    }
-    __typename
-}
-
-fragment Anchor on Anchor {
-    slug
-    label
-    __typename
-}
-
-fragment SimpleTextWidget on SimpleTextWidget {
-    content
-    enable_anchor
-    anchor {
-        ...Anchor
-        __typename
-    }
-    __typename
-}
-
-fragment StructuredTextCategory on StructuredTextCategory {
-    label
-    entries {
-        ...StructuredTextEntry
-        __typename
-    }
-    enable_anchor
-    anchor {
-        ...Anchor
-        __typename
-    }
-    __typename
-}
-
-fragment StructuredTextEntry on StructuredTextEntry {
-    title
-    content
-    POI_match {
-        ...PoiMatch
-        __typename
-    }
-    tag
-    attribution_image_url
-    __typename
-}
-
-fragment PoiMatch on PoiMatch {
-    stop {
-        name
-        id
-        ds100
-        ibnr
         __typename
     }
     __typename
@@ -204,24 +59,8 @@ fragment Error on Error {
     __typename
 }
 
-fragment PolicyViolationError on Error {
-    error_code
-    error_message
-    current_value_bytes
-    max_value_bytes
-    current_value_seconds
-    max_value_seconds
-    __typename
-}
-
 fragment UserSessionInfo on UserSessionInfo {
-    client_mac
-    ap_mac
-    ap_name
     user_session_id
-    sync_user_session_id
-    time_start
-    state
     network_user_policy {
         network_user_policy_id
         max_mbytes_down
