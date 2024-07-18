@@ -1,0 +1,29 @@
+mutation client_connect($userSessionId: ID!, $userAgentLang: String, $userAgentCountry: String, $input: ConnectInput, $widget_id: ID!, $code: String) {
+    client_connect(
+        user_session_id: $userSessionId
+        user_agent_lang: $userAgentLang
+        user_agent_country: $userAgentCountry
+        input: $input
+        widget_id: $widget_id
+        code: $code
+    ) {
+        user_session_id
+        time_start
+        state
+        error {
+            ...PolicyViolationError
+            __typename
+        }
+        __typename
+    }
+}
+
+fragment PolicyViolationError on Error {
+    error_code
+    error_message
+    current_value_bytes
+    max_value_bytes
+    current_value_seconds
+    max_value_seconds
+    __typename
+}
