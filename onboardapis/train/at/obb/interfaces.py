@@ -33,16 +33,6 @@ class RailnetRegioAPI(ThreadedRestAPI):
     def speed(self) -> float:
         return float(self.get("api/speed").text)
 
-    @deprecated(
-        deprecated_in='2.0.0',
-        removed_in='2.1.0',
-        current_version=get_package_version(),
-        details='combined has been removed from the API by ÖBB'
-    )
-    @store('combined')
-    def combined(self) -> dict:
-        return self.get("assets/modules/fis/combined.json", params={"_time": time.time()}).json()
-
     def refresh(self) -> None:
         self.train_info()
         self.gps()
