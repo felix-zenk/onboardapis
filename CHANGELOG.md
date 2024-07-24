@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use YAML based resource files
 - RegioGuideInternetAccessAPI autodetect internet access provider
+- Renamed `UnwiredMapMixin` to `UnwiredPositionMixin`
+
+### Removed
+
+- Deprecated method `RailnetRegio.combined`
 
 ## [2.0.0] - 2023-06-27
 
