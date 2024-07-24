@@ -306,7 +306,7 @@ class BlockingRestAPI(APISession, API):
         Args:
             kwargs: The kwargs to pass to the underlying ``restfly.session.APISession``.
         """
-        kwargs['url'] = kwargs.pop('url', self.API_URL)
+        kwargs['url'] = kwargs.pop('url', getattr(self, 'API_URL', None))
         APISession.__init__(self, **kwargs)
         API.__init__(self)
 
