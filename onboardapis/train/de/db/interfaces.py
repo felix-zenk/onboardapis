@@ -8,13 +8,13 @@ from functools import lru_cache
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Generator
-from urllib.parse import urlparse, parse_qs
 
 import yaml
 
 from bs4 import BeautifulSoup
 from geopy import Point
 from geopy.distance import distance
+from requests.exceptions import ConnectTimeout
 from restfly.errors import NotFoundError
 
 from ....data import (
@@ -25,7 +25,7 @@ from ....data import (
     store,
     BlockingRestAPI, get_package_version,
 )
-from ....exceptions import APIFeatureMissingError
+from ....exceptions import APIFeatureMissingError, APIConnectionError
 from ....mixins import InternetAccessInterface, InternetMetricsInterface
 from ... import ConnectingTrain
 
@@ -223,8 +223,8 @@ class RegioGuideAPI(ThreadedRestAPI):
 
     @lru_cache
     def distance(self, index: int) -> float:
-        """Calculate the distance from the start for the station at index ``index``"""
-        if index == 0:
+        """Calculate the distance from the start for the station at ``index``"""
+        if index <= 0:
             return 0.0
 
         start = self._data['journey'].get('stops', [])[0]
@@ -270,36 +270,58 @@ ZugPortalAPI = RegioGuideAPI
 
 
 class RegioGuideInternetAccessAPI(BlockingRestAPI):
-    API_URL = 'http://192.168.44.1/'  # Hotsplots, covers every provider of RegioGuide? Same IP every time?
+    @classmethod
+    def auto_detect(cls) -> RegioGuideInternetAccessAPI:
+        try:
+            cls(url=RegioGuideHotsplotsInternetAccessAPI.API_URL, timeout=1., retries=0).get('auth/login.php')
+            return RegioGuideHotsplotsInternetAccessAPI()
+        except ConnectTimeout:
+            pass
 
-    def __init__(self, **kwargs: any):
-        super().__init__(**kwargs)
+        raise NotImplementedError
+
+
+class RegioGuideHotsplotsInternetAccessAPI(RegioGuideInternetAccessAPI):
+    API_URL = 'http://192.168.44.1'
+
+    def enable(self) -> None:
+        response = self.get('auth/login.php')
+        soup = BeautifulSoup(response.text, 'html.parser')
+        form = soup.find(name='form')
+        if form is None:
+            raise APIConnectionError('Internet access login form not found')
+        response = self.post('auth/login.php', data={
+            "haveTerms": form.find(attrs={'name': 'haveTerms'}).attrs['value'],
+            "termsOK": form.find(attrs={'name': 'termsOK'}).attrs['value'],
+            "button": form.find(attrs={'name': 'button'}).get_text(),
+            "challenge": form.find(attrs={'name': 'challenge'}).attrs['value'],
+            "uamip": form.find(attrs={'name': 'uamip'}).attrs['value'],
+            "uamport": form.find(attrs={'name': 'uamport'}).attrs['value'],
+            "userurl": form.find(attrs={'name': 'userurl'}).attrs['value'],
+            "myLogin": form.find(attrs={'name': 'myLogin'}).attrs['value'],
+            "ll": form.find(attrs={'name': 'll'}).attrs['value'],
+            "nasid": form.find(attrs={'name': 'nasid'}).attrs['value'],
+            "custom": form.find(attrs={'name': 'custom'}).attrs['value'],
+        })
+        response.raise_for_status()
+
+    def disable(self) -> None:
+        self.get('logoff').raise_for_status()  # Not CSRF protected!
 
 
 class RegioGuideInternetAccessInterface(InternetAccessInterface):
-    _api: RegioGuideInternetAccessAPI
+    _api: RegioGuideHotsplotsInternetAccessAPI
+
+    def __init__(self, api: RegioGuideInternetAccessAPI):
+        super().__init__(api)
 
     def enable(self) -> None:
         """WIP: does not work yet"""
-        response = self._api.get('auth/login.php')
-        params = parse_qs(urlparse(response.url).query)
-        self._api.post('auth/login.php', data={
-            "haveTerms": "1",
-            "termsOK": "on",
-            "button": "Jetzt kostenlos surfen",
-            "challenge": params['challenge'][0],
-            "uamip": params['uamip'][0],
-            "uamport": params['uamport'][0],
-            "userurl": params['userurl'][0],
-            "myLogin": "agb",
-            "ll": "de",
-            "nasid": params['nasid'][0],
-            "custom": "1",
-        })
+        self._api.enable()
 
     def disable(self) -> None:
         """WIP: does not work yet"""
-        response = self._api.get('/logoff')  # Not CSRF protected!
+        self._api.disable()
 
     @property
     def is_enabled(self) -> bool:

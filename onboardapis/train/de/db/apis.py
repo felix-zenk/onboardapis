@@ -7,7 +7,7 @@ from typing import Literal
 from datetime import datetime, timedelta
 
 from ....exceptions import DataInvalidError
-from ....data import ID, default, ScheduledEvent, Position, get_package_version
+from ....data import ID, default, ScheduledEvent, Position
 from ....mixins import SpeedMixin, PositionMixin, StationsMixin, InternetAccessMixin
 from ....units import meters_per_second
 from ... import Train, TrainStation
@@ -251,7 +251,7 @@ class RegioGuide(Train, StationsMixin[TrainStation], InternetAccessMixin):
 
     def __init__(self):
         self._api = RegioGuideAPI()
-        self._internet_access = RegioGuideInternetAccessInterface(RegioGuideInternetAccessAPI())
+        self._internet_access = RegioGuideInternetAccessInterface(RegioGuideInternetAccessAPI.auto_detect())
         Train.__init__(self)
 
     @property
