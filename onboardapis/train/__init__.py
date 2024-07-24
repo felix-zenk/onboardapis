@@ -32,9 +32,9 @@ from ..data import ScheduledEvent
 # noinspection PyUnresolvedReferences
 from typing import Iterable  # for associations while generating docs
 # noinspection PyUnresolvedReferences
-from ..data import ID, Position  # for associations while generating docs
+from ..data import ID, Position  # noqa: F401  # for associations while generating docs
 # noinspection PyUnresolvedReferences
-from datetime import datetime  # for associations while generating docs
+from datetime import datetime  # noqa: F401  # for associations while generating docs
 
 logger = logging.getLogger(__name__)
 

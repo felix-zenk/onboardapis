@@ -216,4 +216,3 @@ class InternetMetricsInterface(metaclass=ABCMeta):
     @abstractmethod
     def limit(self) -> int | None:
         """Return the total internet access quota in MB or `None` if there is none."""
-

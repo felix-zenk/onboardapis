@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from functools import wraps
 from json import JSONDecodeError
 from typing import TypeVar, Generic, ClassVar, Callable
-from threading import Thread, Lock, Event
+from threading import Thread, Event
 
 from geopy.point import Point
 from geopy.distance import geodesic
@@ -50,7 +50,7 @@ T = TypeVar("T")
 ID = TypeVar("ID", str, int)
 """A TypeVar indicating the return type of Vehicle.id"""
 
-StationType = TypeVar("StationType", bound="Station")
+StationType = TypeVar("StationType", bound="Station")  # noqa: F821
 """A TypeVar indicating the Station type"""
 
 

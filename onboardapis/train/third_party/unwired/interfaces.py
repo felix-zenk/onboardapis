@@ -41,10 +41,10 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
             self._user_session_id, *_ = parse_qs(urlparse(response.url).query)['user_session_id']
             self._journey_widget_id = '363a8707-5e3e-4a5b-b565-9d22470dfd25'
             self._connect_widget_id = 'b052e62c-bb87-43fb-a0ab-f0cfe05adfef'
-            # journey_page, *_ = *filter(lambda page: page['page_id'] == 'ec6b0ec5-b78e-453c-9cb0-683d57f3cb13', self.splash_page()['pages']), None  # TODO
+            # journey_page, *_ = *filter(lambda page: page['page_id'] == 'ec6b0ec5-b78e-453c-9cb0-683d57f3cb13', self.splash_page()['pages']), None  # noqa: E501  # TODO
             # if not journey_page:
             #    raise InitialConnectionError
-            # widget, *_ = *filter(lamdbda widget: widget['__typename'] == 'JourneyInfoWidget', journey_page['widgets']), None
+            # widget, *_ = *filter(lamdbda widget: widget['__typename'] == 'JourneyInfoWidget', journey_page['widgets']), None  # noqa: E501
             # if not widget:
             #    raise InitialConnectionError
             # self._journey_widget_id = widget['widget_id']
@@ -62,7 +62,7 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
         )['splashpage']
 
     @store('geo_points')
-    def journey(self) -> dict:
+    def geo_points(self) -> dict:
         response = self.execute(
             document=gql(self.queries['geo_points']),
             variable_values={
@@ -110,8 +110,12 @@ class GenericUnwiredInternetAccessInterface(InternetAccessInterface):
     def __init__(self, api: GenericUnwiredAPI) -> None:
         super().__init__(api)
         self._api.queries.update({
-            'client_connect': (Path(__file__).parent / 'mutations' / 'client_connect.graphql').read_text(encoding='utf-8'),
-            'client_logout': (Path(__file__).parent / 'mutations' / 'client_logout.graphql').read_text(encoding='utf-8'),  # TODO: add
+            'client_connect': (
+                    Path(__file__).parent / 'mutations' / 'client_connect.graphql'
+            ).read_text(encoding='utf-8'),
+            'client_logout': (
+                    Path(__file__).parent / 'mutations' / 'client_logout.graphql'
+            ).read_text(encoding='utf-8'),  # TODO: add
         })
 
     def enable(self) -> None:  # TODO: implement
