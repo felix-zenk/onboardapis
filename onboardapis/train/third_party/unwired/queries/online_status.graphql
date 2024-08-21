@@ -1,0 +1,20 @@
+query online_status($user_session_id: ID!, $language: String!) {
+  online_status: splashpage(
+    user_session_id: $user_session_id
+    language: $language
+  ) {
+    error {
+      ...Error
+      __typename
+    }
+    online
+    user_session_id
+    __typename
+  }
+}
+
+fragment Error on Error {
+  error_code
+  error_message
+  __typename
+}

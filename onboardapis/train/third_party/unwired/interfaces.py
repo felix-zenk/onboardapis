@@ -111,11 +111,14 @@ class GenericUnwiredInternetAccessInterface(InternetAccessInterface):
         super().__init__(api)
         self._api.queries.update({
             'client_connect': (
-                    Path(__file__).parent / 'mutations' / 'client_connect.graphql'
+                Path(__file__).parent / 'mutations' / 'client_connect.graphql'
             ).read_text(encoding='utf-8'),
             'client_logout': (
-                    Path(__file__).parent / 'mutations' / 'client_logout.graphql'
+                Path(__file__).parent / 'mutations' / 'client_logout.graphql'
             ).read_text(encoding='utf-8'),  # TODO: add
+            'online_status': (
+                Path(__file__).parent / 'queries' / 'online_status.graphql'
+            ).read_text(encoding='utf-8'),
         })
 
     def enable(self) -> None:  # TODO: implement
