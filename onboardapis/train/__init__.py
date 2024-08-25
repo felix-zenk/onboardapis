@@ -76,12 +76,18 @@ class Train(Vehicle, metaclass=ABCMeta):
 
     @property
     def type(self) -> str:
-        """The abbreviated train type."""
+        """
+        :return: The abbreviated train type
+        :raises DataInvalidError: If the train type could not be fetched from the server
+        """
         return 'undefined'
 
     @property
     def line_number(self) -> str:
-        """The line number of this train."""
+        """
+        :return: The line number
+        :raises DataInvalidError: If the line number could not be fetched from the server
+        """
         return 'undefined'
 
 

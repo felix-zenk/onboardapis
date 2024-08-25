@@ -95,7 +95,10 @@ class Vehicle(metaclass=ABCMeta):
 
     @property
     def id(self) -> ID:
-        """The unique ID of this specific vehicle."""
+        """
+        :return: The ID of the vehicle
+        :raises DataInvalidError: If the ID could not be fetched from the server
+        """
         return 'undefined'
 
 

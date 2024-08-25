@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+
 from abc import ABCMeta
 from datetime import datetime, timedelta
 
@@ -18,7 +19,7 @@ __all__ = [
 
 class UnwiredJourneyMixin(Train, StationsMixin[TrainStation], metaclass=ABCMeta):
     @property
-    def stations_dict(self) -> dict[ID, TrainStation]:
+    def stations_dict(self) -> dict[str, TrainStation]:
         return {
             station['id']: TrainStation(
                 id=station['id'],

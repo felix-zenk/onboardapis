@@ -18,10 +18,8 @@ class PositionMixin(metaclass=ABCMeta):
     @abstractmethod
     def position(self) -> Position:
         """
-        Get the current position of the vehicle.
-
         :return: The current position of the vehicle
-        :rtype: Position
+        :raises DataInvalidError: If the position could not be fetched from the server
         """
         raise NotImplementedError
 
@@ -34,10 +32,9 @@ class SpeedMixin(metaclass=ABCMeta):
     @property
     @abstractmethod
     def speed(self) -> float:
-        r"""The current speed of the vehicle.
-
-        Returns:
-            The current speed in $\frac{meters}{second}$
+        r"""
+        :return: The current speed of the vehicle in $\frac{meters}{second}$
+        :raises DataInvalidError: If the speed could not be fetched from the server
         """
         raise NotImplementedError
 
@@ -48,15 +45,12 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
     """
 
     def calculate_distance(self, station: StationType) -> float:
-        """Calculate the distance in meters between the train and a station.
-
-        Use the trains ``position`` or ``distance`` to calculate the distance to ``station``.
-
-        Args:
-            station: The station to calculate the distance to
-
-        Returns:
-            The distance between the train and the station in meters
+        """
+        :return: The distance in meters between the vehicle and a station
+        :param station: The station to calculate the distance to
+        :raises DataInvalidError: If the distance between the vehicle and the station could not be calculated
+                                  due to missing information from the server
+        :raises NotImplementedError: If the vehicle does not implement ``position`` or ``distance``
         """
         if hasattr(self, 'position'):
             position: Position = getattr(self, 'position')
@@ -71,67 +65,54 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
     @property
     @abstractmethod
     def stations_dict(self) -> dict[ID, StationType]:
-        """A dict containing the stations on the journey.
-
-        The stations that this vehicle passes through returned as a dict with the station ID as the key.
-
-        Returns:
-            The stations as a dict
+        """
+        :return: The stations as a dict of station ID to station instance
+        :raises DataInvalidError: If the stations could not be fetched from the server
         """
         raise NotImplementedError
 
     @property
     def stations(self) -> list[StationType]:
-        """Return the stations as a list.
-
-        Return a list that contains every station from `onboardapis.mixins.StationsMixin.stations_dict`.
-
-        Returns:
-            The `stations_dict` values
+        """
+        :return: A list that contains every station from `onboardapis.mixins.StationsMixin.stations_dict`.
+        :raises DataInvalidError: If the stations could not be fetched from the server
         """
         return list(self.stations_dict.values())
 
     @property
     def origin(self) -> StationType:
-        """The station where this vehicle started the current journey.
-
-        Returns:
-            The first station on this trip.
+        """
+        :return: The first station on this trip.
+        :raises DataInvalidError: If the origin station could not be fetched from the server
         """
         if len(self.stations) > 0:
             return self.stations[0]
-        raise DataInvalidError("No origin station found")
+        raise DataInvalidError("No origin station found!")
 
     @property
     @abstractmethod
     def current_station(self) -> StationType:
-        """The next station.
-
-        Returns:
-            The station where this vehicle will arrive next or is currently at.
+        """
+        :return: The station where this vehicle will arrive next or is currently at
+        :raises DataInvalidError: If the current station could not be fetched from the server
         """
         raise NotImplementedError
 
     @property
     def destination(self) -> StationType:
-        """The station where this vehicle terminates the current journey.
-
-        Returns:
-            The destination station.
+        """
+        :return: The station where this vehicle terminates the current journey
+        :raises DataInvalidError: If the destination station could not be fetched from the server
         """
         if len(self.stations) > 0:
             return self.stations[-1]
-        raise DataInvalidError("No destination station found")
+        raise DataInvalidError("No destination station found!")
 
     @property
     def delay(self) -> timedelta:
-        """The current delay.
-
-        The current delay calculated by the `current_station`
-        scheduled arrival time vs. actual arrival time.
-
-        Returns:
-            The current delay of the vehicle as a `datetime.timedelta` object.
+        """
+        :return: The current delay of the vehicle as a `datetime.timedelta` object.
+        :raises DataInvalidError: If the delay could not be fetched from the server
         """
         return timedelta(seconds=(
             self.current_station.arrival.actual - self.current_station.arrival.scheduled
@@ -139,19 +120,17 @@ class StationsMixin(Generic[StationType], metaclass=ABCMeta):
 
     @property
     def is_delayed(self) -> bool:
-        """Whether the train is delayed.
-
-        Convenience function that tests if `delay > timedelta(0)`.
+        """
+        :returns: Whether ``delay`` `> timedelta(seconds=0)`
+        :raises DataInvalidError: If the delay could not be fetched from the server
         """
         return self.delay > timedelta()
 
     @property
     def distance(self) -> float:
         """
-        The distance from the start in meters
-
-        :return: The distance
-        :rtype: float
+        :return: The distance from the start in meters
+        :raises DataInvalidError: If the distance could not be fetched from the server
         """
         return self.calculate_distance(self.origin)
 
@@ -163,7 +142,9 @@ class InternetAccessMixin(metaclass=ABCMeta):
 
     @property
     def internet_access(self) -> InternetAccessInterface:
-        """An interface to manage the internet access for this device."""
+        """
+        :return: An interface to manage the internet access for this device
+        """
         return self._internet_access
 
 
@@ -182,11 +163,10 @@ class InternetAccessInterface(metaclass=ABCMeta):
     def enable(self) -> None:
         """Enable the internet access for this device.
 
-        Request internet access for this device by automatically accepting the terms of service
-        and signing in to the captive portal.
+        **IMPORTANT**:
+            By using this method you automatically agree to the terms of service of the internet access provider.
 
-        Raises:
-            ConnectionError: If the internet access is temporarily not available.
+        :raises ConnectionError: If the internet access is (temporarily) not available.
         """
         self._is_enabled = True
 
@@ -196,8 +176,7 @@ class InternetAccessInterface(metaclass=ABCMeta):
 
         Disable the internet access for this device by signing out of the captive portal.
 
-        Raises:
-            ConnectionError: If the internet access is temporarily not available.
+        :raises ConnectionError: If the internet access is (temporarily) not available.
         """
         if not self.is_enabled:
             return
@@ -206,13 +185,29 @@ class InternetAccessInterface(metaclass=ABCMeta):
 
     @property
     def is_enabled(self) -> bool:
-        """Return whether the internet access is enabled for this device."""
+        """
+        :return: Whether the internet access is enabled for this device
+        """
         return self._is_enabled
 
 
 class InternetMetricsInterface(metaclass=ABCMeta):
     """Interface for information on limited internet access."""
 
+    @property
     @abstractmethod
-    def limit(self) -> int | None:
-        """Return the total internet access quota in MB or `None` if there is none."""
+    def limit(self) -> int | float | None:
+        """
+        :return: The total internet access quota in MB or `None` if there is none
+        :raises DataInvalidError: If the quota could not be fetched from the server
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def used(self) -> int | float | None:
+        """
+        :return: The amount used of the quota in MB or `None` if there is none
+        :raises DataInvalidError: If the usage information could not be fetched from the server
+        """
+        raise NotImplementedError
