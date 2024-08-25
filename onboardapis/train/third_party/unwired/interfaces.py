@@ -115,7 +115,7 @@ class GenericUnwiredInternetAccessInterface(InternetAccessInterface):
             ).read_text(encoding='utf-8'),
             'client_logout': (
                 Path(__file__).parent / 'mutations' / 'client_logout.graphql'
-            ).read_text(encoding='utf-8'),  # TODO: add
+            ).read_text(encoding='utf-8'),
             'online_status': (
                 Path(__file__).parent / 'queries' / 'online_status.graphql'
             ).read_text(encoding='utf-8'),

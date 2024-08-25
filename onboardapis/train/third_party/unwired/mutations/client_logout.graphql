@@ -1,0 +1,18 @@
+mutation client_logout($userSessionId: ID!) {
+    client_logout(user_session_id: $userSessionId) {
+        user_session_id
+        time_start
+        state
+        error {
+            ...Error
+            __typename
+        }
+        __typename
+    }
+}
+
+fragment Error on Error {
+    error_code
+    error_message
+    __typename
+}
