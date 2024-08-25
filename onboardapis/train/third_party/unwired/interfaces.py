@@ -70,7 +70,7 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
                 "user_session_id": self._user_session_id,
             }
         )['feed_widget']
-        if 'error' in response:
+        if 'error' in response and response['error']:
             logger.debug(
                 'Got an error while requesting journey information: %s - %s',
                 response['error']['error_code'],
@@ -88,7 +88,7 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
                 "user_session_id": self._user_session_id,
             }
         )['feed_widget']
-        if 'error' in response:
+        if 'error' in response and response['error']:
             logger.debug(
                 'Got an error while requesting journey information: %s - %s',
                 response['error']['error_code'],
@@ -97,6 +97,7 @@ class GenericUnwiredAPI(ThreadedGraphQlAPI):
             return {}
         journey = json.loads(response['widget']['json'])
         if 'course' not in journey:
+            logger.warning('Error while fetching journey information: %s', journey['content'])
             return {}
         return journey['course']
 
