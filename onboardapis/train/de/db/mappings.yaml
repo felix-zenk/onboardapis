@@ -43,12 +43,14 @@ names:
   156: "Heppenheim/Bergstraße"
   157: "Landshut"
   166: "Gelnhausen"
+  167: "Garmisch-Partenkirchen"
   169: "Worms"
   171: "Heusenstamm"
   # 173: "Basel"  # Probably retired -> 73
   178: "Bremerhaven"
   179:
   180: "Castrop Rauxel"
+  181: "Interlaken"
   182: "Rüdesheim am Rhein"
   183: "Timmendorfer Strand"
   185: "Freilassing"
@@ -77,6 +79,7 @@ names:
   220: "Meiningen"
   221: "Lübbenau/Spreewald"
   222: "Eberswalde"
+  223: "Schwerin"
   224: "Saalfeld (Saale)"
   225: "Zwickau"  # previously Oldenburg (Oldb)
   226: "Lutherstadt Wittenberg"
@@ -145,6 +148,7 @@ names:
   711:
   712: "Dillingen a.d.Donau"
   713:
+  715:
   717: "Paris"
   1101: "Neustadt an der Weinstraße"
   1102: "Neubrandenburg"
@@ -223,6 +227,7 @@ names:
   8012:
   8015:
   8016:
+  8029: "Europa/Europe"
   9001:
   9002:
   9003:
@@ -297,6 +302,7 @@ names:
   9228:
   9229:
   9230:
+  9231:
   9234:
   9235:
   9237: "Spree"
@@ -306,7 +312,7 @@ names:
   9454:
   9455:
   9456:
-  9457: "Bundesrepublik Deutschland / Wendlingen-Ulm"
+  9457: "Bundesrepublik Deutschland"
   9458:
   9459:
   9460:
@@ -337,6 +343,7 @@ names:
   9486:
   9487:
   9488:
+  9389:
   9490:
   9491:
   9492:
