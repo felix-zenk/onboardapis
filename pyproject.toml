@@ -7,7 +7,7 @@ name = "onboardapis"
 description = "A pure Python wrapper for the on-board APIs of many different transportation providers."
 version = "2.0.0"
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 keywords = [
     "public-transport",
     "train",
