@@ -117,9 +117,9 @@ class Position(object):
     """The latitude in decimal degrees"""
     longitude: float
     """The longitude in decimal degrees"""
-    altitude: float = None
+    altitude: float | None = None
     """The altitude in meters"""
-    heading: float = None
+    heading: float | None = None
     """The compass heading in degrees"""
 
     def __str__(self) -> str:
