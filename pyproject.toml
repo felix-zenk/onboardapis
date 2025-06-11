@@ -23,7 +23,7 @@ dependencies = [
     "geopy>=2.4.1",
     "gql[all]>=3.5.0",
     "requests>=2.32.4",
-    "restfly>=1.5.2",
+    "restfly>=1.5.1",
     "PyYAML>=6.0.2",
 ]
 classifiers = [
