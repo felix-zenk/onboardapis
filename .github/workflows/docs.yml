@@ -12,10 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.2
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Build docs
         run: |
           pip install .
@@ -26,7 +26,7 @@ jobs:
           chmod -c -R +rX "docs/" | while read line; do
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
-      - uses: actions/upload-pages-artifact@v2
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/
 
@@ -41,4 +41,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
