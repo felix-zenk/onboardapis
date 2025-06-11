@@ -23,7 +23,11 @@ class RailnetRegio(Train):
 
     @property
     def speed(self) -> float:
-        return meters_per_second(kilometers_per_hour=self._api['gps']['JSON']['speed'])
+        return meters_per_second(
+            kilometers_per_hour=self._api['gps']['JSON']['speed']
+            if 'gps' in self._api
+            else self._api['combined']['latestStatus']['speed']
+        )
 
     @property
     def position(self) -> Position:
@@ -33,4 +37,9 @@ class RailnetRegio(Train):
             # these are only present in newer trains
             altitude=self._api['gps']['JSON'].get('alt', None),
             heading=self._api['gps']['JSON'].get('bearing', None),
+        ) if 'gps' in self._api else Position(
+            latitude=self._api['combined']['latestStatus']['gpsPosition']['latitude'],
+            longitude=self._api['combined']['latestStatus']['gpsPosition']['longitude'],
+            altitude=None,
+            heading=self._api['combined']['latestStatus']['gpsPosition']['orientation'],  # may be None, always provided
         )

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import time
 
 from functools import lru_cache
 from typing import TypedDict
 
 from ....data import ThreadedRestAPI, store
+from ....exceptions import APIConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,15 @@ class RailnetRegioAPI(ThreadedRestAPI):
     def speed(self) -> float:
         return float(self.get("api/speed").text)
 
+    @store('combined')
+    def combined(self) -> dict:
+        return self.get("assets/media/fis/combined.json", params={'_time': time.time_ns() / 10e6}).json()
+
     def refresh(self) -> None:
-        self.train_info()
-        self.gps()
-        self.speed()
+        # Use data from available sources, 'combined' is not available in every train
+        try:
+            self.combined()
+        except APIConnectionError:
+            self.train_info()
+            self.gps()
+            self.speed()
