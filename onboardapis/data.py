@@ -214,8 +214,8 @@ def store(name: str | Callable[..., T] = None) -> Callable[..., T]:
         @wraps(method)
         def wrapper(self: API, *args: Any, **kwargs: Any) -> T:
             if isinstance(self, API):
-                self[name or method.__name__] = method(self, *args, **kwargs)
-                return self[name or method.__name__]
+                self.store(key=name or method.__name__, value=method(self, *args, **kwargs))
+                return self.load(name or method.__name__)
             return method(self, *args, **kwargs)
 
         return wrapper
