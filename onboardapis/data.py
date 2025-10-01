@@ -122,9 +122,9 @@ class Position(object):
     heading: float | None = None
     """The compass heading in degrees"""
     relative_roll: float | None = None
-    """The relative roll in degrees"""
+    """The roll in degrees relative to the ground"""
     relative_pitch: float | None = None
-    """The relative pitch in degrees"""
+    """The pitch in degrees relative to the ground"""
 
     def __str__(self) -> str:
         (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec,) = coordinates_decimal_to_dms(
@@ -179,7 +179,10 @@ class API(metaclass=ABCMeta):
         Returns:
             The data if present, else the default.
         """
-        return self._data.get(key, default)
+        try:
+            return self._data[key]
+        except KeyError:
+            return default
 
     def store(self, key: str, value: Any) -> None:
         """Store data in the cache.
@@ -244,11 +247,21 @@ class ThreadedAPI(API, Thread):
         Thread.__init__(
             self,
             target=self._run,
-            name='API-Thread for "%s"' % self.API_URL,
+            name='API-Thread for "%s"' % getattr(self, 'API_URL', getattr(self, '_url', '?')),
             daemon=True,
         )
         self._is_running = False
         self.ready = Event()
+
+    def __getitem__(self, item: str) -> Any:
+        if not self.ready.is_set():
+            raise InitialConnectionError(
+                'Item "%s" was accessed before the API thread was started. '
+                'Have you called a portal.init() method yet?' % item
+            )
+        elif not self._is_running:
+            logger.warning('Accessing item %s while API thread is not running.', item)
+        return super().__getitem__(item)
 
     @property
     def is_connected(self) -> bool:
@@ -329,7 +342,7 @@ class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``ThreadedRestAPI``."""
-        kwargs['url'] = kwargs.pop('url', self.API_URL)
+        kwargs['url'] = kwargs.pop('url', getattr(self, 'API_URL', None))
         ThreadedAPI.__init__(self)
         BlockingRestAPI.__init__(self, **kwargs)
 
