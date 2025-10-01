@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from datetime import datetime
-from enum import Enum
+from enum import ReprEnum
 from functools import lru_cache
 from json import JSONDecodeError
 from pathlib import Path
@@ -180,8 +180,16 @@ class ICEPortalInternetInterface(InternetAccessInterface, InternetMetricsInterfa
             return None
         return usage_info.json()['limit']
 
+    @property
+    def used(self) -> None:
+        try:
+            usage_info = self._api.get('usage_info/')
+        except APIFeatureMissingError:
+            return None
+        return usage_info.json()['used']  # TODO: verify attribute
 
-class ModeOfTransport(str, Enum):
+
+class ModeOfTransport(str, ReprEnum):
     UNKNOWN = 'UNKNOWN'
     BUS = 'BUS'
     TRAM = 'TRAM'
