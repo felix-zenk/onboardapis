@@ -227,9 +227,12 @@ def store(name: str | Callable[..., T] = None) -> Callable[..., T]:
 
 class ThreadedAPI(API, Thread):
     """An ``API`` that refreshes the data in a new thread."""
-
-    _is_running: bool
     ready: Event
+    """An event that is released, when the API has been initialized and is ready to serve data."""
+    _is_running: bool
+    """Whether the API is currently running."""
+    _interval: float = 1.0
+    """Interval in seconds between updates."""
 
     def __init__(self) -> None:
         """Initialize a new ``ThreadedAPI``."""
@@ -251,7 +254,7 @@ class ThreadedAPI(API, Thread):
     def _run(self) -> None:
         """The main loop that will run in a separate thread."""
         # thread join checks per second
-        tps = 20
+        tps = 20 * self._interval
         counter = 0
         self._is_running = True
         while self._is_running:
