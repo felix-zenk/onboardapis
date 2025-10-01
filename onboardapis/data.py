@@ -14,7 +14,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from json import JSONDecodeError
-from typing import TypeVar, Generic, ClassVar, Callable
+from typing import TypeVar, Generic, ClassVar, Callable, Any
 from threading import Thread, Event
 
 from geopy.point import Point
@@ -62,7 +62,7 @@ def get_package_version() -> str:
         return 'unknown'
 
 
-def default(arg: any, default: any = None, *, boolean: bool = True) -> any:  # noqa: F402
+def default(arg: Any, default: Any = None, *, boolean: bool = True) -> Any:  # noqa: F402
     """Return ``arg`` if it evaluates to ``True``, else return ``default``.
 
     Set ``boolean`` to ``False`` to only test for ``arg is None``.
@@ -83,7 +83,7 @@ def default(arg: any, default: any = None, *, boolean: bool = True) -> any:  # n
 class ScheduledEvent(Generic[T]):
     """
     An event that is scheduled to have the value ``scheduled``,
-    but can also happen different from the expected and actually happens as ``actual``.
+    but can also happen differently from the expected and actually happens as ``actual``.
     """
 
     scheduled: T
@@ -97,7 +97,7 @@ class ScheduledEvent(Generic[T]):
 
         Args:
             scheduled: The value that should happen.
-            actual: The value that actually happens, will be the same as the scheduled value if passed as None.
+            actual: The value that actually happens will be the same as the scheduled value if passed as None.
         """
         self.scheduled = scheduled
         self.actual = actual or scheduled
@@ -110,7 +110,7 @@ class ScheduledEvent(Generic[T]):
 class Position(object):
     """
     A position requires at least a latitude and longitude,
-    but can also provide data on altitude and the current compass heading.
+    but can also provide data on altitude and the current compass heading, as well as the relative pitch and roll.
     """
 
     latitude: float
@@ -121,6 +121,10 @@ class Position(object):
     """The altitude in meters"""
     heading: float | None = None
     """The compass heading in degrees"""
+    relative_roll: float | None = None
+    """The relative roll in degrees"""
+    relative_pitch: float | None = None
+    """The relative pitch in degrees"""
 
     def __str__(self) -> str:
         (lat_deg, lat_min, lat_sec), (lon_deg, lon_min, lon_sec,) = coordinates_decimal_to_dms(
@@ -159,13 +163,13 @@ class API(metaclass=ABCMeta):
     API_URL: ClassVar[str]
     """The base URL for the API."""
 
-    _data: dict[str, any]
+    _data: dict[str, Any]
 
     def __init__(self) -> None:
         """Initialize a new ``API``."""
         self._data = dict()
 
-    def load(self, key: str, default: any = None) -> any:  # noqa: F402
+    def load(self, key: str, default: Any = None) -> Any:  # noqa: F402
         """Load data from the cache.
 
         Args:
@@ -177,7 +181,7 @@ class API(metaclass=ABCMeta):
         """
         return self._data.get(key, default)
 
-    def store(self, key: str, value: any) -> None:
+    def store(self, key: str, value: Any) -> None:
         """Store data in the cache.
 
         Args:
@@ -186,10 +190,10 @@ class API(metaclass=ABCMeta):
         """
         self._data[key] = value
 
-    def __getitem__(self, item: str) -> any:
+    def __getitem__(self, item: str) -> Any:
         return self._data[item]
 
-    def __setitem__(self, key: str, value: any) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         self._data[key] = value
 
     def init(self) -> None:
@@ -205,7 +209,7 @@ def store(name: str | Callable[..., T] = None) -> Callable[..., T]:
     """
     def decorator(method: Callable[..., T]) -> Callable[..., T]:
         @wraps(method)
-        def wrapper(self: API, *args: any, **kwargs: any) -> T:
+        def wrapper(self: API, *args: Any, **kwargs: Any) -> T:
             if isinstance(self, API):
                 self[name or method.__name__] = method(self, *args, **kwargs)
                 return self[name or method.__name__]
@@ -240,7 +244,7 @@ class ThreadedAPI(API, Thread):
         Thread.__init__(
             self,
             target=self._run,
-            name=f"API-Thread for '{self.API_URL}'",
+            name='API-Thread for "%s"' % self.API_URL,
             daemon=True,
         )
         self._is_running = False
@@ -283,7 +287,9 @@ class ThreadedAPI(API, Thread):
         """Stop requesting data and shut down the separate thread."""
         self._is_running = False
         if self.is_alive():
-            self.join()
+            self.join(self._interval)
+            if self.is_alive():
+                logger.error('Thread <%s> could not be stopped!' % self.name)
 
     def reset(self) -> None:
         """Reset the thread and the cache so that they can be reused with ``start()``."""
@@ -303,7 +309,7 @@ class BlockingRestAPI(APISession, API):
         501: APIFeatureMissingError,
     }
 
-    def __init__(self, **kwargs: any) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``BlockingRestAPI``.
 
         Args:
@@ -313,7 +319,7 @@ class BlockingRestAPI(APISession, API):
         APISession.__init__(self, **kwargs)
         API.__init__(self)
 
-    def _build_session(self, **kwargs: any) -> None:
+    def _build_session(self, **kwargs: Any) -> None:
         APISession._build_session(self, **kwargs)
         self._session.headers.update({"User-Agent": "Python/onboardapis (%s)" % get_package_version()})
 
@@ -321,7 +327,7 @@ class BlockingRestAPI(APISession, API):
 class ThreadedRestAPI(ThreadedAPI, BlockingRestAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingRestAPI``."""
 
-    def __init__(self, **kwargs: any) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize a new ``ThreadedRestAPI``."""
         kwargs['url'] = kwargs.pop('url', self.API_URL)
         ThreadedAPI.__init__(self)
@@ -334,7 +340,7 @@ class BlockingGraphQlAPI(Client, API):
     queries: dict[str, str]
     """The queries that will be used by this ``BlockingGraphQlAPI``."""
 
-    def __init__(self, queries: dict[str, str], **kwargs: any) -> None:
+    def __init__(self, queries: dict[str, str], **kwargs: Any) -> None:
         """Initialize a new ``BlockingGraphQlAPI``.
 
         Args:
@@ -358,7 +364,7 @@ class BlockingGraphQlAPI(Client, API):
 class ThreadedGraphQlAPI(ThreadedAPI, BlockingGraphQlAPI, metaclass=ABCMeta):
     """A threaded version of the ``BlockingGraphQlAPI``."""
 
-    def __init__(self, queries: dict[str, str], **kwargs: any) -> None:
+    def __init__(self, queries: dict[str, str], **kwargs: Any) -> None:
         """Initialize a new ``ThreadedGraphQlAPI``.
 
         Args:
