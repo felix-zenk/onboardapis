@@ -102,21 +102,36 @@ def hours(minutes: float = 0, seconds: float = 0) -> float:  # noqa: F402
     return ret
 
 
-def kilometers_per_hour(meters_per_second: float = None) -> float:  # noqa: F402
+def kilometers_per_hour(meters_per_second: float = None, knots: float = None) -> float:  # noqa: F402
     """Convert to kilometers per hour"""
     ret = 0
     if meters_per_second:
         ret += kilometers(meters=meters_per_second) / hours(seconds=1)
+    if knots:
+        ret += kilometers(nautical=knots) / hours(seconds=1)
     return ret
 
 
-def meters_per_second(kilometers_per_hour: float = None) -> float:  # noqa: F402
+def meters_per_second(kilometers_per_hour: float = None, knots: float = None) -> float:  # noqa: F402
     """Convert to meters per second"""
     ret = 0
     if kilometers_per_hour:
         ret += meters(kilometers=kilometers_per_hour) / seconds(hours=1)
+    if knots:
+        ret += meters(nautical=knots) / seconds(hours=1)
+    return ret
+
+
+def knots(meters_per_second: float = None, kilometers_per_hour: float = None) -> float:  # noqa: F402
+    """Convert to knots"""
+    ret = 0
+    if meters_per_second:
+        ret += nautical(meters=meters_per_second) / hours(seconds=1)
+    if kilometers_per_hour:
+        ret += nautical(kilometers=kilometers_per_hour)
     return ret
 
 
 kmh = kilometers_per_hour
 ms = meters_per_second
+kn = knots
