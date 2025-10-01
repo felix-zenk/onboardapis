@@ -64,8 +64,9 @@ class Vehicle(metaclass=ABCMeta):
             self._api.init()
             if isinstance(self._api, ThreadedAPI):
                 self._api.start()
-                if not self._api.ready.wait(timeout=15):
-                    raise RuntimeError
+                # noinspection PyProtectedMember
+                if not self._api.ready.wait(timeout=max(self._api._interval * 1.5, 15)):
+                    raise RuntimeError('API readiness period timed out!')
                 return
         except RuntimeError as e:
             raise InitialConnectionError from e
