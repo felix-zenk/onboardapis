@@ -18,13 +18,13 @@ authors = [
     { name = "Felix Zenk", email = "felix.zenk@web.de" },
 ]
 dependencies = [
-    "beautifulsoup4>=4.13.4",
-    "deprecation>=2.1.0",
+    "annotated-types>=0.7.0",
+    "beautifulsoup4>=4.14.2",
     "geopy>=2.4.1",
-    "gql[all]>=3.5.0",
-    "requests>=2.32.4",
+    "gql[all]>=4.0.0",
+    "requests>=2.32.5",
     "restfly>=1.5.1",
-    "PyYAML>=6.0.2",
+    "PyYAML>=6.0.3",
 ]
 classifiers = [
     "Operating System :: OS Independent",
