@@ -60,14 +60,13 @@ Issues = "https://github.com/felix-zenk/onboardapis/issues"
 include = ["onboardapis", "onboardapis.*"]
 
 [tool.setuptools.package-data]
-onboardapis = [
-    "py.typed"
-]
+onboardapis = ["py.typed"]
 "onboardapis.train" = [
     "de/db/mappings.yaml",
     "third_party/unwired/queries/*.graphql",
     "third_party/unwired/mutations/*.graphql",
 ]
+"onboardapis.other" = ["NAMESPACE.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

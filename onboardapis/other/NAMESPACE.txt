@@ -1,0 +1,7 @@
+Package for other vehicle types
+
+Other vehicle types could be anything that doesn't fit into the specified categories.
+They may be additions that will be added in the future or vehicles that are not
+common enough to warrant their own category.
+
+This package is a namespace package that can be used by other packages to provide additional vehicle types.
