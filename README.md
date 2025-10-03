@@ -117,12 +117,13 @@ and the respective train's documentation.
 
 ## Experimental APIs
 
-| API                    | [API features](#api-features) | Type  | Country      | Operator                     |
-|------------------------|-------------------------------|-------|--------------|------------------------------|
-| PortalINOUI            | basic, vehicle, geo, journey  | train | fr (France)  | sncf (SNCF Voyageurs)        |
-| RegioGuide / ZugPortal | basic, vehicle, geo, journey  | train | de (Germany) | db (Deutsche Bahn / DB AG)   |
-| PortaleRegionale       | basic, basic-journey          | train | it (Italy)   | ti (Trenitalia S.p.A.)       |
-| SBahnHannover          | *online*\*, basic-journey     | train | de (Germany) | tdh (Transdev Hannover GmbH) |
+| API                    | [API features](#api-features) | Type  | Country             | Operator                     |
+|------------------------|-------------------------------|-------|---------------------|------------------------------|
+| PortalINOUI            | basic, vehicle, geo, journey  | train | fr (France)         | sncf (SNCF Voyageurs)        |
+| RegioGuide / ZugPortal | basic, vehicle, geo, journey  | train | de (Germany)        | db (Deutsche Bahn / DB AG)   |
+| PortaleRegionale       | basic, basic-journey          | train | it (Italy)          | ti (Trenitalia S.p.A.)       |
+| SBahnHannover          | *online*\*, basic-journey     | train | de (Germany)        | tdh (Transdev Hannover GmbH) |
+| České dráhy            | basic, geo                    | train | cz (Czech Republic) | cd (České dráhy s.a.)        |
 
     * Not supported yet.
 
@@ -134,11 +135,11 @@ and the respective train's documentation.
 
 ## Finding your API
 
-##### 1. Determine vehicle type: ``train``, ``plane``, ``bus``, ``ship``, ``other``.
-##### 2. Look up the [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) of the operators country
+##### 1. Determine the vehicle type: ``train``, ``plane``, ``bus``, ``ship``, ``other``.
+##### 2. Look up the [ISO 3166-2 country code](https://en.wikipedia.org/wiki/ISO_3166-2#Current_codes) of the operators' country
 ##### 3. Operator code
 
-The operator code is vehicle type specific. The following IDs are used:
+The operator code is vehicle-type-specific. The following IDs are used:
 
 | Vehicle type | Region | Register                                                    |
 |--------------|--------|-------------------------------------------------------------|
@@ -156,10 +157,13 @@ This is the module that contains the API.
 ## API features
 
 The API features define what information can be accessed through the API
-and is a general indicator of the API's capabilities.  
+and are a general indicator of the API's capabilities.  
 Features can be combined.  
-The currently possible API features are:
-- ``basic`` / ``online``: basic information is available such as connection status to the API. / The API supplies the user with internet access and the internet access can be enabled and disabled.
+The current possible API features are:
+- ``basic`` / ``online``: basic information is available such as connection status to the API.
+  / The API supplies the user with internet access, and the internet access can be enabled and disabled.
 - ``vehicle``: The API supplies information about the vehicle such as the train ID, line number, etc.
 - ``geo``: The API supplies information about the current location, speed, etc. of the vehicle.
-- ``basic-journey`` / ``journey``: The API supplies basic journey information including the current station and the destination station. / The API supplies detailed journey information including all the stations and possibly connecting services.
+- ``basic-journey`` / ``journey``:
+  The API supplies basic journey information including the current station and the destination station.
+  / The API supplies detailed journey information including all the stations and possibly connecting services.

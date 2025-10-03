@@ -12,6 +12,7 @@ For Europe, the operator ID is the [VKM register code](https://www.era.europa.eu
 Contains the following countries:
 
 - ``onboardapis.train.at`` - Austria
+- ``onboardapis.train.cz`` - Czechia
 - ``onboardapis.train.de`` - Germany
 - ``onboardapis.train.fr`` - France
 - ``onboardapis.train.it`` - Italy
