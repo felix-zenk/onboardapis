@@ -9,12 +9,9 @@ onboardapis
 
 ## Description
 
-onboardapis allows you to interact with different on-board APIs.
+*onboardapis* allows you to interact with different on-board APIs.
 You can connect to the Wi-Fi of a supported transportation provider
-and access information about your journey, the vehicle you are travelling in and much more.
-
-> **Note:** The only vehicle type covered by this package currently is `train`.
-> See the [supported APIs](#supported-apis) for more information.
+and access information about your journey, the vehicle you are traveling in and much more.
 
 ---
 
@@ -44,13 +41,13 @@ $ python -m pip install git+https://github.com/felix-zenk/onboardapis.git
 
 ## Quickstart
 
-To begin with development you will need to know a few things first:
+To begin with development, you will need to know a few things first:
 
-* What vehicle type you want to use
-* Who operates the vehicle
-* What country is the operator from
+* What vehicle type do you want to use?
+* Who operates the vehicle?
+* What country is the operator from?
 
-With this information you can get the needed module from the package 
+With this information you can get the necessary module from the package 
 ``onboardapis.<type>.<country>.<operator>`` and import the API class from it.
 For more specific information on finding the API you are looking for,
 see [Finding your API](#finding-your-api).
@@ -89,12 +86,12 @@ And there you go!
 You can read more information about available attributes in the ``onboardapis.train.Train`` and ``onboardapis.mixins`` documentation
 and the respective train's documentation.
 
-> **Note**: As you may have noticed by now, the package always returns `datetime` or `timedelta` objects for time based values
+> **Note**: As you may have noticed by now, the package always returns `datetime` or `timedelta` objects for time-based values
 > and other values like distances, velocity, etc. in SI units,
 > so you have to convert to other units if you want to use values different from the SI units.
 > For convenience the ``onboardapis.units`` module provides functions to convert between units.
 >
-> The name of a conversion function is the unit which will be the result of the conversion.
+> The name of a conversion function is the unit that will be the result of the conversion.
 > Different units can be passed to a conversion function as keywords.
 > Keywords can be combined to return the sum of the input units.
 
@@ -114,24 +111,28 @@ and the respective train's documentation.
 | ICEPortal             | online, vehicle, geo, journey | train | de (Germany) | db (Deutsche Bahn / DB AG)              |
 | FlixTainment          | basic, geo                    | train | de (Germany) | flix (Flix Train GmbH)                  |
 | MetronomCaptivePortal | online                        | train | de (Germany) | me (metronom Eisenbahngesellschaft mbH) |
+| FlyStream             | basic, geo, basic-journey     | plane | de (Germany) | cfg (Condor Flugdienst GmbH)            |
 
 ## Experimental APIs
 
-| API                    | [API features](#api-features) | Type  | Country             | Operator                     |
-|------------------------|-------------------------------|-------|---------------------|------------------------------|
-| PortalINOUI            | basic, vehicle, geo, journey  | train | fr (France)         | sncf (SNCF Voyageurs)        |
-| RegioGuide / ZugPortal | basic, vehicle, geo, journey  | train | de (Germany)        | db (Deutsche Bahn / DB AG)   |
-| PortaleRegionale       | basic, basic-journey          | train | it (Italy)          | ti (Trenitalia S.p.A.)       |
-| SBahnHannover          | *online*\*, basic-journey     | train | de (Germany)        | tdh (Transdev Hannover GmbH) |
-| České dráhy            | basic, geo                    | train | cz (Czech Republic) | cd (České dráhy s.a.)        |
+| API                     | [API features](#api-features) | Type  | Country             | Operator                     |
+|-------------------------|-------------------------------|-------|---------------------|------------------------------|
+| PortalINOUI             | basic, vehicle, geo, journey  | train | fr (France)         | sncf (SNCF Voyageurs)        |
+| RegioGuide / ZugPortal  | basic, vehicle, geo, journey  | train | de (Germany)        | db (Deutsche Bahn / DB AG)   |
+| PortaleRegionale        | basic, basic-journey          | train | it (Italy)          | ti (Trenitalia S.p.A.)       |
+| SBahnHannover           | *online*\*, basic-journey     | train | de (Germany)        | tdh (Transdev Hannover GmbH) |
+| České dráhy             | basic, geo                    | train | cz (Czech Republic) | cd (České dráhy s.a.)        |
 
     * Not supported yet.
 
 ## APIs in development
 
-| API  | [API features](#api-features) | Type  | Country | Operator |
-|------|-------------------------------|-------|---------|----------|
-| ...  |                               |       |         |          |
+| API                     | [API features](#api-features) | Type  | Country             | Operator                     |
+|-------------------------|-------------------------------|-------|---------------------|------------------------------|
+| UnnamedWideroePortal    | basic, geo, basic-journey     | plane | no (Norway)         | wif (Widerøe's Flyveselskap) |
+| UnnamedMarabuPortal     | basic, geo, basic-journey     | plane | ee (Estonia)        | mbu (Marabu Airlines OÜ)     |
+| UnnamedSmartwingsPortal | basic, geo, basic-journey     | plane | cz (Czech Republic) | tvs (Smartwings a.s)         |
+| ...                     |                               |       |                     |                              |
 
 ## Finding your API
 
@@ -160,10 +161,9 @@ The API features define what information can be accessed through the API
 and are a general indicator of the API's capabilities.  
 Features can be combined.  
 The current possible API features are:
-- ``basic`` / ``online``: basic information is available such as connection status to the API.
-  / The API supplies the user with internet access, and the internet access can be enabled and disabled.
-- ``vehicle``: The API supplies information about the vehicle such as the train ID, line number, etc.
+- ``basic``: Basic information is available such as connection status to the API.
+- ``online``: The API supplies the user with internet access, and the internet access can be enabled and disabled.
+- ``vehicle``: The API supplies information about the vehicle such as the ID, line number, etc.
 - ``geo``: The API supplies information about the current location, speed, etc. of the vehicle.
-- ``basic-journey`` / ``journey``:
-  The API supplies basic journey information including the current station and the destination station.
-  / The API supplies detailed journey information including all the stations and possibly connecting services.
+- ``basic-journey``: The API supplies basic journey information including the current station and the destination station.
+- ``journey``: The API supplies detailed journey information including all the stations and possibly connecting services.
