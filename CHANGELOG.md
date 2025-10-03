@@ -8,12 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+### Changed
+### Removed
+
+## [2.1.0] - 2025-10-03
+
+### Added
 
 - Changelog
+- `OnboardPortal` class (train.cz.cd)
+- `FlightPath3DPortal` class (plane.third_party.betria_interactive)
+- `Everhub` class (plane.third_party.inflight_dublin)
+- `FlyStream` class (plane.cfg)
 
 ### Changed
 
-- Use YAML based resource files
+- Use YAML-based resource files
 - RegioGuideInternetAccessAPI autodetect internet access provider
 - Renamed `UnwiredMapMixin` to `UnwiredPositionMixin`
 
@@ -21,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Deprecated method `RailnetRegio.combined`
 
-## [2.0.0] - 2023-06-27
+## [2.0.0] - 2024-06-27
 
 ### Added
 
@@ -127,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RailnetRegio` class
 - `ICEPortal` class
 
-[unreleased]: https://github.com/felix-zenk/onboardapis/compare/2.0.0...HEAD
+[unreleased]: https://github.com/felix-zenk/onboardapis/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/felix-zenk/onboardapis/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/felix-zenk/onboardapis/compare/v1.3.2...2.0.0
 [1.3.2]: https://github.com/felix-zenk/onboardapis/compare/1.3.1...v1.3.2
 [1.3.1]: https://github.com/felix-zenk/onboardapis/compare/1.3.0...1.3.1
