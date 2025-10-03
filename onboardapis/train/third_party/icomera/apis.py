@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from abc import ABCMeta
-
 from ....mixins import InternetAccessMixin
 from ... import Train
 from .interfaces import GenericIcomeraAPI, GenericIcomeraInternetAccessInterface
@@ -11,7 +9,7 @@ from .interfaces import GenericIcomeraAPI, GenericIcomeraInternetAccessInterface
 logger = logging.getLogger(__name__)
 
 
-class GenericIcomeraTrain(Train, InternetAccessMixin, metaclass=ABCMeta):
+class GenericIcomeraTrain(Train, InternetAccessMixin):
     _api: GenericIcomeraAPI
     _internet_access: GenericIcomeraInternetAccessInterface
 

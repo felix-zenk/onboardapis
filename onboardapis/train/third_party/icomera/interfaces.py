@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from abc import ABCMeta
-
 from bs4 import BeautifulSoup
 
 from ....data import BlockingRestAPI
@@ -13,7 +11,7 @@ from ....mixins import InternetAccessInterface
 logger = logging.getLogger(__name__)
 
 
-class GenericIcomeraAPI(BlockingRestAPI, metaclass=ABCMeta):
+class GenericIcomeraAPI(BlockingRestAPI):
     # noinspection HttpUrlsUsage
     API_URL = 'http://omboard.info'
 

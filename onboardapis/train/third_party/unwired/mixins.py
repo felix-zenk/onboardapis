@@ -6,7 +6,7 @@ from abc import ABCMeta
 from datetime import datetime, timedelta
 
 from ....mixins import PositionMixin, StationsMixin
-from ....data import Position, ScheduledEvent, ID
+from ....data import Position, ScheduledEvent
 from ... import Train, TrainStation
 
 logger = logging.getLogger(__name__)

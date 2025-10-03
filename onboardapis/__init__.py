@@ -124,6 +124,7 @@ class Station(object):
     """
     A Station is a stop on the trip
     """
+    # noinspection PyTypeHints
     id: ID
     """The ID of the station"""
     name: str
@@ -177,3 +178,5 @@ class Station(object):
                 return abs(self.distance - other.distance)
             if self.position is not None and other.position is not None:
                 return self.position.calculate_distance(other.position)
+        # No distance could be determined
+        return None

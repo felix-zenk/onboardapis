@@ -7,7 +7,7 @@ from enum import ReprEnum
 from functools import lru_cache
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Any
 
 import yaml
 
@@ -43,18 +43,18 @@ class ICEPortalAPI(ThreadedRestAPI):
 
     @store('bap')
     @lru_cache
-    def bap_service_status(self) -> dict[str, any]:
+    def bap_service_status(self) -> dict[str, Any]:
         try:
             return self.get("bap/api/bap-service-status").json()
         except (JSONDecodeError, APIFeatureMissingError):
             return {'status': 'false'}
 
     @store('trip')
-    def trip_info(self) -> dict[str, any]:
+    def trip_info(self) -> dict[str, Any]:
         return self.get("api1/rs/tripInfo/trip").json()
 
     @store('status')
-    def status(self) -> dict[str, any]:
+    def status(self) -> dict[str, Any]:
         return self.get("api1/rs/status").json()
 
     def refresh(self) -> None:
@@ -117,10 +117,10 @@ class ICEPortalAPI(ThreadedRestAPI):
 class ICEPortalInternetAccessAPI(BlockingRestAPI):
     API_URL = 'https://login.wifionice.de'
 
-    def __init__(self, **kwargs: any):
+    def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
-    def _build_session(self, **kwargs: any) -> None:
+    def _build_session(self, **kwargs: Any) -> None:
         super()._build_session(**kwargs)
         self._session.headers.update({'X-Requested-With': 'Python/onboardapis (%s)' % get_package_version()})
 

@@ -20,6 +20,7 @@ class PortaleRegionale(Train):
 
     _api: PortaleRegionaleConnector
 
+    # noinspection PyTypeHints
     _stations: dict[ID, TrainStation]
     """A dict that contains the known stations (origin, destination and passed stations)"""
 
