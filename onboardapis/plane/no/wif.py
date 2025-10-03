@@ -1,14 +1,14 @@
 """
 ### Work in progress!
 
-This module contains the implementation for the estonian operator Marabu Airlines OÜ.
+This module contains the implementation for the Norwegian operator Widerøe's Flyveselskap.
 
 > Lists Everhub as the portal provider. Uses websockets primarily!
 """
 from __future__ import annotations
 
-from .third_party.betria_interactive import FlightPath3DAPI
-from .third_party.inflight_dublin import Everhub
+from ..third_party.betria_interactive import FlightPath3DAPI
+from ..third_party.inflight_dublin import Everhub
 
 
 class UnnamedWideroePortal(Everhub):

@@ -1,7 +1,7 @@
 """
 ### Work in progress!
 
-This module contains the implementation for the czech operator Smartwings, a.s.
+This module contains the implementation for the Czech operator Smartwings, a.s.
 """
 from __future__ import annotations
 

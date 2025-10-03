@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..third_party.betria_interactive import FlightPath3DAPI
+from ...third_party.betria_interactive import FlightPath3DAPI
 
 
 class FlyStreamAPI(FlightPath3DAPI):

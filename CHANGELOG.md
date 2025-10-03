@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `OnboardPortal` class (train.cz.cd)
 - `FlightPath3DPortal` class (plane.third_party.betria_interactive)
 - `Everhub` class (plane.third_party.inflight_dublin)
-- `FlyStream` class (plane.cfg)
+- `FlyStream` class (plane.de.cfg)
 
 ### Changed
 
