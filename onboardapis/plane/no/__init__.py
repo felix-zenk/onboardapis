@@ -7,3 +7,7 @@ Contains the following operators:
 
 ---
 """
+
+__all__ = [
+    "wif",
+]
