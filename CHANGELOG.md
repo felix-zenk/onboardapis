@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [2.1.1] - 2026-04-13
+
+### Changed
+
+- Pin dependency RESTfly<2 ([Issue#3](https://github.com/felix-zenk/onboardapis/issues/3))
+
 ## [2.1.0] - 2025-10-03
 
 ### Added
@@ -137,7 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RailnetRegio` class
 - `ICEPortal` class
 
-[unreleased]: https://github.com/felix-zenk/onboardapis/compare/2.1.0...HEAD
+[unreleased]: https://github.com/felix-zenk/onboardapis/compare/2.1.1...HEAD
+[2.1.1]: https://github.com/felix-zenk/onboardapis/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/felix-zenk/onboardapis/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/felix-zenk/onboardapis/compare/v1.3.2...2.0.0
 [1.3.2]: https://github.com/felix-zenk/onboardapis/compare/1.3.1...v1.3.2
