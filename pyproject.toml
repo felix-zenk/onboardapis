@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "onboardapis"
 description = "A pure Python wrapper for the on-board APIs of many different transportation providers."
-version = "2.1.0"
+version = "2.1.1"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9"
 keywords = [
@@ -23,7 +23,7 @@ dependencies = [
     "geopy>=2.4.1",
     "gql[all]>=4.0.0",
     "requests>=2.32.5",
-    "restfly>=1.5.1",
+    "restfly<2",
     "PyYAML>=6.0.3",
 ]
 classifiers = [
