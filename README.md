@@ -1,3 +1,5 @@
+
+
 onboardapis
 ===
 
@@ -16,6 +18,8 @@ and access information about your journey, the vehicle you are traveling in and 
 ---
 
 ## Installation
+
+The package requires Python 3.9 or newer.
 
 Install the latest stable version of onboardapis
 from [PyPI](https://pypi.org/project/onboardapis)
